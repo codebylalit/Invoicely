@@ -1,12 +1,44 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from "react";
+import Header from "@/components/Header";
+import InvoicePromptInput from "@/components/InvoicePromptInput";
+import InvoicePreview from "@/components/InvoicePreview";
+import { Invoice } from "@/types/invoice";
 
 const Index = () => {
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleGenerateInvoice = (generatedInvoice: Invoice) => {
+    setIsLoading(true);
+    
+    // Simulate API delay
+    setTimeout(() => {
+      setInvoice(generatedInvoice);
+      setIsLoading(false);
+    }, 1000);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="flex flex-col min-h-screen bg-invoice-light dark:bg-invoice-darkBg">
+      <Header />
+      
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+        <div className="overflow-auto">
+          <InvoicePromptInput
+            onGenerate={handleGenerateInvoice}
+            isLoading={isLoading}
+          />
+        </div>
+        
+        <div className="bg-invoice-light dark:bg-invoice-dark p-6 rounded-lg shadow-sm border border-border">
+          <InvoicePreview invoice={invoice} />
+        </div>
+      </main>
+      
+      <footer className="py-4 px-6 text-center text-invoice-gray border-t border-border">
+        <p className="text-sm">© 2025 InvoiceAI. All rights reserved.</p>
+      </footer>
     </div>
   );
 };
