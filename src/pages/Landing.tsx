@@ -5,7 +5,12 @@ import { CheckIcon, FileText, ZapIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import { PricingTier } from "@/types/subscription";
-import { createClientComponentClient } from '@supabase/auth-helpers-react';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize the Supabase client correctly
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const pricingTiers: PricingTier[] = [
   {
@@ -37,8 +42,6 @@ const pricingTiers: PricingTier[] = [
 ];
 
 const Landing = () => {
-  const supabase = createClientComponentClient();
-
   const handleSignIn = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'github',
