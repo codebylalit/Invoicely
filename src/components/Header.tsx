@@ -1,12 +1,33 @@
 
 import ThemeToggle from "./ThemeToggle";
-import { FileText } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { FileText, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession } from '@supabase/auth-helpers-react';
+import { useToast } from "./ui/use-toast";
 
 const Header = () => {
   const location = useLocation();
+  const session = useSession();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const isAppPage = location.pathname === "/app";
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate("/");
+      toast({
+        description: "Successfully signed out",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        description: "Error signing out",
+      });
+    }
+  };
 
   return (
     <header className="flex items-center justify-between px-4 py-3 border-b border-border">
@@ -18,13 +39,26 @@ const Header = () => {
       </Link>
       
       <div className="flex items-center gap-3">
-        {isAppPage ? (
-          <Link to="/">
-            <Button variant="outline" size="sm">Back Home</Button>
-          </Link>
+        {session ? (
+          <>
+            {!isAppPage && (
+              <Link to="/app">
+                <Button variant="outline" size="sm">Create Invoice</Button>
+              </Link>
+            )}
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={handleSignOut}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
+          </>
         ) : (
-          <Link to="/app">
-            <Button variant="outline" size="sm">Create Invoice</Button>
+          <Link to="/auth">
+            <Button variant="outline" size="sm">Sign In</Button>
           </Link>
         )}
         <ThemeToggle />
