@@ -13,12 +13,33 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Initialize the Supabase client correctly
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Initialize Supabase with proper configuration
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Create supabase client only if we have the required credentials
+const supabase = (supabaseUrl && supabaseAnonKey) 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null;
 
 const App = () => {
+  // If Supabase credentials are missing, render a message
+  if (!supabase) {
+    return (
+      <div className="flex items-center justify-center min-h-screen p-4 bg-invoice-light dark:bg-invoice-darkBg">
+        <div className="max-w-md p-6 text-center bg-white rounded-lg shadow-md dark:bg-invoice-dark">
+          <h1 className="mb-4 text-xl font-bold text-invoice-lightText dark:text-invoice-darkText">
+            Supabase Configuration Missing
+          </h1>
+          <p className="mb-4 text-invoice-gray">
+            Please make sure you've connected your project to Supabase and set the 
+            VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <React.StrictMode>
       <SessionContextProvider supabaseClient={supabase}>
