@@ -39,6 +39,6 @@ const DashboardSidebar = () => {
       </nav>
     </aside>
   );
-});
+};
 
 export default DashboardSidebar;
