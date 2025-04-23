@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import Clients from "./pages/Clients";
 import Invoices from "./pages/Invoices";
 import Settings from "./pages/Settings";
+import DashboardLayout from "./layouts/DashboardLayout";
 
 const queryClient = new QueryClient();
 
@@ -38,40 +40,26 @@ const App = () => {
                 <Route
                   path="/"
                   element={
-                    <Navigate to="/app" replace /> // Redirect root to dashboard for logged-in, auth will handle guests
+                    <Navigate to="/app" replace />
                   }
                 />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/app" element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } />
-                <Route path="/app/clients" element={
-                  <ProtectedRoute>
-                    <Clients />
-                  </ProtectedRoute>
-                } />
-                <Route path="/app/invoices" element={
-                  <ProtectedRoute>
-                    <Invoices />
-                  </ProtectedRoute>
-                } />
-                <Route path="/app/items" element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } />
-                <Route path="/app/page" element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } />
-                <Route path="/app/settings" element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                } />
+                {/* Dashboard layout with nested content */}
+                <Route
+                  path="/app"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<Index />} />
+                  <Route path="clients" element={<Clients />} />
+                  <Route path="invoices" element={<Invoices />} />
+                  <Route path="items" element={<Index />} />
+                  <Route path="page" element={<Index />} />
+                  <Route path="settings" element={<Settings />} />
+                </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
