@@ -20,13 +20,13 @@ const DashboardSidebar = () => {
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
-          
+
           return (
             <Link
               key={item.path}
               to={item.path}
               className={`flex items-center gap-3 px-4 py-2 rounded-md transition-colors ${
-                isActive 
+                isActive
                   ? "bg-invoice-orange/10 text-invoice-orange"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               }`}

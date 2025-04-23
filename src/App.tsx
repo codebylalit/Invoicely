@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,6 +10,9 @@ import Index from "./pages/Index";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Clients from "./pages/Clients";
+import Invoices from "./pages/Invoices";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -33,7 +35,12 @@ const App = () => {
             <Sonner />
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<Landing />} />
+                <Route
+                  path="/"
+                  element={
+                    <Navigate to="/app" replace /> // Redirect root to dashboard for logged-in, auth will handle guests
+                  }
+                />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/app" element={
                   <ProtectedRoute>
@@ -42,12 +49,12 @@ const App = () => {
                 } />
                 <Route path="/app/clients" element={
                   <ProtectedRoute>
-                    <Index />
+                    <Clients />
                   </ProtectedRoute>
                 } />
                 <Route path="/app/invoices" element={
                   <ProtectedRoute>
-                    <Index />
+                    <Invoices />
                   </ProtectedRoute>
                 } />
                 <Route path="/app/items" element={
@@ -62,7 +69,7 @@ const App = () => {
                 } />
                 <Route path="/app/settings" element={
                   <ProtectedRoute>
-                    <Index />
+                    <Settings />
                   </ProtectedRoute>
                 } />
                 <Route path="*" element={<NotFound />} />
