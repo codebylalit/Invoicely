@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Invoice } from "@/types/invoice";
 import { useToast } from "@/hooks/use-toast";
@@ -7,23 +6,20 @@ import { CalendarIcon } from "lucide-react";
 interface InvoicePromptInputProps {
   onGenerate: (invoice: Invoice) => void;
   isLoading: boolean;
+  invoiceDraft?: Invoice | null;
+  onDraftChange?: (draft: Invoice | null) => void;
 }
 
 const mockAiProcess = (prompt: string): Invoice => {
-  // This is a mock function that simulates AI processing
-  // In a real implementation, this would call an AI service
-  
   const currentDate = new Date();
   const dueDate = new Date();
   dueDate.setDate(currentDate.getDate() + 30);
   
-  // Simple parsing to extract some invoice details from the prompt
   let clientName = "N/A";
   let clientEmail = "N/A";
   let amount = 0;
   let description = "Service";
   
-  // Very basic parsing - this would be replaced with actual AI
   if (prompt.includes("for") && prompt.includes("$")) {
     const nameMatch = prompt.match(/for\s+([A-Za-z\s]+)(?:\s+\(|$|\s)/);
     clientName = nameMatch ? nameMatch[1].trim() : "N/A";
@@ -58,15 +54,43 @@ const mockAiProcess = (prompt: string): Invoice => {
   };
 };
 
-const InvoicePromptInput = ({ onGenerate, isLoading }: InvoicePromptInputProps) => {
+const InvoicePromptInput = ({
+  onGenerate,
+  isLoading,
+  invoiceDraft,
+  onDraftChange,
+}: InvoicePromptInputProps) => {
   const [prompt, setPrompt] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerDetails, setCustomerDetails] = useState("");
   const [memo, setMemo] = useState("");
-  
+
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    if (invoiceDraft) {
+      setPrompt(invoiceDraft.items?.[0]?.description || "");
+      setDueDate(invoiceDraft.dueDate || "");
+      setCustomerName(invoiceDraft.name || "");
+      setCustomerEmail(invoiceDraft.email || "");
+      setCustomerDetails(invoiceDraft.details || "");
+    }
+  }, [invoiceDraft]);
+
+  React.useEffect(() => {
+    if (!onDraftChange) return;
+
+    let draft: Invoice = mockAiProcess(prompt);
+
+    if (dueDate) draft.dueDate = dueDate;
+    if (customerName) draft.name = customerName;
+    if (customerEmail) draft.email = customerEmail;
+    if (customerDetails) draft.details = customerDetails;
+
+    onDraftChange(draft);
+  }, [prompt, dueDate, customerName, customerEmail, customerDetails, memo]);
 
   const handleGenerate = () => {
     if (prompt.trim() === "") {
@@ -79,17 +103,12 @@ const InvoicePromptInput = ({ onGenerate, isLoading }: InvoicePromptInputProps) 
     }
 
     try {
-      // In a real implementation, this would call an API endpoint
       const generatedInvoice = mockAiProcess(prompt);
-      
-      // Apply any manually entered values
       if (dueDate) generatedInvoice.dueDate = dueDate;
       if (customerName) generatedInvoice.name = customerName;
       if (customerEmail) generatedInvoice.email = customerEmail;
       if (customerDetails) generatedInvoice.details = customerDetails;
-      
       onGenerate(generatedInvoice);
-      
       toast({
         title: "Invoice generated",
         description: "Your invoice has been successfully generated",

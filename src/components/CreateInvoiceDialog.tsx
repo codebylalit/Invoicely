@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Dialog,
@@ -16,16 +15,19 @@ import type { Invoice } from "@/types/invoice";
 
 const CreateInvoiceDialog = () => {
   const [open, setOpen] = useState(false);
-  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [invoiceDraft, setInvoiceDraft] = useState<Invoice | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleGenerate = (generatedInvoice: Invoice) => {
-    setInvoice(generatedInvoice);
+  const handleDraftChange = (draft: Invoice | null) => {
+    setInvoiceDraft(draft);
   };
 
-  // Reset state when closing dialog
+  const handleGenerate = (generatedInvoice: Invoice) => {
+    setInvoiceDraft(generatedInvoice);
+  };
+
   const handleClose = () => {
-    setInvoice(null);
+    setInvoiceDraft(null);
     setIsLoading(false);
     setOpen(false);
   };
@@ -47,10 +49,15 @@ const CreateInvoiceDialog = () => {
         </DialogHeader>
         <div className="flex flex-col md:flex-row gap-0 md:gap-8 p-6 min-h-[500px]">
           <div className="flex-1 border-r border-border pr-0 md:pr-6 mb-6 md:mb-0">
-            <InvoicePromptInput onGenerate={handleGenerate} isLoading={isLoading} />
+            <InvoicePromptInput
+              onGenerate={handleGenerate}
+              isLoading={isLoading}
+              invoiceDraft={invoiceDraft}
+              onDraftChange={handleDraftChange}
+            />
           </div>
           <div className="flex-1 pl-0 md:pl-6">
-            <InvoicePreview invoice={invoice} />
+            <InvoicePreview invoice={invoiceDraft} showSendByEmail />
           </div>
         </div>
         <DialogClose asChild>
@@ -69,4 +76,3 @@ const CreateInvoiceDialog = () => {
 };
 
 export default CreateInvoiceDialog;
-

@@ -1,13 +1,15 @@
 
-import { Download, FileText, Users } from "lucide-react";
+import { Download, FileText, Users, Mail } from "lucide-react";
 import { Invoice, InvoiceItem } from "@/types/invoice";
 import { useToast } from "@/hooks/use-toast";
+import React from "react";
 
 interface InvoicePreviewProps {
   invoice: Invoice | null;
+  showSendByEmail?: boolean; // Optional, display "Send by Email" button if true
 }
 
-const InvoicePreview = ({ invoice }: InvoicePreviewProps) => {
+const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
   const { toast } = useToast();
 
   const handleDownloadPDF = () => {
@@ -17,11 +19,34 @@ const InvoicePreview = ({ invoice }: InvoicePreviewProps) => {
       description: "Your invoice PDF is being prepared for download",
     });
     
-    // Simulate download delay
     setTimeout(() => {
       toast({
         title: "Success",
         description: "Invoice PDF downloaded successfully",
+        variant: "default",
+      });
+    }, 1500);
+  };
+
+  const handleSendByEmail = () => {
+    if (!invoice?.email) {
+      toast({
+        title: "No customer email",
+        description: "Add a customer email address to send the invoice.",
+        variant: "destructive",
+      });
+      return;
+    }
+    // Simulate sending email
+    toast({
+      title: "Sending Invoice",
+      description: `Invoice is being sent to ${invoice.email}`,
+      variant: "default",
+    });
+    setTimeout(() => {
+      toast({
+        title: "Success",
+        description: `Invoice sent to ${invoice.email}`,
         variant: "default",
       });
     }, 1500);
@@ -146,7 +171,7 @@ const InvoicePreview = ({ invoice }: InvoicePreviewProps) => {
         </div>
       </div>
 
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex justify-center gap-4">
         <button
           onClick={handleDownloadPDF}
           className="flex items-center gap-2 invoice-btn-secondary"
@@ -154,6 +179,15 @@ const InvoicePreview = ({ invoice }: InvoicePreviewProps) => {
           <Download size={16} />
           Download PDF
         </button>
+        {showSendByEmail && (
+          <button
+            onClick={handleSendByEmail}
+            className="flex items-center gap-2 invoice-btn-primary"
+          >
+            <Mail size={16} />
+            Send by Email
+          </button>
+        )}
       </div>
       
       <div className="mt-6 flex justify-between items-center pt-4 border-t border-border">
