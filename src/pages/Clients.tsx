@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface Client {
   id: string;
@@ -21,6 +22,7 @@ const Clients = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [addLoading, setAddLoading] = useState(false);
+  const session = useSession();
 
   useEffect(() => {
     setLoading(true);
@@ -36,16 +38,24 @@ const Clients = () => {
 
   const handleAddClient = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!session?.user?.id) {
+      console.error("No user ID found - user must be logged in");
+      return;
+    }
+    
     setAddLoading(true);
     const { data, error } = await supabase
       .from("clients")
-      .insert([{ name, email }])
+      .insert([{ name, email, user_id: session.user.id }])
       .select();
     setAddLoading(false);
+    
     if (!error && data) {
       setClients([data[0], ...clients]);
       setName("");
       setEmail("");
+    } else if (error) {
+      console.error("Error adding client:", error);
     }
   };
 
