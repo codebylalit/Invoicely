@@ -2,15 +2,17 @@ import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
+import Subscription from "@/components/Subscription";
+import { useLocation } from "react-router-dom";
+import SettingsSuccess from "./pages/SettingsSuccess";
 
 const Settings = () => {
   const supabase = useSupabaseClient();
   const session = useSession();
   const [activeTab, setActiveTab] = useState("business");
   const [loading, setLoading] = useState(false);
-  const [upgrading, setUpgrading] = useState(false);
   const [connecting, setConnecting] = useState(false);
-  const [billingCycle, setBillingCycle] = useState("monthly");
+  const location = useLocation();
 
   // User subscription state
   const [userSubscription, setUserSubscription] = useState({
@@ -41,6 +43,18 @@ const Settings = () => {
       fetchUserSubscription();
     }
   }, [session]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    // PayPal returns 'token' and sometimes 'PayerID' on success
+    if (params.get("token")) {
+      toast({
+        title: "Payment Complete!",
+        description: "Thank you for your payment. Your subscription will be updated shortly.",
+      });
+    }
+    // Optionally, handle cancel/error cases if you want
+  }, [location]);
 
   // Fetch business details from Supabase
   const fetchBusinessDetails = async () => {
@@ -262,22 +276,6 @@ const Settings = () => {
       toast({
         title: "Success",
         description: "Stripe connected successfully (mock)",
-      });
-    }, 1200);
-  };
-
-  // Handle upgrade to selected plan
-  const handleUpgradePlan = (plan) => {
-    setUpgrading(true);
-    setTimeout(() => {
-      setUpgrading(false);
-      setUserSubscription((prev) => ({
-        ...prev,
-        tier: plan,
-      }));
-      toast({
-        title: "Success",
-        description: `You've successfully upgraded to the ${plan} plan! (mock)`,
       });
     }, 1200);
   };
@@ -549,262 +547,70 @@ const Settings = () => {
                     {loading ? "Saving..." : "Save bank details"}
                   </Button>
                 </div>
+
+                {/* Stripe */}
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <div className="flex items-center mb-4">
+                    <div className="bg-indigo-600 p-2 rounded-md mr-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-white"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                        <path
+                          fillRule="evenodd"
+                          d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <span className="font-medium">Stripe</span>
+                  </div>
+
+                  <p className="text-sm text-gray-500 mb-4">
+                    Connect Stripe and accept Cards, Google & Apple Pay. Only
+                    standard Stripe processing fees apply.{" "}
+                    <a
+                      href="https://stripe.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-green-600 hover:underline"
+                    >
+                      Learn more at Stripe
+                    </a>
+                  </p>
+
+                  {userSubscription.paymentMethod === "stripe" ? (
+                    <div className="text-sm text-green-600 mb-4 font-medium">
+                      ✓ Connected to Stripe
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={handleConnectStripe}
+                      disabled={connecting}
+                      className="bg-green-600 hover:bg-green-700 w-full"
+                    >
+                      {connecting ? "Connecting..." : "Connect"}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
           {/* Subscription */}
           {activeTab === "subscription" && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-lg font-medium mb-6">
-                Simple pricing, no hidden fees
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Free Plan */}
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="p-6">
-                    <h3 className="text-lg font-medium">Free</h3>
-                    <div className="mt-2">
-                      <span className="text-2xl font-bold">$0</span>
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Perfect for getting started
-                    </p>
-
-                    <button className="mt-4 w-full py-2 px-4 rounded-md text-center bg-gray-200 hover:bg-gray-300 text-gray-700">
-                      Current Plan
-                    </button>
-                  </div>
-
-                  <div className="px-6 py-4 border-t">
-                    <ul className="space-y-2">
-                      <li className="flex items-center text-sm">
-                        <svg
-                          className="h-4 w-4 mr-2 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Basic invoice creation
-                      </li>
-                      <li className="flex items-center text-sm">
-                        <svg
-                          className="h-4 w-4 mr-2 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Store up to 10 clients
-                      </li>
-                      <li className="flex items-center text-sm">
-                        <svg
-                          className="h-4 w-4 mr-2 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        3 templates
-                      </li>
-                      <li className="flex items-center text-sm">
-                        <svg
-                          className="h-4 w-4 mr-2 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        PDF export with watermark
-                      </li>
-                      <li className="flex items-center text-sm">
-                        <svg
-                          className="h-4 w-4 mr-2 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Logo branding
-                      </li>
-                      <li className="flex items-center text-sm">
-                        <svg
-                          className="h-4 w-4 mr-2 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Basic email support (72hr)
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Pro Plan */}
-                <div className="border rounded-lg overflow-hidden border-green-500">
-                  <div className="p-6">
-                    <h3 className="text-lg font-medium">Pro</h3>
-                    <div className="mt-2">
-                      <span className="text-2xl font-bold">$5</span>
-                      <span className="text-gray-500 ml-1">/mo</span>
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      For growing businesses
-                    </p>
-
-                    <button
-                      className={`mt-4 w-full py-2 px-4 rounded-md text-center ${
-                        userSubscription.tier === "pro"
-                          ? "bg-gray-200 text-gray-700 cursor-not-allowed"
-                          : "bg-green-600 text-white hover:bg-green-700"
-                      }`}
-                      onClick={() => handleUpgradePlan("pro")}
-                      disabled={userSubscription.tier === "pro" || upgrading}
-                    >
-                      {upgrading
-                        ? "Processing..."
-                        : userSubscription.tier === "pro"
-                        ? "Current Plan"
-                        : "Subscribe Now"}
-                    </button>
-                  </div>
-
-                  <div className="px-6 py-4 border-t">
-                    <ul className="space-y-2">
-                      <li className="flex items-center text-sm">
-                        <svg
-                          className="h-4 w-4 mr-2 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        AI-powered invoice generation
-                      </li>
-                      <li className="flex items-center text-sm">
-                        <svg
-                          className="h-4 w-4 mr-2 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Unlimited clients in portal
-                      </li>
-                      <li className="flex items-center text-sm">
-                        <svg
-                          className="h-4 w-4 mr-2 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        10+ premium templates
-                      </li>
-                      <li className="flex items-center text-sm">
-                        <svg
-                          className="h-4 w-4 mr-2 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Watermark-free exports
-                      </li>{" "}
-                      <li className="flex items-center text-sm">
-                        <svg
-                          className="h-4 w-4 mr-2 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Recurring invoices
-                      </li>
-                      <li className="flex items-center text-sm">
-                        <svg
-                          className="h-4 w-4 mr-2 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Send invoices directly via email
-                      </li>
-                      <li className="flex items-center text-sm">
-                        <svg
-                          className="h-4 w-4 mr-2 text-green-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Priority support (24hr)
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <Subscription
+              userSubscription={userSubscription}
+              setUserSubscription={setUserSubscription}
+            />
           )}
         </div>
       </div>
     </div>
   );
 };
+
 export default Settings;
