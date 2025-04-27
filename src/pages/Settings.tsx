@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import Subscription from "@/components/Subscription";
 import { useLocation } from "react-router-dom";
-import SettingsSuccess from "./pages/SettingsSuccess";
 
 const Settings = () => {
   const supabase = useSupabaseClient();
@@ -46,8 +45,17 @@ const Settings = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    // PayPal returns 'token' and sometimes 'PayerID' on success
     if (params.get("token")) {
+      // Notify the opener (main app window) if this is a popup
+      if (window.opener) {
+        window.opener.postMessage(
+          { type: "PAYPAL_PAYMENT_COMPLETE", orderId: params.get("token") },
+          window.location.origin
+        );
+        // Optionally, close this popup window after a short delay
+        setTimeout(() => window.close(), 1000);
+      }
+      // Show a toast in the popup as well (optional)
       toast({
         title: "Payment Complete!",
         description: "Thank you for your payment. Your subscription will be updated shortly.",
