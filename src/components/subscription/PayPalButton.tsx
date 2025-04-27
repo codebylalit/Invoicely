@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "@/components/ui/use-toast";
@@ -130,6 +130,20 @@ const PayPalButton = ({
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.data.type === "PAYPAL_PAYMENT_COMPLETE") {
+        await fetchUserSubscription();
+        toast({
+          title: "Payment successful",
+          description: "You've successfully upgraded to the Pro plan!",
+        });
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   return (
     <Button
