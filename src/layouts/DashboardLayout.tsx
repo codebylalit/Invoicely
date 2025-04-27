@@ -9,7 +9,6 @@ const DashboardLayout = () => {
     <div className="flex min-h-screen bg-background">
       <DashboardSidebar />
       <main className="flex-1">
-        <DashboardHeader />
         <div className="p-6">
           {/* Here goes the main page content */}
           <Outlet />

@@ -74,7 +74,11 @@ const Landing = () => {
           <p className="text-lg md:text-xl text-invoice-gray max-w-2xl mx-auto mb-6">
             Create professional invoices in seconds
           </p>
-          <Button onClick={handleSignIn} size="lg" className="bg-invoice-orange hover:bg-invoice-orange/90">
+          <Button
+            onClick={handleSignIn}
+            size="lg"
+            className="bg-invoice-orange hover:bg-invoice-orange/90"
+          >
             Sign In to Start
           </Button>
         </div>
@@ -89,12 +93,23 @@ const Landing = () => {
 
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {pricingTiers.map((tier) => (
-              <Card key={tier.name} className={`border-2 ${tier.name === 'Pro' ? 'border-invoice-orange' : 'border-border'}`}>
+              <Card
+                key={tier.name}
+                className={`border-2 ${
+                  tier.name === "Pro"
+                    ? "border-invoice-orange"
+                    : "border-border"
+                }`}
+              >
                 <CardHeader>
                   <CardTitle>{tier.name}</CardTitle>
                   <div className="flex items-baseline mt-2">
                     <span className="text-3xl font-bold">{tier.price}</span>
-                    {tier.price !== "$0" && <span className="text-sm text-muted-foreground ml-1">/month</span>}
+                    {tier.price !== "$0" && (
+                      <span className="text-sm text-muted-foreground ml-1">
+                        /month
+                      </span>
+                    )}
                   </div>
                   <CardDescription>{tier.description}</CardDescription>
                 </CardHeader>
@@ -109,8 +124,8 @@ const Landing = () => {
                                 ? "text-invoice-orange"
                                 : "text-muted-foreground"
                               : feature.pro
-                                ? "text-invoice-orange"
-                                : "text-muted-foreground"
+                              ? "text-invoice-orange"
+                              : "text-muted-foreground"
                           }`}
                         />
                         <span className="text-sm">{feature.name}</span>
@@ -141,10 +156,39 @@ const Landing = () => {
           <div className="flex items-center gap-2 mb-4 md:mb-0">
             <FileText className="text-invoice-orange" size={20} />
             <h1 className="text-lg font-bold text-invoice-lightText dark:text-invoice-darkText">
-              InvoiceAI
+              Invoicely
             </h1>
           </div>
-          <p className="text-sm text-invoice-gray">© 2025 InvoiceAI</p>
+
+          {/* Legal & Support Links */}
+          <div className="flex flex-col md:flex-row gap-4 mb-4 md:mb-0">
+            <Link
+              to="/terms"
+              className="text-sm text-invoice-gray hover:text-invoice-orange transition-colors"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              to="/privacy"
+              className="text-sm text-invoice-gray hover:text-invoice-orange transition-colors"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              to="/refunds"
+              className="text-sm text-invoice-gray hover:text-invoice-orange transition-colors"
+            >
+              Cancellation & Refunds
+            </Link>
+            <Link
+              to="/support"
+              className="text-sm text-invoice-gray hover:text-invoice-orange transition-colors"
+            >
+              Customer Support
+            </Link>
+          </div>
+
+          <p className="text-sm text-invoice-gray">© 2025 Invoicely</p>
         </div>
       </footer>
     </div>

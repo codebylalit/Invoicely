@@ -8,7 +8,7 @@ export interface InvoiceItem {
 }
 
 export interface Invoice {
-  status: 'draft' | 'pending' | 'paid';
+  status: "draft" | "pending" | "paid";
   dueDate: string;
   name: string;
   email: string;
@@ -17,6 +17,8 @@ export interface Invoice {
   subtotal: number;
   total: number;
   fromCompany: string;
+  taxes: number; // Added taxes property
+  discounts: number; // Added discounts property
 }
 
 export interface AIGeneratedInvoice {

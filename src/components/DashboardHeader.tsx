@@ -8,38 +8,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import ThemeToggle from "./ThemeToggle";
 
 const DashboardHeader = () => {
   const [currency, setCurrency] = useState("USD");
   const [timeframe, setTimeframe] = useState("This Month");
 
   return (
-    <div className="flex items-center justify-between p-6 border-b border-border">
-      <h1 className="text-3xl font-semibold">Dashboard</h1>
-      
-      <div className="flex items-center gap-4">
-        <Select defaultValue={currency} onValueChange={setCurrency}>
-          <SelectTrigger className="w-[120px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="USD">🇺🇸 USD</SelectItem>
-            <SelectItem value="EUR">🇪🇺 EUR</SelectItem>
-            <SelectItem value="GBP">🇬🇧 GBP</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select defaultValue={timeframe} onValueChange={setTimeframe}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="This Month">This Month</SelectItem>
-            <SelectItem value="Last Month">Last Month</SelectItem>
-            <SelectItem value="This Year">This Year</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+    <div className="flex items-center justify-between pb-6 border-b border-border">
+      <h1 className="text-3xl font-bold">Dashboard</h1>
+      <ThemeToggle />
     </div>
   );
 };

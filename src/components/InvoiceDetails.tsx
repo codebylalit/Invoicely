@@ -1,0 +1,305 @@
+import { Calendar, User, Mail, FileText, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+
+interface Client {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  company?: string;
+}
+
+interface InvoiceDetailsProps {
+  invoiceTitle: string;
+  setInvoiceTitle: (title: string) => void;
+  invoiceNumber: string;
+  setInvoiceNumber: (number: string) => void;
+  issuedDate: string;
+  setIssuedDate: (date: string) => void;
+  dueDate: string;
+  setDueDate: (date: string) => void;
+  customerName: string;
+  setCustomerName: (name: string) => void;
+  customerEmail: string;
+  setCustomerEmail: (email: string) => void;
+  customerDetails: string;
+  setCustomerDetails: (details: string) => void;
+  businessDetails: any;
+  clients: Client[];
+  selectedClient: Client | null;
+  handleClientSelect: (clientId: string) => void;
+  clientDropdownOpen: boolean;
+  setClientDropdownOpen: (open: boolean) => void;
+}
+
+export const InvoiceDetails = ({
+  invoiceTitle,
+  setInvoiceTitle,
+  invoiceNumber,
+  setInvoiceNumber,
+  issuedDate,
+  setIssuedDate,
+  dueDate,
+  setDueDate,
+  customerName,
+  setCustomerName,
+  customerEmail,
+  setCustomerEmail,
+  customerDetails,
+  setCustomerDetails,
+  businessDetails,
+  clients,
+  selectedClient,
+  handleClientSelect,
+  clientDropdownOpen,
+  setClientDropdownOpen,
+}: InvoiceDetailsProps) => {
+  const [clientSuggestions, setClientSuggestions] = useState<Client[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Filter clients as user types in the name field
+  useEffect(() => {
+    if (customerName.trim() === "") {
+      setClientSuggestions([]);
+      return;
+    }
+
+    const filteredClients = clients.filter((client) =>
+      client.name.toLowerCase().includes(customerName.toLowerCase())
+    );
+
+    setClientSuggestions(filteredClients);
+    setShowSuggestions(filteredClients.length > 0);
+  }, [customerName, clients]);
+
+  // Handle client selection from the suggestions
+  const selectClient = (client: Client) => {
+    setCustomerName(client.name);
+    setCustomerEmail(client.email || "");
+
+    let details = "";
+    if (client.company) details += client.company + "\n";
+    if (client.address) details += client.address + "\n";
+    if (client.phone) details += client.phone;
+
+    setCustomerDetails(details.trim());
+    setShowSuggestions(false);
+
+    // Set selected client in parent component
+    handleClientSelect(client.id);
+  };
+
+  return (
+    <>
+      {/* Invoice Header Section */}
+      <div className="bg-white dark:bg-invoice-darkBg p-6 rounded-lg dark:border-gray-700">
+        <h2 className="invoice-section-title mb-2 text-invoice-lightText dark:text-invoice-darkText font-bold text-lg">
+          Invoice Details
+        </h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-invoice-lightText dark:text-invoice-darkText mb-2">
+              Invoice title
+            </label>
+            <input
+              type="text"
+              className="invoice-input w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              value={invoiceTitle}
+              onChange={(e) => setInvoiceTitle(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-invoice-lightText dark:text-invoice-darkText mb-2">
+              Invoice number
+            </label>
+            <input
+              type="text"
+              className="invoice-input w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              value={invoiceNumber}
+              onChange={(e) => setInvoiceNumber(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* From and Billed To */}
+      <div className="bg-white dark:bg-invoice-darkBg p-6 rounded-lg dark:border-gray-700">
+        <h2 className="invoice-section-title mb-4 text-invoice-lightText dark:text-invoice-darkText font-bold text-lg">
+          Parties
+        </h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* From Section */}
+          <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-md space-y-3">
+            <h3 className="invoice-section-title text-invoice-lightText dark:text-invoice-darkText font-semibold">
+              From
+            </h3>
+            <div className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
+              <p className="font-medium">{businessDetails.contact_name}</p>
+              <p>{businessDetails.email}</p>
+              <p>
+                {businessDetails.address}, {businessDetails.city},{" "}
+                {businessDetails.postal_code},<br />
+                {businessDetails.region_state}, {businessDetails.country}
+                <br />
+                {businessDetails.phone_number}
+              </p>
+            </div>
+          </div>
+
+          {/* Billed To Section */}
+          <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-md space-y-3">
+            <h3 className="invoice-section-title text-invoice-lightText dark:text-invoice-darkText font-semibold">
+              Billed To
+            </h3>
+
+            <div className="grid grid-cols-1 gap-3">
+              <div className="relative">
+                <input
+                  type="text"
+                  className="invoice-input pl-10 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  placeholder="Client Name"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  onFocus={() =>
+                    customerName.trim() !== "" &&
+                    setShowSuggestions(clientSuggestions.length > 0)
+                  }
+                  onBlur={() => {
+                    // Small delay to allow clicking on suggestions
+                    setTimeout(() => setShowSuggestions(false), 200);
+                  }}
+                />
+                <User
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                  size={16}
+                />
+
+                {/* Client Name Suggestions */}
+                {showSuggestions && (
+                  <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+                    {clientSuggestions.map((client) => (
+                      <div
+                        key={client.id}
+                        className="flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => selectClient(client)}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedClient?.id === client.id
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        <div>
+                          <div className="font-medium">{client.name}</div>
+                          {client.email && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {client.email}
+                            </div>
+                          )}
+                          {client.company && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {client.company}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <input
+                  type="email"
+                  className="invoice-input pl-10 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  placeholder="client@email.com"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                />
+                <Mail
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                  size={16}
+                />
+              </div>
+
+              <div className="relative">
+                <textarea
+                  className="invoice-textarea pl-10 h-24 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  placeholder="Additional client details or address"
+                  value={customerDetails}
+                  onChange={(e) => setCustomerDetails(e.target.value)}
+                />
+                <FileText
+                  className="absolute left-3 top-3 text-gray-400 dark:text-gray-500"
+                  size={16}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Dates Section */}
+      <div className="bg-white dark:bg-invoice-darkBg p-6 rounded-lg dark:border-gray-700">
+        <h2 className="invoice-section-title mb-4 text-invoice-lightText dark:text-invoice-darkText font-bold text-lg">
+          Dates
+        </h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="block mb-2 text-invoice-lightText dark:text-invoice-darkText">
+              Issued On
+            </label>
+            <div className="relative">
+              <input
+                type="date"
+                className="invoice-input pr-10 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                value={issuedDate}
+                onChange={(e) => setIssuedDate(e.target.value)}
+              />
+              <Calendar
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                size={16}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block mb-2 text-invoice-lightText dark:text-invoice-darkText">
+              Due Date
+            </label>
+            <div className="relative">
+              <input
+                type="date"
+                className="invoice-input pr-10 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+              />
+              <Calendar
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                size={16}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default InvoiceDetails;
