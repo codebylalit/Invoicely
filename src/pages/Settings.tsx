@@ -46,22 +46,18 @@ const Settings = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("token")) {
-      // Notify the opener (main app window) if this is a popup
       if (window.opener) {
         window.opener.postMessage(
           { type: "PAYPAL_PAYMENT_COMPLETE", orderId: params.get("token") },
           window.location.origin
         );
-        // Optionally, close this popup window after a short delay
         setTimeout(() => window.close(), 1000);
       }
-      // Show a toast in the popup as well (optional)
       toast({
         title: "Payment Complete!",
         description: "Thank you for your payment. Your subscription will be updated shortly.",
       });
     }
-    // Optionally, handle cancel/error cases if you want
   }, [location]);
 
   // Fetch business details from Supabase
@@ -287,6 +283,14 @@ const Settings = () => {
       });
     }, 1200);
   };
+
+  const handleMessage = async (event: MessageEvent) => {
+    if (event.data.type === "PAYPAL_PAYMENT_COMPLETE") {
+      // ...verify payment, show toast, refresh subscription...
+      // (You should call setUserSubscription or refetch subscription here)
+    }
+  };
+  window.addEventListener("message", handleMessage);
 
   return (
     <div className="max-w-6xl mx-auto">
