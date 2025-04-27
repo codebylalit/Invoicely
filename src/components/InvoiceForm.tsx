@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { InvoiceDetails } from "./InvoiceDetails";
-import { InvoiceItems } from "./invoiceItems";
+import { InvoiceItems } from "./InvoiceItems";
 import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { Banknote } from "lucide-react";
 import { useNavigate } from "react-router-dom";
