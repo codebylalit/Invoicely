@@ -75,13 +75,13 @@ serve(async (req) => {
       .update({
         tier: orderData.plan,
         payment_method: "paypal",
-        payment_id: orderId,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       })
       .eq("user_id", userId);
 
     if (subscriptionError) {
-      throw new Error("Failed to update user subscription");
+      console.error("Subscription update error:", subscriptionError);
+      throw new Error("Failed to update user subscription: " + JSON.stringify(subscriptionError));
     }
 
     // Create a payment record
@@ -112,10 +112,16 @@ serve(async (req) => {
     );
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({
+        error: error.message,
+        details: error
+      }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json"
+        },
+        status: 400
       }
     );
   }

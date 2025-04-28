@@ -18,7 +18,8 @@ const DashboardSidebar = () => {
   const supabase = useSupabaseClient();
   const [userProfile, setUserProfile] = useState({
     name: 'Lalit Gaming',
-    email: session?.user?.email || 'Loading...'
+    email: session?.user?.email || 'Loading...',
+    tier: 'free'
   });
 
   useEffect(() => {
@@ -28,7 +29,7 @@ const DashboardSidebar = () => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('name')
+          .select('name, tier')
           .eq('id', session.user.id)
           .single();
 
@@ -40,7 +41,8 @@ const DashboardSidebar = () => {
         if (data) {
           setUserProfile({
             name: data.name || 'User',
-            email: session.user.email || ''
+            email: session.user.email || '',
+            tier: data.tier || 'free'
           });
         }
       } catch (error) {
@@ -102,10 +104,30 @@ const DashboardSidebar = () => {
       </nav>
       
       {/* Upgrade button */}
-      <div className="px-2" onClick={goToSubscription}>
-        <button className="w-full py-1 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors">
-          Upgrade to Pro
-        </button>
+      <div className="px-2">
+        {userProfile.tier === "pro" ? (
+          <div className="w-full flex flex-col items-center py-2">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 mb-1">
+              <svg className="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Pro Plan Active
+            </span>
+            <button
+              className="w-full py-1 bg-green-600 text-white rounded-md cursor-default mt-1"
+              disabled
+            >
+              You are Pro
+            </button>
+          </div>
+        ) : (
+          <button
+            className="w-full py-1 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors"
+            onClick={goToSubscription}
+          >
+            Upgrade to Pro
+          </button>
+        )}
       </div>
       
       

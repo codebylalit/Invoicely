@@ -64,9 +64,9 @@ serve(async (req) => {
           },
         ],
         application_context: {
-          return_url: `${siteUrl}/app/settings?tab=subscription`,
-          cancel_url: `${siteUrl}/app/settings?tab=subscription`,
-        },
+  "return_url": "https://invoicely-five.vercel.app/paypal-success.html",
+  "cancel_url": "https://invoicely-five.vercel.app/app/settings?from=paypal&cancel=1"
+}
       }),
     });
 
