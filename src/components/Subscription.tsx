@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import PayPalButton from "./subscription/PayPalButton";
+import { useNavigate } from "react-router-dom";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 interface SubscriptionProps {
   userSubscription: {
@@ -15,8 +17,55 @@ interface SubscriptionProps {
 const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionProps) => {
   const [upgrading, setUpgrading] = useState(false);
   const [billingCycle, setBillingCycle] = useState("monthly");
+  const navigate = useNavigate();
+  const supabase = useSupabaseClient();
 
-  // Handle upgrade to selected plan
+  // Handle subscription update after successful payment
+  const handleSubscriptionSuccess = async (plan: string) => {
+    try {
+      setUpgrading(true);
+      
+      // Update subscription in database
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          tier: plan,
+          payment_method: "paypal",
+          updated_at: new Date()
+        })
+        .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setUserSubscription((prev: any) => ({
+        ...prev,
+        tier: plan,
+        paymentMethod: "paypal",
+      }));
+      
+      // Show success message
+      toast({
+        title: "Subscription Upgraded!",
+        description: `Your account has been successfully upgraded to the ${plan} plan.`,
+      });
+      
+      // Refresh subscription tab
+      navigate("/app/settings?from=paypal", { replace: true });
+      
+    } catch (error) {
+      console.error("Error updating subscription:", error);
+      toast({
+        title: "Update Error",
+        description: "Your payment was successful, but we couldn't update your subscription. Please contact support.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpgrading(false);
+    }
+  };
+
+  // Handle upgrade to selected plan (mock function)
   const handleUpgradePlan = (plan: string) => {
     setUpgrading(true);
     setTimeout(() => {
@@ -159,13 +208,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               <PayPalButton
                 plan="pro"
                 amount={5}
-                onSuccess={(plan) => {
-                  setUserSubscription((prev: any) => ({
-                    ...prev,
-                    tier: plan,
-                    paymentMethod: "paypal",
-                  }));
-                }}
+                onSuccess={handleSubscriptionSuccess}
                 disabled={upgrading}
                 className="mt-4 w-full"
               />
@@ -280,4 +323,4 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
   );
 };
 
-export default Subscription; 
+export default Subscription;

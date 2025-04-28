@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import Subscription from "@/components/Subscription";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Settings = () => {
   const supabase = useSupabaseClient();
@@ -12,6 +12,7 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // User subscription state
   const [userSubscription, setUserSubscription] = useState({
@@ -51,12 +52,17 @@ const Settings = () => {
           { type: "PAYPAL_PAYMENT_COMPLETE", orderId: params.get("token") },
           window.location.origin
         );
-        setTimeout(() => window.close(), 1000);
+        setTimeout(() => window.close(), 500);
       }
       toast({
         title: "Payment Complete!",
         description: "Thank you for your payment. Your subscription will be updated shortly.",
       });
+    }
+    
+    // Set subscription tab active if coming from PayPal flow
+    if (params.get("from") === "paypal") {
+      setActiveTab("subscription");
     }
   }, [location]);
 
@@ -283,14 +289,6 @@ const Settings = () => {
       });
     }, 1200);
   };
-
-  const handleMessage = async (event: MessageEvent) => {
-    if (event.data.type === "PAYPAL_PAYMENT_COMPLETE") {
-      // ...verify payment, show toast, refresh subscription...
-      // (You should call setUserSubscription or refetch subscription here)
-    }
-  };
-  window.addEventListener("message", handleMessage);
 
   return (
     <div className="max-w-6xl mx-auto">
