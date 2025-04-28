@@ -131,20 +131,6 @@ const PayPalButton = ({
     }
   };
 
-  useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.data.type === "PAYPAL_PAYMENT_COMPLETE") {
-        await fetchUserSubscription();
-        toast({
-          title: "Payment successful",
-          description: "You've successfully upgraded to the Pro plan!",
-        });
-      }
-    };
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, []);
-
   return (
     <Button
       onClick={handlePayment}
