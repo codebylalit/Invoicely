@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { useNavigate } from "react-router-dom";
 
 export interface InvoiceTemplate {
@@ -109,12 +109,12 @@ export const TemplateSelectionModal: React.FC<TemplateSelectionModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-   const navigate = useNavigate();
-    
-        const goToSubscription = () => {
-          navigate("/app/settings?tab=subscription");
-        };
-  
+  const navigate = useNavigate();
+
+  const goToSubscription = () => {
+    navigate("/app/settings?tab=subscription");
+  };
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
@@ -123,12 +123,12 @@ export const TemplateSelectionModal: React.FC<TemplateSelectionModalProps> = ({
           <h2 className="text-xl font-medium dark:text-white">
             Select Template
           </h2>
-          <button
+          <Button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:text-gray-500"
           >
             ×
-          </button>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -139,11 +139,10 @@ export const TemplateSelectionModal: React.FC<TemplateSelectionModalProps> = ({
             return (
               <div
                 key={template.id}
-                className={`relative border rounded-lg p-4 cursor-pointer hover:border-blue-500 transition-all ${
-                  selectedTemplate?.id === template.id
+                className={`relative border rounded-lg p-4 cursor-pointer hover:border-blue-500 transition-all ${selectedTemplate?.id === template.id
                     ? "border-blue-500 ring-2 ring-blue-200"
                     : ""
-                } ${isDisabled ? "opacity-70" : ""}`}
+                  } ${isDisabled ? "opacity-70" : ""}`}
                 onClick={() => !isDisabled && onSelectTemplate(template)}
               >
                 <div className="flex items-center justify-between mb-2">

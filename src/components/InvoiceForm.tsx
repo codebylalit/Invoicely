@@ -5,6 +5,7 @@ import { InvoiceItems } from "./InvoiceItems";
 import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { Banknote } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/Button";
 
 interface Invoice {
   status: string;
@@ -279,77 +280,77 @@ export const InvoiceForm = ({
   }, [session]);
 
   // Update the invoice preview whenever form state changes
-useEffect(() => {
-  // Always update the preview whenever form state changes, regardless of hasUsedPrompt
-  const currentInvoice = generateCurrentInvoice();
-  onGenerate(currentInvoice);
+  useEffect(() => {
+    // Always update the preview whenever form state changes, regardless of hasUsedPrompt
+    const currentInvoice = generateCurrentInvoice();
+    onGenerate(currentInvoice);
 
-  // If we have draft saving functionality, update the draft
-  if (onDraftChange) {
-    onDraftChange(currentInvoice);
-  }
-}, [
-  invoiceTitle,
-  invoiceNumber,
-  issuedDate,
-  dueDate,
-  customerName,
-  customerEmail,
-  customerDetails,
-  items,
-  subtotal,
-  total,
-  notes,
-  paymentMethods,
-  taxes,
-  discounts,
-  showPaymentInInvoice,
-  onGenerate,
-  generateCurrentInvoice,
-  onDraftChange,
-]);
+    // If we have draft saving functionality, update the draft
+    if (onDraftChange) {
+      onDraftChange(currentInvoice);
+    }
+  }, [
+    invoiceTitle,
+    invoiceNumber,
+    issuedDate,
+    dueDate,
+    customerName,
+    customerEmail,
+    customerDetails,
+    items,
+    subtotal,
+    total,
+    notes,
+    paymentMethods,
+    taxes,
+    discounts,
+    showPaymentInInvoice,
+    onGenerate,
+    generateCurrentInvoice,
+    onDraftChange,
+  ]);
 
-const [userSubscription, setUserSubscription] = useState({
-  tier: "free", // Default to free
-});
+  const [userSubscription, setUserSubscription] = useState({
+    tier: "free", // Default to free
+  });
 
-// Add this to your useEffect that fetches user data:
-useEffect(() => {
-  if (session?.user?.id) {
-    fetchBusinessDetails();
-    fetchClients();
-    fetchPaymentDetails();
-    fetchUserSubscription(); // Add this line to fetch subscription
-  }
-}, [session]);
+  // Add this to your useEffect that fetches user data:
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchBusinessDetails();
+      fetchClients();
+      fetchPaymentDetails();
+      fetchUserSubscription(); // Add this line to fetch subscription
+    }
+  }, [session]);
 
-// Add this function to fetch the user's subscription:
-const fetchUserSubscription = async () => {
-  try {
-    if (!session?.user?.id) return;
+  // Add this function to fetch the user's subscription:
+  const fetchUserSubscription = async () => {
+    try {
+      if (!session?.user?.id) return;
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("tier")
-      .eq("user_id", session.user.id)
-      .single();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("tier")
+        .eq("user_id", session.user.id)
+        .single();
 
-    if (error) throw error;
+      if (error) throw error;
 
-    if (data) {
-      setUserSubscription({
-        tier: data.tier || "free",
+      if (data) {
+        setUserSubscription({
+          tier: data.tier || "free",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user subscription:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load subscription details",
+        variant: "destructive",
       });
     }
-  } catch (error) {
-    console.error("Error fetching user subscription:", error);
-    toast({
-      title: "Error",
-      description: "Failed to load subscription details",
-      variant: "destructive",
-    });
-  }
-};
+  };
   // Recalculate totals whenever items, taxes, or discounts change
   useEffect(() => {
     const newSubtotal = items.reduce(
@@ -466,15 +467,15 @@ const fetchUserSubscription = async () => {
   };
 
   const handleAIGenerate = () => {
-      if (userSubscription.tier !== "pro") {
-        toast({
-          title: "Pro Feature",
-          description:
-            "AI-powered invoice generation is available for Pro users only",
-          variant: "destructive",
-        });
-        return;
-      }
+    if (userSubscription.tier !== "pro") {
+      toast({
+        title: "Pro Feature",
+        description:
+          "AI-powered invoice generation is available for Pro users only",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (promptText.trim() === "") {
       toast({
@@ -653,21 +654,21 @@ const fetchUserSubscription = async () => {
       prevDiscounts.filter((discount) => discount.id !== id)
     );
   };
-  
+
   function setActiveTab(arg0: string): void {
     throw new Error("Function not implemented.");
   }
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const goToSubscription = () => {
-      navigate("/app/settings?tab=subscription");
-    };
+  const goToSubscription = () => {
+    navigate("/app/settings?tab=subscription");
+  };
 
   return (
-    <div className="flex flex-col gap-6 bg-gray-100 dark:bg-gray-900 p-8 rounded-lg w-full max-w-7xl mx-auto">
+    <div className="flex flex-col gap-6 p-2 rounded-lg w-full max-w-7xl mx-auto">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-        <h2 className="text-lg font-semibold mb-4">Generate with AI</h2>
+        <h2 className="text-lg font-semibold mb-4">Generate with Promt</h2>
         <textarea
           className="w-full min-h-[100px] p-3 border rounded-md mb-4 dark:bg-gray-700 dark:border-gray-600"
           placeholder={
@@ -680,13 +681,13 @@ const fetchUserSubscription = async () => {
           disabled={userSubscription.tier !== "pro"}
         />
         {userSubscription.tier === "pro" ? (
-          <button
+          <Button
             onClick={handleAIGenerate}
             disabled={isLoading}
-            className="flex items-center justify-center gap-2 invoice-btn-primary py-3"
+            className="flex items-center justify-center gap-2 py-3"
           >
             {isLoading ? "Generating..." : "Generate Invoice"}
-          </button>
+          </Button>
         ) : (
           <div className="space-y-3">
             <div className="flex items-center text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-400 p-3 rounded-md">
@@ -707,12 +708,12 @@ const fetchUserSubscription = async () => {
                 users.
               </span>
             </div>
-            <button
+            <Button
               onClick={goToSubscription}
-              className="flex items-center justify-center gap-2 invoice-btn-primary text-white py-3 px-4 rounded-md w-full"
+              className="flex items-center justify-center gap-2 py-3 px-4 rounded-md w-full text-white"
             >
               Upgrade to Pro
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -772,16 +773,14 @@ const fetchUserSubscription = async () => {
                   }
                 />
                 <div
-                  className={`block w-10 h-5 rounded-full transition ${
-                    showPaymentInInvoice
-                      ? "bg-blue-600"
-                      : "bg-gray-300 dark:bg-gray-600"
-                  }`}
+                  className={`block w-10 h-5 rounded-full transition ${showPaymentInInvoice
+                    ? "bg-blue-600"
+                    : "bg-gray-300 dark:bg-gray-600"
+                    }`}
                 ></div>
                 <div
-                  className={`absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition transform ${
-                    showPaymentInInvoice ? "translate-x-5" : "translate-x-0"
-                  }`}
+                  className={`absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition transform ${showPaymentInInvoice ? "translate-x-5" : "translate-x-0"
+                    }`}
                 ></div>
               </div>
             </label>
@@ -790,11 +789,10 @@ const fetchUserSubscription = async () => {
         <div className="grid grid-cols-2 gap-4 max-w-md">
           {/* Bank Transfer Option */}
           <div
-            className={`p-4 border rounded-md cursor-pointer transition-all h-full ${
-              paymentMethods.bank.enabled
-                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                : "border-gray-300 hover:border-gray-400"
-            }`}
+            className={`p-4 border rounded-md cursor-pointer transition-all h-full ${paymentMethods.bank.enabled
+              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+              : "border-gray-300 hover:border-gray-400"
+              }`}
             onClick={() =>
               setPaymentMethods({
                 ...paymentMethods,
@@ -807,11 +805,10 @@ const fetchUserSubscription = async () => {
           >
             <div className="flex flex-col items-center gap-2">
               <div
-                className={`p-3 rounded-full flex items-center justify-center h-12 w-12 ${
-                  paymentMethods.bank.enabled
-                    ? "bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-200"
-                    : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                }`}
+                className={`p-3 rounded-full flex items-center justify-center h-12 w-12 ${paymentMethods.bank.enabled
+                  ? "bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-200"
+                  : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                  }`}
               >
                 <Banknote size={24} />
               </div>
@@ -821,11 +818,10 @@ const fetchUserSubscription = async () => {
 
           {/* Stripe Option */}
           <div
-            className={`p-4 border rounded-md cursor-pointer transition-all h-full ${
-              paymentMethods.stripe.enabled
-                ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
-                : "border-gray-300 hover:border-gray-400"
-            }`}
+            className={`p-4 border rounded-md cursor-pointer transition-all h-full ${paymentMethods.stripe.enabled
+              ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
+              : "border-gray-300 hover:border-gray-400"
+              }`}
             onClick={() =>
               setPaymentMethods({
                 ...paymentMethods,
@@ -838,11 +834,10 @@ const fetchUserSubscription = async () => {
           >
             <div className="flex flex-col items-center gap-2">
               <div
-                className={`p-3 rounded-full flex items-center justify-center h-12 w-12 ${
-                  paymentMethods.stripe.enabled
-                    ? "bg-purple-100 dark:bg-purple-800"
-                    : "bg-gray-100 dark:bg-gray-700"
-                }`}
+                className={`p-3 rounded-full flex items-center justify-center h-12 w-12 ${paymentMethods.stripe.enabled
+                  ? "bg-purple-100 dark:bg-purple-800"
+                  : "bg-gray-100 dark:bg-gray-700"
+                  }`}
               >
                 <svg
                   width="24"

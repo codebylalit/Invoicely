@@ -1,5 +1,6 @@
 import { Plus, Trash, DollarSign, Percent } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "./ui/Button";
 
 interface InvoiceItem {
   id: string;
@@ -134,29 +135,31 @@ export const InvoiceItems = ({
                       />
                     </div>
                   </td>
-                  <td className="py-2 text-right text-gray-900 dark:text-gray-100">
+                  <td className="text-right text-gray-900 dark:text-gray-100">
                     ${item.totalPrice.toFixed(2)}
                   </td>
                   <td className="py-2">
-                    <button
-                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                    <Button
                       onClick={() => removeItem(item.id)}
                       title="Remove item"
+                      size="icon"
+                      className="invoice-trash-btn"
                     >
-                      <Trash size={16} />
-                    </button>
+                      <Trash size={18} />
+                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <button
-          className="flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+        <Button
           onClick={addItem}
+          size="lg"
+          className="invoice-action-btn"
         >
-          <Plus size={16} className="mr-1" /> Add Item
-        </button>
+          <Plus size={18} className="mr-1" /> Add Item
+        </Button>
       </div>
 
       {/* Invoice Totals Section */}
@@ -212,12 +215,13 @@ export const InvoiceItems = ({
                       size={12}
                     />
                   </div>
-                  <button
-                    className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                  <Button
                     onClick={() => removeTax(tax.id)}
+                    size="icon"
+                    className="invoice-trash-btn"
                   >
-                    <Trash size={14} />
-                  </button>
+                    <Trash size={16} />
+                  </Button>
                 </div>
                 <span className="text-gray-900 dark:text-gray-100">
                   ${tax.amount.toFixed(2)}
@@ -262,12 +266,13 @@ export const InvoiceItems = ({
                       size={12}
                     />
                   </div>
-                  <button
-                    className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                  <Button
                     onClick={() => removeDiscount(discount.id)}
+                    size="icon"
+                    className="invoice-trash-btn"
                   >
-                    <Trash size={14} />
-                  </button>
+                    <Trash size={16} />
+                  </Button>
                 </div>
                 <span className="text-gray-900 dark:text-gray-100">
                   -${discount.amount.toFixed(2)}
@@ -286,18 +291,20 @@ export const InvoiceItems = ({
           </div>
 
           <div className="flex gap-2 mt-4">
-            <button
-              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center text-sm"
+            <Button
               onClick={addTax}
+              size="lg"
+              className="invoice-action-btn"
             >
-              <Plus size={14} className="mr-1" /> Tax
-            </button>
-            <button
-              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center text-sm"
+              <Plus size={18} className="mr-1" /> Tax
+            </Button>
+            <Button
               onClick={addDiscount}
+              size="lg"
+              className="invoice-action-btn"
             >
-              <Plus size={14} className="mr-1" /> Discount
-            </button>
+              <Plus size={18} className="mr-1" /> Discount
+            </Button>
           </div>
         </div>
       </div>

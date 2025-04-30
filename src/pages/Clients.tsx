@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -74,20 +74,30 @@ const Clients = () => {
         .eq("user_id", session.user.id)
         .single();
 
-      if (error) throw error;
+      if (error && error.code !== "PGRST116") {
+        // Only show error if it's NOT "no rows found"
+        throw error;
+      }
 
       if (data) {
         setUserSubscription({
           tier: data.tier || "free",
         });
+      } else {
+        // No data: new user, set to default
+        setUserSubscription({
+          tier: "free",
+        });
       }
     } catch (error) {
-      console.error("Error fetching user subscription:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load subscription details",
-        variant: "destructive",
-      });
+      // Only show toast for real errors, not for new users
+      if (error.code !== "PGRST116") {
+        toast({
+          title: "Error",
+          description: "Failed to load subscription details",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -207,6 +217,7 @@ const Clients = () => {
       phone: phone || null,
       address: address || null,
       company: company || null,
+      user_id: session.user.id,
     };
 
     try {
@@ -311,7 +322,7 @@ const Clients = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4">
+    <div className="ml-64">
       <div className="flex items-start justify-between mb-6">
         <h1 className="text-3xl font-bold">Clients</h1>
         <Button onClick={openAddDialog}>
@@ -539,7 +550,7 @@ const Clients = () => {
             </div>
             <DialogFooter>
               <Button
-                type="button"
+                type="Button"
                 variant="outline"
                 onClick={() => setFormOpen(false)}
               >
@@ -576,7 +587,7 @@ const Clients = () => {
           </div>
           <DialogFooter>
             <Button
-              type="button"
+              type="Button"
               variant="outline"
               onClick={() => setUpgradeDialogOpen(false)}
             >

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import InvoicePromptInput, { InvoiceForm } from "./InvoiceForm";
 import InvoicePreview from "./InvoicePreview";
-import { Button } from "./ui/button";
+import { Button } from "./ui/Button";
 import { FileText, Loader2 } from "lucide-react";
 import type { Invoice } from "@/types/invoice";
 import { useInvoiceManager } from "@/hooks/useInvoiceManager";
@@ -76,7 +76,7 @@ const CreateInvoiceDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-invoice-orange hover:bg-invoice-orange/90 w-full md:w-auto">
+        <Button className="w-full md:w-auto">
           <FileText className="w-4 h-4 mr-2" />
           New invoice
         </Button>
@@ -100,7 +100,6 @@ const CreateInvoiceDialog = () => {
               </DialogClose>
               <Button
                 disabled={!invoiceDraft || isSaving}
-                className="bg-invoice-orange hover:bg-invoice-orange/90"
                 onClick={handleSaveAndClose}
               >
                 {isSaving ? (

@@ -1,5 +1,6 @@
-import { Calendar, User, Mail, FileText, Check } from "lucide-react";
+import { Calendar, User, Mail, FileText, Check, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Command,
   CommandEmpty,
@@ -13,6 +14,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/Button";
 
 interface Client {
   id: string;
@@ -68,8 +70,23 @@ export const InvoiceDetails = ({
   clientDropdownOpen,
   setClientDropdownOpen,
 }: InvoiceDetailsProps) => {
+  const navigate = useNavigate();
   const [clientSuggestions, setClientSuggestions] = useState<Client[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Check if business details are complete
+  const isBusinessDetailsComplete = () => {
+    return (
+      businessDetails?.contact_name &&
+      businessDetails?.email &&
+      businessDetails?.address &&
+      businessDetails?.city &&
+      businessDetails?.postal_code &&
+      businessDetails?.region_state &&
+      businessDetails?.country &&
+      businessDetails?.phone_number
+    );
+  };
 
   // Filter clients as user types in the name field
   useEffect(() => {
@@ -143,22 +160,48 @@ export const InvoiceDetails = ({
         </h2>
         <div className="grid md:grid-cols-2 gap-6">
           {/* From Section */}
-          <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-md space-y-3">
-            <h3 className="invoice-section-title text-invoice-lightText dark:text-invoice-darkText font-semibold">
-              From
-            </h3>
-            <div className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
-              <p className="font-medium">{businessDetails.contact_name}</p>
-              <p>{businessDetails.email}</p>
-              <p>
-                {businessDetails.address}, {businessDetails.city},{" "}
-                {businessDetails.postal_code},<br />
-                {businessDetails.region_state}, {businessDetails.country}
-                <br />
-                {businessDetails.phone_number}
+          {!isBusinessDetailsComplete() ? (
+            <div className="p-6 border-2 border-primary/20 rounded-lg space-y-4 bg-primary/10 dark:bg-primary/20">
+              <div className="flex items-center gap-3">
+                <Settings className="text-primary" size={24} />
+                <h3 className="text-lg font-semibold text-invoice-lightText dark:text-invoice-darkText">
+                  Business Details Required
+                </h3>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                To create professional invoices, you need to add your business details first. This information will be automatically used in all your invoices.
               </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => navigate('/app/settings')}
+                  className="inline-flex items-center gap-2"
+                >
+                  <Settings size={16} />
+                  Go to Settings
+                </Button>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Required fields: Contact name, Email, Address, City, Postal Code, Region/State, Country, Phone
+                </span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-md space-y-3">
+              <h3 className="invoice-section-title text-invoice-lightText dark:text-invoice-darkText font-semibold">
+                From
+              </h3>
+              <div className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
+                <p className="font-medium">{businessDetails.contact_name}</p>
+                <p>{businessDetails.email}</p>
+                <p>
+                  {businessDetails.address}, {businessDetails.city},{" "}
+                  {businessDetails.postal_code},<br />
+                  {businessDetails.region_state}, {businessDetails.country}
+                  <br />
+                  {businessDetails.phone_number}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Billed To Section */}
           <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-md space-y-3">

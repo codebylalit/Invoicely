@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import CreateInvoiceButton from "@/components/CreateInvoiceButton";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Eye, Download, Trash, Check, AlertCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -97,7 +97,7 @@ const formatInvoiceForPreview = (invoice: Invoice) => {
     taxes: invoice.taxes || [],
     notes: invoice.notes || "",
     // Ensure paymentMethods is properly structured
-   paymentMethods: [
+    paymentMethods: [
       {
         type: "bank",
         isEnabled: false,
@@ -266,8 +266,9 @@ const Invoices = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4">
+    <div className="ml-64">
       <div className="flex items-start justify-between mb-6">
+
         <h1 className="text-3xl font-bold">Invoices</h1>
         <CreateInvoiceButton />
       </div>
@@ -389,14 +390,14 @@ const Invoices = () => {
         </div>
       )}
 
-{/* Invoice Preview Dialog */}
-<Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-  <DialogContent className="max-w-3xl">
-    {viewingInvoice && (
-      <InvoicePreview invoice={viewingInvoice} />
-    )}
-  </DialogContent>
-</Dialog>
+      {/* Invoice Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-3xl">
+          {viewingInvoice && (
+            <InvoicePreview invoice={viewingInvoice} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

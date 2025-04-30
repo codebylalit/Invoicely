@@ -1,48 +1,47 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 20%;
+    --background: 40 20% 96%;
+    --foreground: 0 0% 18%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 20%;
+    --card-foreground: 0 0% 18%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 20%;
+    --popover-foreground: 0 0% 18%;
 
-    --primary: 25 100% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 40 100% 50%;
+    --primary-foreground: 0 0% 18%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 20%;
+    --secondary: 40 20% 96%;
+    --secondary-foreground: 0 0% 18%;
 
-    --muted: 0 0% 96%;
+    --muted: 40 20% 96%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 0 0% 96%;
-    --accent-foreground: 25 100% 50%;
+    --accent: 40 20% 96%;
+    --accent-foreground: 40 100% 50%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 80%;
+    --border: 40 20% 90%;
+    --input: 40 20% 90%;
+    --ring: 40 100% 50%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 30%;
-    --sidebar-primary: 25 100% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 25 100% 50%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 25 100% 50%;
+    --sidebar-background: 40 20% 98%;
+    --sidebar-foreground: 0 0% 18%;
+    --sidebar-primary: 40 100% 50%;
+    --sidebar-primary-foreground: 0 0% 18%;
+    --sidebar-accent: 40 20% 96%;
+    --sidebar-accent-foreground: 40 100% 50%;
+    --sidebar-border: 40 20% 90%;
+    --sidebar-ring: 40 100% 50%;
   }
 
   .dark {
@@ -55,8 +54,8 @@
     --popover: 0 0% 9%;
     --popover-foreground: 0 0% 96%;
 
-    --primary: 25 100% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 40 100% 50%;
+    --primary-foreground: 0 0% 18%;
 
     --secondary: 0 0% 13%;
     --secondary-foreground: 0 0% 96%;
@@ -65,23 +64,23 @@
     --muted-foreground: 0 0% 65%;
 
     --accent: 0 0% 13%;
-    --accent-foreground: 25 100% 50%;
+    --accent-foreground: 40 100% 50%;
 
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 96%;
 
     --border: 0 0% 16%;
     --input: 0 0% 16%;
-    --ring: 25 100% 50%;
+    --ring: 40 100% 50%;
     
     --sidebar-background: 0 0% 9%;
     --sidebar-foreground: 0 0% 96%;
-    --sidebar-primary: 25 100% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary: 40 100% 50%;
+    --sidebar-primary-foreground: 0 0% 18%;
     --sidebar-accent: 0 0% 13%;
     --sidebar-accent-foreground: 0 0% 96%;
     --sidebar-border: 0 0% 16%;
-    --sidebar-ring: 25 100% 50%;
+    --sidebar-ring: 40 100% 50%;
   }
 }
 
@@ -93,39 +92,61 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  body::-webkit-scrollbar {
+    display: none;
   }
 }
 
 @layer components {
-  .invoice-input {
-    @apply w-full bg-invoice-dark/10 dark:bg-invoice-darkBg/70 border-0 rounded-md px-4 py-3 text-invoice-lightText dark:text-invoice-darkText placeholder:text-invoice-gray/70 focus:ring-1 focus:ring-invoice-orange focus-visible:outline-none;
+  .paper-card {
+    @apply bg-white rounded-xl shadow-lg p-6 transform transition-all duration-300 hover:shadow-xl;
   }
 
-  .invoice-textarea {
-    @apply w-full resize-none bg-invoice-dark/10 dark:bg-invoice-darkBg/70 border-0 rounded-md px-4 py-3 text-invoice-lightText dark:text-invoice-darkText placeholder:text-invoice-gray/70 focus:ring-1 focus:ring-invoice-orange focus-visible:outline-none;
+  .paper-card-hover {
+    @apply hover:-rotate-1 hover:scale-[1.02];
   }
 
-  .invoice-btn-primary {
-    @apply bg-invoice-orange hover:bg-invoice-orange/90 text-white font-medium rounded-md w-full py-3 transition-colors;
+  .paper-input {
+    @apply w-full bg-background border border-input rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus-visible:outline-none transition-all duration-200;
   }
 
-  .invoice-btn-secondary {
-    @apply bg-invoice-dark/10 dark:bg-invoice-darkBg/70 hover:bg-invoice-dark/20 dark:hover:bg-invoice-darkBg/50 text-invoice-lightText dark:text-invoice-darkText font-medium rounded-md px-4 py-2 transition-colors;
+  .paper-textarea {
+    @apply w-full resize-none bg-background border border-input rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:ring-1 focus:ring-primary focus-visible:outline-none transition-all duration-200;
   }
 
-  .invoice-table-header {
-    @apply text-invoice-gray font-medium text-left pb-2;
+  .paper-Button {
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg px-4 py-2 transition-all duration-200 hover:scale-105;
   }
 
-  .invoice-preview-label {
-    @apply text-invoice-gray text-sm;
+  .paper-Button-secondary {
+    @apply bg-secondary hover:bg-secondary/90 text-secondary-foreground font-medium rounded-lg px-4 py-2 transition-all duration-200;
   }
 
-  .invoice-preview-value {
-    @apply text-invoice-lightText dark:text-invoice-darkText text-right;
+  .paper-table-header {
+    @apply text-muted-foreground font-medium text-left pb-2;
   }
 
-  .invoice-section-title {
-    @apply text-xl font-bold text-invoice-lightText dark:text-invoice-darkText mb-4;
+  .paper-label {
+    @apply text-muted-foreground text-sm;
+  }
+
+  .paper-value {
+    @apply text-foreground text-right;
+  }
+
+  .paper-section-title {
+    @apply text-xl font-bold text-foreground mb-4;
+  }
+
+  .paper-divider {
+    @apply border-t border-border my-4;
+  }
+
+  .paper-badge {
+    @apply bg-primary/10 text-primary rounded-full px-3 py-1 text-sm font-medium;
   }
 }

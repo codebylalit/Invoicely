@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SessionContextProvider, useSession } from '@supabase/auth-helpers-react';
-import Index from "./pages/Index";
+import Index from "./pages/Dashboard";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -13,6 +13,9 @@ import Clients from "./pages/Clients";
 import Invoices from "./pages/Invoices";
 import Settings from "./pages/Settings";
 import DashboardLayout from "./layouts/DashboardLayout";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Refunds from "./pages/Refunds";
 import { createClient } from "@supabase/supabase-js";
 
 
@@ -37,11 +40,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 // Component to check auth status and redirect accordingly
 const AuthCheck = () => {
   const session = useSession();
-  
+
   if (session) {
     return <Navigate to="/app" replace />;
   }
-  
+
   return <Navigate to="/landing" replace />;
 };
 
@@ -58,6 +61,9 @@ const App = () => {
               <Route path="/" element={<AuthCheck />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/landing" element={<Landing />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/refunds" element={<Refunds />} />
 
               {/* Dashboard layout with nested content */}
               <Route

@@ -1,6 +1,6 @@
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 
 export const SupabaseCode = ({
   userTier = "free",

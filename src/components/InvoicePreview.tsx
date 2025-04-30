@@ -1,15 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { FileText, Download, Mail } from "lucide-react";
 import {
   TemplateSelectionModal,
-  invoiceTemplates,
   InvoiceTemplate,
 } from "./InvoiceTemp";
 import { useToast } from "@/hooks/use-toast";
 import { Invoice } from "@/types/invoice";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useSession } from "@supabase/auth-helpers-react";
 import emailjs from "@emailjs/browser";
@@ -65,40 +64,40 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
     useState<InvoiceTemplate | null>(null);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
-   const navigate = useNavigate();
+  const navigate = useNavigate();
 
-   const goToSubscription = () => {
-     navigate("/app/settings?tab=subscription");
-   };
-const [userSubscription, setUserSubscription] = useState({
-  tier: "free", // Default to free
-});
-const fetchUserSubscription = async () => {
-  try {
-    if (!session?.user?.id) return;
+  const goToSubscription = () => {
+    navigate("/app/settings?tab=subscription");
+  };
+  const [userSubscription, setUserSubscription] = useState({
+    tier: "free", // Default to free
+  });
+  const fetchUserSubscription = async () => {
+    try {
+      if (!session?.user?.id) return;
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("tier")
-      .eq("user_id", session.user.id)
-      .single();
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("tier")
+        .eq("user_id", session.user.id)
+        .single();
 
-    if (error) throw error;
+      if (error) throw error;
 
-    if (data) {
-      setUserSubscription({
-        tier: data.tier || "free",
+      if (data) {
+        setUserSubscription({
+          tier: data.tier || "free",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user subscription:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load subscription details",
+        variant: "destructive",
       });
     }
-  } catch (error) {
-    console.error("Error fetching user subscription:", error);
-    toast({
-      title: "Error",
-      description: "Failed to load subscription details",
-      variant: "destructive",
-    });
-  }
-};
+  };
   // Default empty invoice for new/manual creation
   const defaultInvoice: Invoice = {
     invoiceNumber: "",
@@ -125,6 +124,42 @@ const fetchUserSubscription = async () => {
 
   // Use the provided invoice or default to an empty one
   const displayInvoice = invoice || defaultInvoice;
+
+  // --- Real-time calculation of subtotal, taxes, discounts, and total ---
+  const calculatedInvoice = useMemo(() => {
+    const items = displayInvoice.items || [];
+    const discounts = Array.isArray(displayInvoice.discounts) ? displayInvoice.discounts : [];
+    const taxes = Array.isArray(displayInvoice.taxes) ? displayInvoice.taxes : [];
+
+    // Calculate subtotal
+    const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+
+    // Calculate discounts (amounts should be recalculated based on current subtotal)
+    const discountsWithAmount = discounts.map((discount) => ({
+      ...discount,
+      amount: subtotal * (discount.rate / 100),
+    }));
+    const totalDiscount = discountsWithAmount.reduce((sum, d) => sum + d.amount, 0);
+
+    // Calculate taxes (amounts should be recalculated based on current subtotal)
+    const taxesWithAmount = taxes.map((tax) => ({
+      ...tax,
+      amount: subtotal * (tax.rate / 100),
+    }));
+    const totalTax = taxesWithAmount.reduce((sum, t) => sum + t.amount, 0);
+
+    // Calculate total
+    const total = subtotal - totalDiscount + totalTax;
+
+    return {
+      ...displayInvoice,
+      items,
+      discounts: discountsWithAmount,
+      taxes: taxesWithAmount,
+      subtotal,
+      total,
+    };
+  }, [displayInvoice.items, displayInvoice.discounts, displayInvoice.taxes]);
 
   const handleSelectTemplate = (template: InvoiceTemplate) => {
     // Check if user is trying to use a premium template while on free tier
@@ -217,9 +252,8 @@ const fetchUserSubscription = async () => {
       }
 
       const pdfBlob = pdf.output("blob");
-      const fileName = `invoices/${session.user.id}/${
-        displayInvoice?.invoiceNumber || "invoice"
-      }-${Date.now()}.pdf`;
+      const fileName = `invoices/${session.user.id}/${displayInvoice?.invoiceNumber || "invoice"
+        }-${Date.now()}.pdf`;
 
       const { data, error } = await supabase.storage
         .from("invoice_pdfs")
@@ -336,18 +370,18 @@ const fetchUserSubscription = async () => {
 
       const formattedIssueDate = displayInvoice?.issuedDate
         ? new Date(displayInvoice.issuedDate).toLocaleDateString("en-US", {
-            month: "short",
-            day: "2-digit",
-            year: "numeric",
-          })
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        })
         : "N/A";
 
       const formattedDueDate = displayInvoice?.dueDate
         ? new Date(displayInvoice.dueDate).toLocaleDateString("en-US", {
-            month: "short",
-            day: "2-digit",
-            year: "numeric",
-          })
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        })
         : "N/A";
 
       // Use direct string for recipient email
@@ -369,25 +403,23 @@ const fetchUserSubscription = async () => {
               <th style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">Total</th>
             </tr>
             ${displayInvoice.items
-              .map(
-                (item) => `
+          .map(
+            (item) => `
               <tr>
-                <td style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">${
-                  item.description
-                }</td>
-                <td style="text-align: center; padding: 8px; border-bottom: 1px solid #ddd;">${
-                  item.quantity
-                }</td>
+                <td style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">${item.description
+              }</td>
+                <td style="text-align: center; padding: 8px; border-bottom: 1px solid #ddd;">${item.quantity
+              }</td>
                 <td style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">$${item.unitPrice.toFixed(
-                  2
-                )}</td>
+                2
+              )}</td>
                 <td style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">$${item.totalPrice.toFixed(
-                  2
-                )}</td>
+                2
+              )}</td>
               </tr>
             `
-              )
-              .join("")}
+          )
+          .join("")}
           </table>
         `
         : "<p>No items included in this invoice.</p>";
@@ -397,9 +429,8 @@ const fetchUserSubscription = async () => {
         to_email: recipientEmail,
         from_name: businessDetails.business_name || "Your Business",
         to_name: displayInvoice?.name || "Valued Customer",
-        subject: `Invoice #${displayInvoice?.invoiceNumber || ""} from ${
-          businessDetails.business_name || "Your Business"
-        }`,
+        subject: `Invoice #${displayInvoice?.invoiceNumber || ""} from ${businessDetails.business_name || "Your Business"
+          }`,
         invoice_number: displayInvoice?.invoiceNumber || "",
         invoice_date: formattedIssueDate,
         due_date: formattedDueDate,
@@ -407,13 +438,13 @@ const fetchUserSubscription = async () => {
         subtotal: `$${displayInvoice?.subtotal?.toFixed(2) || "0.00"}`,
         taxes: displayInvoice?.taxes
           ? `$${displayInvoice?.taxes
-              .reduce((sum, tax) => sum + tax.amount, 0)
-              .toFixed(2)}`
+            .reduce((sum, tax) => sum + tax.amount, 0)
+            .toFixed(2)}`
           : "$0.00",
         discounts: displayInvoice?.discounts
           ? `-$${displayInvoice?.discounts
-              .reduce((sum, discount) => sum + discount.amount, 0)
-              .toFixed(2)}`
+            .reduce((sum, discount) => sum + discount.amount, 0)
+            .toFixed(2)}`
           : "$0.00",
         logo_url:
           businessDetails.logo_url || "https://yourdomain.com/default-logo.png",
@@ -424,8 +455,7 @@ const fetchUserSubscription = async () => {
           displayInvoice?.items
             ?.map(
               (item) =>
-                `${item.description} (Qty: ${
-                  item.quantity
+                `${item.description} (Qty: ${item.quantity
                 }, Unit Price: $${item.unitPrice.toFixed(
                   2
                 )}, Total: $${item.totalPrice.toFixed(2)})`
@@ -462,9 +492,8 @@ const fetchUserSubscription = async () => {
       console.error("Error sending email:", error);
       toast({
         title: "Error",
-        description: `Failed to send email: ${
-          error.message || "Unknown error"
-        }`,
+        description: `Failed to send email: ${error.message || "Unknown error"
+          }`,
         variant: "destructive",
       });
     } finally {
@@ -565,25 +594,23 @@ const fetchUserSubscription = async () => {
 
   const formattedIssueDate = displayInvoice.issuedDate
     ? new Date(displayInvoice.issuedDate).toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-      })
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    })
     : "N/A";
 
   const formattedDueDate = displayInvoice.dueDate
     ? new Date(displayInvoice.dueDate).toLocaleDateString("en-US", {
-        month: "short",
-        day: "2-digit",
-        year: "numeric",
-      })
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    })
     : "N/A";
 
-  const containerClasses = `bg-white dark:bg-invoice-darkBg p-6 rounded-md shadow-sm w-full h-full overflow-auto ${
-    isPdfView ? "pdf-view-mode" : ""
-  } ${selectedTemplate ? selectedTemplate.styles.font : ""} ${
-    selectedTemplate ? selectedTemplate.styles.background : ""
-  }`;
+  const containerClasses = `bg-white dark:bg-invoice-darkBg p-6 rounded-md shadow-sm w-full h-full overflow-auto ${isPdfView ? "pdf-view-mode" : ""
+    } ${selectedTemplate ? selectedTemplate.styles.font : ""} ${selectedTemplate ? selectedTemplate.styles.background : ""
+    }`;
 
   return (
     <>
@@ -596,11 +623,10 @@ const fetchUserSubscription = async () => {
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center space-x-4">
                 <h1
-                  className={`text-2xl font-bold ${
-                    selectedTemplate
-                      ? selectedTemplate.styles.accent
-                      : "text-invoice-lightText dark:text-invoice-darkText"
-                  }`}
+                  className={`text-2xl font-bold ${selectedTemplate
+                    ? selectedTemplate.styles.accent
+                    : "text-invoice-lightText dark:text-invoice-darkText"
+                    }`}
                 ></h1>
               </div>
               <Button
@@ -710,11 +736,11 @@ const fetchUserSubscription = async () => {
               <div className="w-1/3">
                 <div className="flex justify-between text-sm py-2">
                   <span>Subtotal</span>
-                  <span>${displayInvoice.subtotal.toFixed(2)}</span>
+                  <span>${calculatedInvoice.subtotal.toFixed(2)}</span>
                 </div>
-                {Array.isArray(displayInvoice.discounts) &&
-                  displayInvoice.discounts.length > 0 &&
-                  displayInvoice.discounts.map((discount, index) => (
+                {Array.isArray(calculatedInvoice.discounts) &&
+                  calculatedInvoice.discounts.length > 0 &&
+                  calculatedInvoice.discounts.map((discount, index) => (
                     <div
                       key={`discount-${discount.id || index}`}
                       className="flex justify-between text-sm py-2"
@@ -723,9 +749,9 @@ const fetchUserSubscription = async () => {
                       <span>-${discount.amount.toFixed(2)}</span>
                     </div>
                   ))}
-                {Array.isArray(displayInvoice.taxes) &&
-                displayInvoice.taxes.length > 0 ? (
-                  displayInvoice.taxes.map((tax, index) => (
+                {Array.isArray(calculatedInvoice.taxes) &&
+                  calculatedInvoice.taxes.length > 0 ? (
+                  calculatedInvoice.taxes.map((tax, index) => (
                     <div
                       key={`tax-${tax.id || index}`}
                       className="flex justify-between text-sm py-2"
@@ -741,7 +767,7 @@ const fetchUserSubscription = async () => {
                 )}
                 <div className="flex justify-between font-bold text-sm border-t border-gray-300 pt-2 mt-2">
                   <span>Total</span>
-                  <span>${displayInvoice.total.toFixed(2)}</span>
+                  <span>${calculatedInvoice.total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -764,14 +790,14 @@ const fetchUserSubscription = async () => {
                 {displayInvoice.paymentMethods?.some(
                   (pm) => pm.type === "stripe" && pm.isEnabled
                 ) && (
-                  <div className="mt-3">
-                    <p className="text-sm font-medium mb-1">Online Payment</p>
-                    <p className="text-sm">
-                      Payment can be made securely via credit card or online
-                      banking.
-                    </p>
-                  </div>
-                )}
+                    <div className="mt-3">
+                      <p className="text-sm font-medium mb-1">Online Payment</p>
+                      <p className="text-sm">
+                        Payment can be made securely via credit card or online
+                        banking.
+                      </p>
+                    </div>
+                  )}
                 {!displayInvoice.paymentMethods?.some((pm) => pm.isEnabled) && (
                   <p className="text-sm text-gray-500">
                     No payment method specified
@@ -829,13 +855,13 @@ const fetchUserSubscription = async () => {
                   <div className="mb-6">
                     <p className="text-sm text-gray-600 mb-1">From</p>
                     <p className="text-sm">{businessDetails.contact_name}</p>
+                    <p className="text-sm">{businessDetails.email || "N/A"}</p>
                     <p className="text-sm">
                       {businessDetails.address &&
                         `${businessDetails.address}, `}
                       {businessDetails.city && `${businessDetails.city}, `}
                       {businessDetails.postal_code}
                     </p>
-                    <p className="text-sm">{businessDetails.email || "N/A"}</p>
                   </div>
                 </div>
                 <div className="w-1/2 text-right">
@@ -846,8 +872,9 @@ const fetchUserSubscription = async () => {
                   <div className="mb-6">
                     <p className="text-sm text-gray-600 mb-1">Invoice For</p>
                     <p className="text-sm">{invoice.name || "N/A"}</p>
-                    <p className="text-sm">{invoice.details || "N/A"}</p>
                     <p className="text-sm">{invoice.email || "N/A"}</p>
+                    <p className="text-sm">{invoice.details || "N/A"}</p>
+
                   </div>
                 </div>
               </div>
@@ -889,11 +916,11 @@ const fetchUserSubscription = async () => {
               <div className="w-1/3">
                 <div className="flex justify-between text-sm py-2">
                   <span>Subtotal</span>
-                  <span>${invoice.subtotal.toFixed(2)}</span>
+                  <span>${calculatedInvoice.subtotal.toFixed(2)}</span>
                 </div>
-                {Array.isArray(invoice.discounts) &&
-                  invoice.discounts.length > 0 &&
-                  invoice.discounts.map((discount, index) => (
+                {Array.isArray(calculatedInvoice.discounts) &&
+                  calculatedInvoice.discounts.length > 0 &&
+                  calculatedInvoice.discounts.map((discount, index) => (
                     <div
                       key={`discount-${discount.id || index}`}
                       className="flex justify-between text-sm py-2"
@@ -902,8 +929,8 @@ const fetchUserSubscription = async () => {
                       <span>${discount.amount.toFixed(2)}</span>
                     </div>
                   ))}
-                {Array.isArray(invoice.taxes) && invoice.taxes.length > 0 ? (
-                  invoice.taxes.map((tax, index) => (
+                {Array.isArray(calculatedInvoice.taxes) && calculatedInvoice.taxes.length > 0 ? (
+                  calculatedInvoice.taxes.map((tax, index) => (
                     <div
                       key={`tax-${tax.id || index}`}
                       className="flex justify-between text-sm py-2"
@@ -915,11 +942,11 @@ const fetchUserSubscription = async () => {
                     </div>
                   ))
                 ) : (
-                  <div className="text-sm text-gray-500">No taxes applied</div>
+                  <div className="text-sm text-gray-500"></div>
                 )}
                 <div className="flex justify-between font-bold text-sm border-t border-gray-300 pt-3 mb-12">
                   <span>Total</span>
-                  <span>${invoice.total.toFixed(2)}</span>
+                  <span>${calculatedInvoice.total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -942,14 +969,14 @@ const fetchUserSubscription = async () => {
                 {invoice.paymentMethods?.some(
                   (pm) => pm.type === "stripe" && pm.isEnabled
                 ) && (
-                  <div className="mt-3">
-                    <p className="text-sm font-medium mb-1">Online Payment</p>
-                    <p className="text-sm">
-                      Payment can be made securely via credit card or online
-                      banking.
-                    </p>
-                  </div>
-                )}
+                    <div className="mt-3">
+                      <p className="text-sm font-medium mb-1">Online Payment</p>
+                      <p className="text-sm">
+                        Payment can be made securely via credit card or online
+                        banking.
+                      </p>
+                    </div>
+                  )}
                 {!invoice.paymentMethods?.some((pm) => pm.isEnabled) && (
                   <p className="text-sm text-gray-500">
                     No payment method specified
@@ -992,24 +1019,24 @@ const fetchUserSubscription = async () => {
           </div>
         )}
         {!isPdfView && (
-          <div className="mt-8 flex justify-center gap-4 w-full">
-            <button
+          <div className="mt-8 flex justify-center gap-8">
+            <Button
               onClick={handleDownloadPDF}
               disabled={loading}
-              className="flex items-center justify-center gap-2 invoice-btn-secondary w-1/2 py-3"
+              className="flex items-center justify-center gap-2 invoice-btn-secondary py-3"
             >
               <Download size={16} />
               {loading ? "Generating..." : "Download PDF"}
-            </button>
+            </Button>
             {showSendByEmail && (
-              <button
+              <Button
                 onClick={handleSendByEmail}
                 disabled={loading}
-                className="flex items-center justify-center gap-2 invoice-btn-primary w-1/2 py-3"
+                className="flex items-center justify-center gap-2 py-3"
               >
                 <Mail size={16} />
                 Send by Email
-              </button>
+              </Button>
             )}
           </div>
         )}
@@ -1021,9 +1048,8 @@ const fetchUserSubscription = async () => {
               <h2 className="text-2xl font-bold dark:text-white">
                 Send Invoice via email
               </h2>
-              <button
+              <Button
                 onClick={() => setShowEmailModal(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
                 <svg
                   className="w-6 h-6"
@@ -1039,7 +1065,7 @@ const fetchUserSubscription = async () => {
                     d="M6 18L18 6M6 6l12 12"
                   />
                 </svg>
-              </button>
+              </Button>
             </div>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
               Securely send your invoice via email. Use comma to add several
@@ -1052,7 +1078,7 @@ const fetchUserSubscription = async () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email to
                   </label>
-                  <div className="flex flex-wrap gap-1 p-2 border rounded-md focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400">
+                  <div className="flex flex-wrap gap-1 p-2 border rounded-md focus-within:border-yellow-400">
                     {emailFormData.to.map((email, index) => (
                       <div
                         key={`to-${index}`}
@@ -1060,9 +1086,8 @@ const fetchUserSubscription = async () => {
                       >
                         <span className="text-sm mr-1">{email}</span>
                         <button
-                          type="button"
+                          type="Button"
                           onClick={() => handleRemoveEmail(index, "to")}
-                          className="text-gray-500 hover:text-red-500"
                         >
                           ×
                         </button>
@@ -1072,7 +1097,7 @@ const fetchUserSubscription = async () => {
                       type="text"
                       onKeyDown={(e) => handleAddEmail(e, "to")}
                       placeholder="Add recipient..."
-                      className="flex-grow outline-none min-w-[150px] p-1 bg-transparent"
+                      className="flex-grow outline-none min-w-[150px] p-1"
                     />
                   </div>
                 </div>
@@ -1080,27 +1105,26 @@ const fetchUserSubscription = async () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     CC
                   </label>
-                  <div className="flex flex-wrap gap-1 p-2 border rounded-md focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-400">
+                  <div className="flex flex-wrap gap-1 p-2 border rounded-md focus-within:border-yellow-400">
                     {emailFormData.cc.map((email, index) => (
                       <div
                         key={`cc-${index}`}
                         className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-md px-2 py-1"
                       >
                         <span className="text-sm mr-1">{email}</span>
-                        <button
-                          type="button"
+                        <Button
+                          type="Button"
                           onClick={() => handleRemoveEmail(index, "cc")}
-                          className="text-gray-500 hover:text-red-500"
+                          className="text-gray-500 bg-transparent hover:text-red-500"
                         >
-                          ×
-                        </button>
+                        </Button>
                       </div>
                     ))}
                     <input
                       type="text"
                       onKeyDown={(e) => handleAddEmail(e, "cc")}
                       placeholder="Add CC..."
-                      className="flex-grow outline-none min-w-[150px] p-1 bg-transparent"
+                      className="flex-grow outline-none min-w-[150px] p-1"
                     />
                   </div>
                 </div>
@@ -1112,18 +1136,18 @@ const fetchUserSubscription = async () => {
                     value={emailFormData.message}
                     onChange={handleMessageChange}
                     rows={4}
-                    className="w-full p-2 border rounded-md focus:border-blue-400 focus:ring-1 focus:ring-blue-400 dark:bg-gray-700 dark:border-gray-600"
+                    className="w-full p-2 border outline-none rounded-md focus-within:border-yellow-400"
                     placeholder="Enter your message..."
                   ></textarea>
                 </div>
                 <div className="flex justify-end">
-                  <button
+                  <Button
                     onClick={handleSendEmail}
                     disabled={sendingEmail || emailFormData.to.length === 0}
-                    className="invoice-btn-primary text-white font-medium py-2 px-6 rounded-md disabled:opacity-50"
+                    className="font-medium py-2 px-6 rounded-md"
                   >
                     {sendingEmail ? "Sending..." : "Send Now"}
-                  </button>
+                  </Button>
                 </div>
               </>
             ) : (
@@ -1143,12 +1167,12 @@ const fetchUserSubscription = async () => {
                   </svg>
                   <span>This feature is exclusive to Pro users.</span>
                 </div>
-                <button
+                <Button
                   onClick={goToSubscription}
-                  className="flex items-center justify-center gap-2 invoice-btn-primary text-white py-3 px-4 rounded-md w-full"
+                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-md w-full text-white"
                 >
                   Upgrade to Pro
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -1172,14 +1196,12 @@ const fetchUserSubscription = async () => {
                 onChange={toggleViewMode}
               />
               <div
-                className={`block w-10 h-5 rounded-full transition ${
-                  isPdfView ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
-                }`}
+                className={`block w-10 h-5 rounded-full transition ${isPdfView ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+                  }`}
               ></div>
               <div
-                className={`absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition transform ${
-                  isPdfView ? "translate-x-5" : "translate-x-0"
-                }`}
+                className={`absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition transform ${isPdfView ? "translate-x-5" : "translate-x-0"
+                  }`}
               ></div>
             </div>
             <div className="ml-2 text-sm flex items-center gap-1">

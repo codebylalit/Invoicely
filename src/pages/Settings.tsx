@@ -1,9 +1,10 @@
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import Subscription from "@/components/Subscription";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Sun, Moon } from "lucide-react";
 
 const Settings = () => {
   const supabase = useSupabaseClient();
@@ -11,6 +12,7 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState("business");
   const [loading, setLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -59,12 +61,38 @@ const Settings = () => {
         description: "Thank you for your payment. Your subscription will be updated shortly.",
       });
     }
-    
+
     // Set subscription tab active if coming from PayPal flow
     if (params.get("from") === "paypal") {
       setActiveTab("subscription");
     }
   }, [location]);
+
+  // Theme settings
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    if (isDarkMode) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setIsDarkMode(true);
+    }
+  };
 
   // Fetch business details from Supabase
   const fetchBusinessDetails = async () => {
@@ -105,15 +133,16 @@ const Settings = () => {
         .eq("user_id", session.user.id)
         .single();
 
-      if (error) throw error;
+      if (error && error.code !== "PGRST116") {
+        throw error;
+      }
 
       setUserSubscription({
-        tier: data.tier || "free",
-        paymentMethod: data.payment_method || null,
-        bankTransferDetails: data.bank_transfer_details || "",
+        tier: data?.tier || "free",
+        paymentMethod: data?.payment_method || null,
+        bankTransferDetails: data?.bank_transfer_details || "",
       });
     } catch (error) {
-      console.error("Error fetching user subscription:", error);
       toast({
         title: "Error",
         description: "Failed to load payment details.",
@@ -291,198 +320,202 @@ const Settings = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold">Settings</h1>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="space-y-6">
-          {/* Tabs */}
-          <div className="border-b border-gray-200">
-            <div className="-mb-px flex space-x-8">
-              <button
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "business"
-                    ? "border-invoice-orange text-invoice-orange"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-                onClick={() => setActiveTab("business")}
+    <div className="ml-64 no-scrollbar">
+      <h1 className="text-3xl font-bold text-invoice-lightText dark:text-invoice-darkText mb-6">Settings</h1>
+      <div className="space-y-6">
+        {/* Tabs */}
+        <div className="flex space-x-2 border-b border-gray-200 dark:border-gray-700 mb-8">
+          {['business', 'payment', 'subscription', 'theme'].map(tab => (
+            <button
+              key={tab}
+              className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${activeTab === tab
+                ? 'border-primary text-primary'
+                : 'border-transparent text-gray-500 hover:text-primary'
+                } bg-transparent`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1).replace('Details', ' Details')}
+            </button>
+          ))}
+        </div>
+
+        {/* Business Details Form */}
+        {activeTab === "business" && (
+          <div className="bg-white dark:bg-invoice-darkBg rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Business Details</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  These details will appear on all your invoices
+                </p>
+              </div>
+              <Button
+                onClick={saveBusinessDetails}
+                disabled={loading}
               >
-                Business Details
-              </button>
-              <button
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "payment"
-                    ? "border-invoice-orange text-invoice-orange"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-                onClick={() => setActiveTab("payment")}
-              >
-                Payment details
-              </button>
-              <button
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "subscription"
-                    ? "border-invoice-orange text-invoice-orange"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-                onClick={() => setActiveTab("subscription")}
-              >
-                Subscription
-              </button>
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Saving...
+                  </span>
+                ) : (
+                  "Save changes"
+                )}
+              </Button>
             </div>
-          </div>
 
-          {/* Business Details Form */}
-          {activeTab === "business" && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-lg font-medium mb-6">Business Details</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
+                  Contact name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="contact_name"
+                  value={businessDetails.contact_name}
+                  onChange={handleBusinessInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                  placeholder="John Doe"
+                />
+              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Contact name
-                  </label>
-                  <input
-                    type="text"
-                    name="contact_name"
-                    value={businessDetails.contact_name}
-                    onChange={handleBusinessInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
+                  Company / Business name
+                </label>
+                <input
+                  type="text"
+                  name="business_name"
+                  value={businessDetails.business_name}
+                  onChange={handleBusinessInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Company / Business name
-                  </label>
-                  <input
-                    type="text"
-                    name="business_name"
-                    value={businessDetails.business_name}
-                    onChange={handleBusinessInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={businessDetails.email}
+                  onChange={handleBusinessInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={businessDetails.email}
-                    onChange={handleBusinessInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
+                  Phone number
+                </label>
+                <input
+                  type="tel"
+                  name="phone_number"
+                  value={businessDetails.phone_number}
+                  onChange={handleBusinessInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone number
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone_number"
-                    value={businessDetails.phone_number}
-                    onChange={handleBusinessInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  name="address"
+                  value={businessDetails.address}
+                  onChange={handleBusinessInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={businessDetails.address}
-                    onChange={handleBusinessInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
+                  City
+                </label>
+                <input
+                  type="text"
+                  name="city"
+                  value={businessDetails.city}
+                  onChange={handleBusinessInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={businessDetails.city}
-                    onChange={handleBusinessInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
+                  Postal Code
+                </label>
+                <input
+                  type="text"
+                  name="postal_code"
+                  value={businessDetails.postal_code}
+                  onChange={handleBusinessInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Postal Code
-                  </label>
-                  <input
-                    type="text"
-                    name="postal_code"
-                    value={businessDetails.postal_code}
-                    onChange={handleBusinessInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
+                  Country
+                </label>
+                <input
+                  type="text"
+                  name="country"
+                  value={businessDetails.country}
+                  onChange={handleBusinessInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Country
-                  </label>
-                  <input
-                    type="text"
-                    name="country"
-                    value={businessDetails.country}
-                    onChange={handleBusinessInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
+                  Region/State
+                </label>
+                <input
+                  type="text"
+                  name="region_state"
+                  value={businessDetails.region_state}
+                  onChange={handleBusinessInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Region/State
-                  </label>
-                  <input
-                    type="text"
-                    name="region_state"
-                    value={businessDetails.region_state}
-                    onChange={handleBusinessInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
+                  VAT Number
+                </label>
+                <input
+                  type="text"
+                  name="vat_number"
+                  value={businessDetails.vat_number}
+                  onChange={handleBusinessInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    VAT Number
-                  </label>
-                  <input
-                    type="text"
-                    name="vat_number"
-                    value={businessDetails.vat_number}
-                    onChange={handleBusinessInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Upload your logo
-                  </label>
-                  <div className="flex items-center mt-1">
-                    {businessDetails.logo_url && (
-                      <div className="mr-4">
-                        <img
-                          src={businessDetails.logo_url}
-                          alt="Business logo"
-                          className="h-12 w-12 object-contain"
-                        />
-                      </div>
-                    )}
-                    <label className="cursor-pointer bg-white px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-                      Upload
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
+                  Upload your logo
+                </label>
+                <div className="flex items-center gap-4">
+                  {businessDetails.logo_url && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={businessDetails.logo_url}
+                        alt="Business logo"
+                        className="h-12 w-12 object-contain rounded-md border border-gray-200 dark:border-gray-700"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-invoice-lightText dark:text-invoice-darkText hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                      <span>Upload</span>
                       <input
                         type="file"
                         className="hidden"
@@ -490,134 +523,203 @@ const Settings = () => {
                         onChange={handleLogoUpload}
                       />
                     </label>
-                    <div className="ml-4 text-xs text-gray-500">
-                      Preferred image size: 512x512
-                      <br />
-                      Format: .png, .svg, .jpg
-                    </div>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Preferred image size: 512x512 • Format: .png, .svg, .jpg
+                    </p>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
 
-              <div className="mt-6">
-                <Button
-                  onClick={saveBusinessDetails}
-                  disabled={loading}
-                  className="bg-invoice-orange hover:bg-invoice-orange/90"
-                >
-                  {loading ? "Saving..." : "Save changes"}
-                </Button>
+        {/* Payment Details */}
+        {activeTab === "payment" && (
+          <div className="bg-white dark:bg-invoice-darkBg rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Payment Details</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  Set up your preferred payment methods for receiving payments
+                </p>
               </div>
             </div>
-          )}
 
-          {/* Payment Details */}
-          {activeTab === "payment" && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-lg font-medium mb-2">Payment Details</h2>
-              <p className="text-sm text-gray-500 mb-6">
-                Here you can set up default payment options for invoices you
-                create for your clients.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Bank Transfer */}
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <div className="flex items-center mb-4">
-                    <div className="bg-black p-2 rounded-md mr-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-white"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                        <path
-                          fillRule="evenodd"
-                          d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <span className="font-medium">Bank transfer</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Bank Transfer */}
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center mb-4">
+                  <div className="bg-black p-2 rounded-md mr-3">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-white"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                      <path
+                        fillRule="evenodd"
+                        d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
                   </div>
+                  <div>
+                    <span className="font-medium text-invoice-lightText dark:text-invoice-darkText">Bank Transfer</span>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Direct bank transfers from your clients</p>
+                  </div>
+                </div>
 
-                  <textarea
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 mb-4 min-h-[120px]"
-                    placeholder="Include payment details here. For example bank transfer details or PayPal."
-                    value={userSubscription.bankTransferDetails}
-                    onChange={handleBankDetailsChange}
-                  ></textarea>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText mb-2">
+                      Bank Details
+                    </label>
+                    <textarea
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 min-h-[120px] bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                      placeholder="Bank Name: Your Bank
+Account Name: Your Name
+Account Number: 123456789
+IBAN: XX00 1234 5678 9012 3456 78
+SWIFT/BIC: BANK1234XXX"
+                      value={userSubscription.bankTransferDetails}
+                      onChange={handleBankDetailsChange}
+                    ></textarea>
+                  </div>
 
                   <Button
                     onClick={savePaymentDetails}
                     disabled={loading}
-                    className="bg-invoice-orange hover:bg-invoice-orange/90 w-full"
+                    className="w-full"
                   >
-                    {loading ? "Saving..." : "Save bank details"}
+                    {loading ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Saving...
+                      </span>
+                    ) : (
+                      "Save bank details"
+                    )}
                   </Button>
                 </div>
+              </div>
 
-                {/* Stripe */}
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <div className="flex items-center mb-4">
-                    <div className="bg-indigo-600 p-2 rounded-md mr-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-white"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                        <path
-                          fillRule="evenodd"
-                          d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <span className="font-medium">Stripe</span>
+              {/* Stripe */}
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center mb-4">
+                  <div className="bg-indigo-600 p-2 rounded-md mr-3">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-white"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                      <path
+                        fillRule="evenodd"
+                        d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
                   </div>
+                  <span className="font-medium text-invoice-lightText dark:text-invoice-darkText">Stripe</span>
+                </div>
 
-                  <p className="text-sm text-gray-500 mb-4">
-                    Connect Stripe and accept Cards, Google & Apple Pay. Only
-                    standard Stripe processing fees apply.{" "}
-                    <a
-                      href="https://stripe.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-green-600 hover:underline"
-                    >
-                      Learn more at Stripe
-                    </a>
-                  </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  Connect Stripe and accept Cards, Google & Apple Pay. Only
+                  standard Stripe processing fees apply.{" "}
+                  <a
+                    href="https://stripe.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-600 dark:text-green-400 hover:underline"
+                  >
+                    Learn more at Stripe
+                  </a>
+                </p>
 
-                  {userSubscription.paymentMethod === "stripe" ? (
-                    <div className="text-sm text-green-600 mb-4 font-medium">
-                      ✓ Connected to Stripe
-                    </div>
+                {userSubscription.paymentMethod === "stripe" ? (
+                  <div className="flex items-center text-sm text-green-600 dark:text-green-400 mb-4 font-medium">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Connected to Stripe
+                  </div>
+                ) : (
+                  <Button
+                    onClick={handleConnectStripe}
+                    disabled={connecting}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    {connecting ? "Connecting..." : "Connect"}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Subscription */}
+        {activeTab === "subscription" && (
+          <Subscription
+            userSubscription={userSubscription}
+            setUserSubscription={setUserSubscription}
+          />
+        )}
+
+        {/* Theme Settings */}
+        {activeTab === "theme" && (
+          <div className="bg-white dark:bg-invoice-darkBg rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Theme Settings</h2>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div>
+                  <h3 className="text-base font-medium text-invoice-lightText dark:text-invoice-darkText">Dark Mode</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Switch between light and dark mode</p>
+                </div>
+                <Button
+                  onClick={toggleTheme}
+                  className="flex items-center justify-center p-2 rounded-full bg-white dark:bg-gray-700 text-invoice-lightText dark:text-invoice-darkText hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  aria-label="Toggle theme"
+                >
+                  {isDarkMode ? (
+                    <Sun className="h-5 w-5" />
                   ) : (
-                    <Button
-                      onClick={handleConnectStripe}
-                      disabled={connecting}
-                      className="bg-green-600 hover:bg-green-700 w-full"
-                    >
-                      {connecting ? "Connecting..." : "Connect"}
-                    </Button>
+                    <Moon className="h-5 w-5" />
                   )}
+                </Button>
+              </div>
+
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <h3 className="text-base font-medium text-invoice-lightText dark:text-invoice-darkText mb-4">Theme Preview</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-4 rounded-lg bg-white dark:bg-invoice-darkBg border border-gray-200 dark:border-gray-700">
+                    <h4 className="text-sm font-medium mb-2 text-invoice-lightText dark:text-invoice-darkText">Light Mode</h4>
+                    <div className="space-y-2">
+                      <div className="h-4 rounded bg-primary"></div>
+                      <div className="h-4 rounded bg-secondary"></div>
+                      <div className="h-4 rounded bg-accent"></div>
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-gray-900 border border-gray-700">
+                    <h4 className="text-sm font-medium mb-2 text-white">Dark Mode</h4>
+                    <div className="space-y-2">
+                      <div className="h-4 rounded bg-primary"></div>
+                      <div className="h-4 rounded bg-secondary"></div>
+                      <div className="h-4 rounded bg-accent"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Subscription */}
-          {activeTab === "subscription" && (
-            <Subscription
-              userSubscription={userSubscription}
-              setUserSubscription={setUserSubscription}
-            />
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

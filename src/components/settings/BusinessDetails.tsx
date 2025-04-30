@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
 
@@ -202,7 +202,6 @@ const BusinessDetailsForm = ({
         <Button
           onClick={onSave}
           disabled={loading}
-          className="bg-invoice-orange hover:bg-invoice-orange/90"
         >
           {loading ? "Saving..." : "Save changes"}
         </Button>

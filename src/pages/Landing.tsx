@@ -1,10 +1,9 @@
-
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckIcon, FileText, ZapIcon } from "lucide-react";
+import { CheckIcon, FileText, ZapIcon, CreditCard, Clock, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import { PricingTier } from "@/types/subscription";
@@ -15,12 +14,12 @@ const pricingTiers: PricingTier[] = [
     price: "$0",
     description: "Perfect for getting started",
     features: [
-      { name: "5 invoices per month", free: true, pro: true },
-      { name: "Basic templates", free: true, pro: true },
-      { name: "PDF export", free: true, pro: true },
-      { name: "Email support", free: true, pro: true },
-      { name: "Unlimited invoices", free: false, pro: true },
-      { name: "Custom branding", free: false, pro: true },
+      { name: "Basic invoice creation", free: true, pro: true },
+      { name: "Store up to 10 clients", free: true, pro: true },
+      { name: "3 templates", free: true, pro: true },
+      { name: "PDF export with watermark", free: true, pro: true },
+      { name: "Logo branding", free: true, pro: true },
+      { name: "Basic email support (72hr)", free: true, pro: true },
     ]
   },
   {
@@ -28,27 +27,47 @@ const pricingTiers: PricingTier[] = [
     price: "$5",
     description: "For growing businesses",
     features: [
-      { name: "5 invoices per month", free: true, pro: true },
-      { name: "Basic templates", free: true, pro: true },
-      { name: "PDF export", free: true, pro: true },
-      { name: "Email support", free: true, pro: true },
-      { name: "Unlimited invoices", free: false, pro: true },
-      { name: "Custom branding", free: false, pro: true },
+      { name: "AI-powered invoice generation", free: false, pro: true },
+      { name: "Unlimited clients in portal", free: false, pro: true },
+      { name: "10+ premium templates", free: false, pro: true },
+      { name: "Watermark-free exports", free: false, pro: true },
+      { name: "Recurring invoices", free: false, pro: true },
+      { name: "Send invoices directly via email", free: false, pro: true },
+      { name: "Priority support (24hr)", free: false, pro: true },
     ]
   }
 ];
 
 const Landing = () => {
-  // Get the Supabase client and session from context
   const supabase = useSupabaseClient();
   const session = useSession();
   const navigate = useNavigate();
+  const [isHeaderVisible, setIsHeaderVisible] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
     if (session) {
       navigate("/app", { replace: true });
     }
   }, [session, navigate]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Show header when scrolling up or at the top of the page
+      if (currentScrollY < lastScrollY || currentScrollY < 100) {
+        setIsHeaderVisible(true);
+      } else {
+        setIsHeaderVisible(false);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   const handleSignIn = async () => {
     if (supabase) {
@@ -61,134 +80,194 @@ const Landing = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-invoice-light dark:bg-invoice-darkBg">
-      <Header />
+    <div className="flex flex-col min-h-screen bg-[#F5F1EA]">
+      <div
+        className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b border-[#F5F1EA] transition-all duration-300 ${isHeaderVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+          }`}
+      >
+        <div className="max-w-5xl mx-auto px-8 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-[#2D2D2D] text-2xl tracking-tight">Invoicely</span>
+          </div>
+          <Button
+            onClick={() => navigate('/auth')}
+            size="sm"
+            variant="ghost"
+            className="text-[#2D2D2D] hover:text-[#2D2D2D]/80 hover:bg-[#F5F1EA]/50"
+          >
+            Sign In
+          </Button>
+        </div>
+      </div>
 
       {/* Hero Section */}
-      <section className="py-16 px-6 md:px-12 flex flex-col items-center text-center">
-        <div className="animate-fade-in">
-          <ZapIcon className="h-14 w-14 text-invoice-orange mb-6" />
-          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-invoice-lightText dark:text-invoice-darkText">
-            Simple Invoice Generator
-          </h1>
-          <p className="text-lg md:text-xl text-invoice-gray max-w-2xl mx-auto mb-6">
-            Create professional invoices in seconds
-          </p>
-          <Button
-            onClick={handleSignIn}
-            size="lg"
-            className="bg-invoice-orange hover:bg-invoice-orange/90"
-          >
-            Sign In to Start
-          </Button>
+      <section className="pt-40 pb-20 relative overflow-hidden">
+        <div className="max-w-5xl mx-auto px-8">
+          {/* Paper craft elements */}
+          <div className="absolute top-20 right-[20%] transform rotate-12">
+            <div className="w-16 h-16 bg-[#FFB800] rounded-lg shadow-lg transform hover:rotate-6 transition-transform duration-300" />
+          </div>
+          <div className="absolute bottom-20 left-[15%] transform -rotate-12">
+            <div className="w-12 h-12 bg-[#FFB800] rounded-lg shadow-lg transform hover:-rotate-6 transition-transform duration-300" />
+          </div>
+          <div className="absolute top-40 left-[10%] transform rotate-45">
+            <div className="w-8 h-8 bg-[#FFB800]/70 rounded-lg shadow-lg transform hover:rotate-12 transition-transform duration-300" />
+          </div>
+
+          <div className="text-center relative">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 text-[#2D2D2D]">
+              A smarter way to invoice awaits.
+            </h1>
+            <p className="text-lg text-[#6B6B6B] mb-8 max-w-2xl mx-auto">
+              This stunning application gives you the power to create beautiful invoices with AI, making your billing process effortless wherever you are.
+            </p>
+            <Button
+              onClick={() => navigate('/auth')}
+              size="lg"
+              className="bg-[#FFB800] hover:bg-[#FFB800]/90 text-[#2D2D2D] font-medium px-8 py-6 rounded-xl shadow-lg transform transition-transform hover:scale-105 hover:rotate-1"
+            >
+              Let's Start!
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Preview Section */}
+      <section className="py-16 relative">
+        <div className="max-w-5xl mx-auto px-8">
+          <div className="relative transform hover:rotate-1 transition-transform duration-300">
+            <div className="absolute inset-0 bg-[#FFB800] rounded-2xl transform rotate-3 shadow-xl" />
+            <div className="absolute inset-0 bg-[#FFB800]/20 rounded-2xl transform rotate-6 shadow-lg" />
+            <div className="relative bg-white rounded-2xl shadow-xl p-6 transform -rotate-2">
+              {/* Invoice Form Mockup */}
+              <div className="aspect-[16/9] relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-[90%] h-[85%] flex gap-8">
+                    <div className="flex-1 flex flex-col gap-4">
+                      <div className="h-8 w-48 bg-[#F5F1EA] rounded shadow-sm" />
+                      <div className="h-10 w-full bg-[#F5F1EA] rounded shadow-sm" />
+                      <div className="h-32 w-full bg-[#F5F1EA] rounded shadow-sm" />
+                      <div className="h-10 w-3/4 bg-[#F5F1EA] rounded shadow-sm" />
+                    </div>
+                    <div className="w-96 rounded-lg p-4 border-2 border-[#F5F1EA] shadow-sm">
+                      <div className="h-8 w-32 bg-[#F5F1EA] rounded mb-4 shadow-sm" />
+                      <div className="h-64 w-full bg-[#F5F1EA] rounded shadow-sm" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-5xl mx-auto px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4 text-[#2D2D2D]">Features</h2>
+            <p className="text-[#6B6B6B]">
+              We provide all the features an individual or small business needs to manage invoices.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="p-6 rounded-xl bg-[#F5F1EA] shadow-lg transform hover:-rotate-2 transition-transform">
+              <ZapIcon className="h-8 w-8 text-[#FFB800] mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-[#2D2D2D]">AI-Powered Generation</h3>
+              <p className="text-[#6B6B6B]">Generate professional invoices instantly using AI, saving you time and effort.</p>
+            </div>
+            <div className="p-6 rounded-xl bg-[#F5F1EA] shadow-lg transform hover:rotate-2 transition-transform">
+              <FileText className="h-8 w-8 text-[#FFB800] mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-[#2D2D2D]">Smart Templates</h3>
+              <p className="text-[#6B6B6B]">Choose from a variety of professional templates that adapt to your business needs.</p>
+            </div>
+            <div className="p-6 rounded-xl bg-[#F5F1EA] shadow-lg transform hover:-rotate-2 transition-transform">
+              <Send className="h-8 w-8 text-[#FFB800] mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-[#2D2D2D]">Instant Delivery</h3>
+              <p className="text-[#6B6B6B]">Send invoices directly to clients via email with just one click.</p>
+            </div>
+            <div className="p-6 rounded-xl bg-[#F5F1EA] shadow-lg transform hover:rotate-2 transition-transform">
+              <CreditCard className="h-8 w-8 text-[#FFB800] mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-[#2D2D2D]">Payment Tracking</h3>
+              <p className="text-[#6B6B6B]">Monitor payment status and send automatic reminders for overdue invoices.</p>
+            </div>
+            <div className="p-6 rounded-xl bg-[#F5F1EA] shadow-lg transform hover:-rotate-2 transition-transform">
+              <Clock className="h-8 w-8 text-[#FFB800] mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-[#2D2D2D]">Recurring Invoices</h3>
+              <p className="text-[#6B6B6B]">Set up automatic recurring invoices for regular clients and subscriptions.</p>
+            </div>
+            <div className="p-6 rounded-xl bg-[#F5F1EA] shadow-lg transform hover:rotate-2 transition-transform">
+              <div className="h-8 w-8 text-[#FFB800] mb-4 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-[#2D2D2D]">Financial Analytics</h3>
+              <p className="text-[#6B6B6B]">Get insights into your business performance with detailed analytics and reports.</p>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section className="py-12 px-6 md:px-12">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-8 text-invoice-lightText dark:text-invoice-darkText">
-            Simple pricing, no hidden fees
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+      <section className="py-20 bg-[#F5F1EA]">
+        <div className="max-w-5xl mx-auto px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4 text-[#2D2D2D]">One simple price</h2>
+            <p className="text-[#6B6B6B]">
+              Unlock a suite of incredible features for just $5/month.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-8">
             {pricingTiers.map((tier) => (
-              <Card
+              <div
                 key={tier.name}
-                className={`border-2 ${
-                  tier.name === "Pro"
-                    ? "border-invoice-orange"
-                    : "border-border"
-                }`}
+                className="p-8 rounded-xl bg-white shadow-lg transform hover:rotate-1 transition-transform"
               >
-                <CardHeader>
-                  <CardTitle>{tier.name}</CardTitle>
-                  <div className="flex items-baseline mt-2">
-                    <span className="text-3xl font-bold">{tier.price}</span>
-                    {tier.price !== "$0" && (
-                      <span className="text-sm text-muted-foreground ml-1">
-                        /month
-                      </span>
-                    )}
-                  </div>
-                  <CardDescription>{tier.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {tier.features.map((feature) => (
-                      <li key={feature.name} className="flex items-center">
-                        <CheckIcon
-                          className={`h-5 w-5 mr-2 flex-shrink-0 ${
-                            tier.name === "Free"
-                              ? feature.free
-                                ? "text-invoice-orange"
-                                : "text-muted-foreground"
-                              : feature.pro
-                              ? "text-invoice-orange"
-                              : "text-muted-foreground"
-                          }`}
-                        />
-                        <span className="text-sm">{feature.name}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    onClick={handleSignIn}
-                    className={`w-full ${
-                      tier.name === "Pro"
-                        ? "bg-invoice-orange hover:bg-invoice-orange/90"
-                        : "bg-secondary hover:bg-secondary/90"
-                    }`}
-                  >
-                    {tier.name === "Free" ? "Get Started" : "Subscribe Now"}
-                  </Button>
-                </CardFooter>
-              </Card>
+                <h3 className="text-2xl font-bold mb-2 text-[#2D2D2D]">{tier.name}</h3>
+                <div className="flex items-baseline mb-4">
+                  <span className="text-4xl font-bold text-[#2D2D2D]">{tier.price}</span>
+                  {tier.price !== "$0" && (
+                    <span className="text-[#6B6B6B] ml-1">/month</span>
+                  )}
+                </div>
+                <ul className="space-y-3 mb-6">
+                  {tier.features.map((feature) => (
+                    <li key={feature.name} className="flex items-center text-[#6B6B6B]">
+                      <CheckIcon className={`h-5 w-5 mr-2 ${(tier.name === "Free" && feature.free) ||
+                        (tier.name === "Pro" && feature.pro)
+                        ? "text-[#FFB800]"
+                        : "text-gray-300"
+                        }`} />
+                      {feature.name}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  onClick={() => navigate('/auth')}
+                  className={`w-full ${tier.name === "Pro"
+                    ? "bg-[#FFB800] hover:bg-[#FFB800]/90 text-[#2D2D2D]"
+                    : "bg-[#F5F1EA] hover:bg-[#F5F1EA]/90 text-[#2D2D2D]"
+                    } shadow-lg transform transition-transform hover:scale-105`}
+                >
+                  {tier.name === "Free" ? "Get Started" : "Subscribe Now"}
+                </Button>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <footer className="py-6 px-6 md:px-12 border-t border-border mt-auto">
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center">
+      <footer className="py-8 bg-white">
+        <div className="max-w-5xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center gap-2 mb-4 md:mb-0">
-            <FileText className="text-invoice-orange" size={20} />
-            <h1 className="text-lg font-bold text-invoice-lightText dark:text-invoice-darkText">
-              Invoicely
-            </h1>
+            <span className="font-bold text-[#2D2D2D]">Invoicely</span>
           </div>
-
-          {/* Legal & Support Links */}
-          <div className="flex flex-col md:flex-row gap-4 mb-4 md:mb-0">
-            <Link
-              to="/terms"
-              className="text-sm text-invoice-gray hover:text-invoice-orange transition-colors"
-            >
-              Terms of Service
-            </Link>
-            <Link
-              to="/privacy"
-              className="text-sm text-invoice-gray hover:text-invoice-orange transition-colors"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              to="/refunds"
-              className="text-sm text-invoice-gray hover:text-invoice-orange transition-colors"
-            >
-              Cancellation & Refunds
-            </Link>
-            <Link
-              to="/support"
-              className="text-sm text-invoice-gray hover:text-invoice-orange transition-colors"
-            >
-              Customer Support
-            </Link>
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-[#6B6B6B]">
+            <Link to="/terms" className="hover:text-[#2D2D2D]">Terms and conditions</Link>
+            <Link to="/privacy" className="hover:text-[#2D2D2D]">Privacy policy</Link>
+            <Link to="/refunds" className="hover:text-[#2D2D2D]">Cancellation & Refunds</Link>
           </div>
-
-          <p className="text-sm text-invoice-gray">© 2025 Invoicely</p>
         </div>
       </footer>
     </div>
@@ -196,4 +275,3 @@ const Landing = () => {
 };
 
 export default Landing;
-

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { toast } from "@/components/ui/use-toast";
 import PayPalButton from "./subscription/PayPalButton";
 import { useNavigate } from "react-router-dom";
@@ -24,7 +24,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
   const handleSubscriptionSuccess = async (plan: string) => {
     try {
       setUpgrading(true);
-      
+
       // Update subscription in database
       const { error } = await supabase
         .from("profiles")
@@ -34,25 +34,25 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
           updated_at: new Date()
         })
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
-      
+
       if (error) throw error;
-      
+
       // Update local state
       setUserSubscription((prev: any) => ({
         ...prev,
         tier: plan,
         paymentMethod: "paypal",
       }));
-      
+
       // Show success message
       toast({
         title: "Subscription Upgraded!",
         description: `Your account has been successfully upgraded to the ${plan} plan.`,
       });
-      
+
       // Refresh subscription tab
       navigate("/app/settings?from=paypal", { replace: true });
-      
+
     } catch (error) {
       console.error("Error updating subscription:", error);
       toast({
@@ -82,27 +82,27 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h2 className="text-lg font-medium mb-6">Simple pricing, no hidden fees</h2>
+    <div className="bg-white dark:bg-invoice-darkBg shadow rounded-lg p-6">
+      <h2 className="text-lg font-medium mb-6 text-invoice-lightText dark:text-invoice-darkText">Simple pricing, no hidden fees</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Free Plan */}
-        <div className="border rounded-lg overflow-hidden">
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
           <div className="p-6">
-            <h3 className="text-lg font-medium">Free</h3>
+            <h3 className="text-lg font-medium text-invoice-lightText dark:text-invoice-darkText">Free</h3>
             <div className="mt-2">
-              <span className="text-2xl font-bold">$0</span>
+              <span className="text-2xl font-bold text-invoice-lightText dark:text-invoice-darkText">$0</span>
             </div>
-            <p className="text-sm text-gray-500 mt-1">Perfect for getting started</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Perfect for getting started</p>
 
-            <button className="mt-4 w-full py-2 px-4 rounded-md text-center bg-gray-200 hover:bg-gray-300 text-gray-700">
+            <Button className="mt-4 w-full py-2 px-4 rounded-md text-center">
               Current Plan
-            </button>
+            </Button>
           </div>
 
-          <div className="px-6 py-4 border-t">
+          <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
             <ul className="space-y-2">
-              <li className="flex items-center text-sm">
+              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
                   className="h-4 w-4 mr-2 text-green-500"
                   fill="currentColor"
@@ -116,7 +116,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </svg>
                 Basic invoice creation
               </li>
-              <li className="flex items-center text-sm">
+              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
                   className="h-4 w-4 mr-2 text-green-500"
                   fill="currentColor"
@@ -130,7 +130,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </svg>
                 Store up to 10 clients
               </li>
-              <li className="flex items-center text-sm">
+              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
                   className="h-4 w-4 mr-2 text-green-500"
                   fill="currentColor"
@@ -144,7 +144,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </svg>
                 3 templates
               </li>
-              <li className="flex items-center text-sm">
+              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
                   className="h-4 w-4 mr-2 text-green-500"
                   fill="currentColor"
@@ -158,7 +158,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </svg>
                 PDF export with watermark
               </li>
-              <li className="flex items-center text-sm">
+              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
                   className="h-4 w-4 mr-2 text-green-500"
                   fill="currentColor"
@@ -172,7 +172,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </svg>
                 Logo branding
               </li>
-              <li className="flex items-center text-sm">
+              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
                   className="h-4 w-4 mr-2 text-green-500"
                   fill="currentColor"
@@ -191,19 +191,19 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
         </div>
 
         {/* Pro Plan */}
-        <div className="border rounded-lg overflow-hidden border-green-500">
+        <div className="border border-green-500 dark:border-green-400 rounded-lg overflow-hidden">
           <div className="p-6">
-            <h3 className="text-lg font-medium">Pro</h3>
+            <h3 className="text-lg font-medium text-invoice-lightText dark:text-invoice-darkText">Pro</h3>
             <div className="mt-2">
-              <span className="text-2xl font-bold">$5</span>
-              <span className="text-gray-500 ml-1">/mo</span>
+              <span className="text-2xl font-bold text-invoice-lightText dark:text-invoice-darkText">$5</span>
+              <span className="text-gray-500 dark:text-gray-400 ml-1">/mo</span>
             </div>
-            <p className="text-sm text-gray-500 mt-1">For growing businesses</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">For growing businesses</p>
 
             {userSubscription.tier === "pro" ? (
-              <button className="mt-4 w-full py-2 px-4 rounded-md text-center bg-gray-200 text-gray-700 cursor-not-allowed">
+              <Button className="mt-4 w-full py-2 px-4 rounded-md text-center cursor-not-allowed">
                 Current Plan
-              </button>
+              </Button>
             ) : (
               <PayPalButton
                 plan="pro"
@@ -215,9 +215,9 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
             )}
           </div>
 
-          <div className="px-6 py-4 border-t">
+          <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
             <ul className="space-y-2">
-              <li className="flex items-center text-sm">
+              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
                   className="h-4 w-4 mr-2 text-green-500"
                   fill="currentColor"
@@ -231,7 +231,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </svg>
                 AI-powered invoice generation
               </li>
-              <li className="flex items-center text-sm">
+              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
                   className="h-4 w-4 mr-2 text-green-500"
                   fill="currentColor"
@@ -245,7 +245,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </svg>
                 Unlimited clients in portal
               </li>
-              <li className="flex items-center text-sm">
+              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
                   className="h-4 w-4 mr-2 text-green-500"
                   fill="currentColor"
@@ -259,7 +259,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </svg>
                 10+ premium templates
               </li>
-              <li className="flex items-center text-sm">
+              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
                   className="h-4 w-4 mr-2 text-green-500"
                   fill="currentColor"
@@ -273,7 +273,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </svg>
                 Watermark-free exports
               </li>
-              <li className="flex items-center text-sm">
+              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
                   className="h-4 w-4 mr-2 text-green-500"
                   fill="currentColor"
@@ -287,7 +287,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </svg>
                 Recurring invoices
               </li>
-              <li className="flex items-center text-sm">
+              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
                   className="h-4 w-4 mr-2 text-green-500"
                   fill="currentColor"
@@ -301,7 +301,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </svg>
                 Send invoices directly via email
               </li>
-              <li className="flex items-center text-sm">
+              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
                   className="h-4 w-4 mr-2 text-green-500"
                   fill="currentColor"
