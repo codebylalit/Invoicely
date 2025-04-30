@@ -670,7 +670,7 @@ export const InvoiceForm = ({
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
         <h2 className="text-lg font-semibold mb-4">Generate with Promt</h2>
         <textarea
-          className="w-full min-h-[100px] p-3 border rounded-md mb-4 dark:bg-gray-700 dark:border-gray-600"
+          className="w-full min-h-[100px] p-3 border rounded-md mb-4 dark:bg-gray-700 dark:border-gray-600 focus-within:border-yellow-400 outline-none"
           placeholder={
             userSubscription.tier === "pro"
               ? "Describe the work done and we'll generate an invoice (e.g., 'Website development for John Smith (john@example.com) - $500, due in 30 days')"
@@ -756,87 +756,85 @@ export const InvoiceForm = ({
         total={total}
       />
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Payment Methods</h2>
-          <div className="flex items-center gap-2">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Payment Methods</h2>
+          <div className="flex items-center gap-3">
             <span className="text-sm text-gray-600 dark:text-gray-400">
               Show in invoice
             </span>
-            <label className="flex items-center cursor-pointer">
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  checked={showPaymentInInvoice}
-                  onChange={() =>
-                    setShowPaymentInInvoice(!showPaymentInInvoice)
-                  }
-                />
-                <div
-                  className={`block w-10 h-5 rounded-full transition ${showPaymentInInvoice
-                    ? "bg-blue-600"
-                    : "bg-gray-300 dark:bg-gray-600"
-                    }`}
-                ></div>
-                <div
-                  className={`absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition transform ${showPaymentInInvoice ? "translate-x-5" : "translate-x-0"
-                    }`}
-                ></div>
-              </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={showPaymentInInvoice}
+                onChange={() => setShowPaymentInInvoice(!showPaymentInInvoice)}
+              />
+              <div className="w-11 h-6 bg-gray-200 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-yellow-400"></div>
             </label>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4 max-w-md">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
           {/* Bank Transfer Option */}
           <div
-            className={`p-4 border rounded-md cursor-pointer transition-all h-full ${paymentMethods.bank.enabled
-              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-              : "border-gray-300 hover:border-gray-400"
+            className={`p-5 border rounded-lg cursor-pointer transition-all duration-200 ${!showPaymentInInvoice
+              ? "opacity-50 cursor-not-allowed"
+              : paymentMethods.bank.enabled
+                ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20"
+                : "border-gray-200 dark:border-gray-700 hover:border-yellow-400 dark:hover:border-yellow-500"
               }`}
-            onClick={() =>
-              setPaymentMethods({
-                ...paymentMethods,
-                bank: {
-                  ...paymentMethods.bank,
-                  enabled: !paymentMethods.bank.enabled,
-                },
-              })
-            }
+            onClick={() => {
+              if (showPaymentInInvoice) {
+                setPaymentMethods({
+                  ...paymentMethods,
+                  bank: {
+                    ...paymentMethods.bank,
+                    enabled: !paymentMethods.bank.enabled,
+                  },
+                });
+              }
+            }}
           >
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center gap-4">
               <div
-                className={`p-3 rounded-full flex items-center justify-center h-12 w-12 ${paymentMethods.bank.enabled
-                  ? "bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-200"
+                className={`p-3 rounded-full flex items-center justify-center ${paymentMethods.bank.enabled
+                  ? "bg-yellow-100 text-yellow-600 dark:bg-yellow-800 dark:text-yellow-200"
                   : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
                   }`}
               >
                 <Banknote size={24} />
               </div>
-              <span className="font-medium">Bank Transfer</span>
+              <div>
+                <span className="font-medium text-gray-900 dark:text-gray-100">Bank Transfer</span>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Direct bank transfer details</p>
+              </div>
             </div>
           </div>
 
           {/* Stripe Option */}
           <div
-            className={`p-4 border rounded-md cursor-pointer transition-all h-full ${paymentMethods.stripe.enabled
-              ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
-              : "border-gray-300 hover:border-gray-400"
+            className={`p-5 border rounded-lg cursor-pointer transition-all duration-200 ${!showPaymentInInvoice
+              ? "opacity-50 cursor-not-allowed"
+              : paymentMethods.stripe.enabled
+                ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20"
+                : "border-gray-200 dark:border-gray-700 hover:border-yellow-400 dark:hover:border-yellow-500"
               }`}
-            onClick={() =>
-              setPaymentMethods({
-                ...paymentMethods,
-                stripe: {
-                  ...paymentMethods.stripe,
-                  enabled: !paymentMethods.stripe.enabled,
-                },
-              })
-            }
+            onClick={() => {
+              if (showPaymentInInvoice) {
+                setPaymentMethods({
+                  ...paymentMethods,
+                  stripe: {
+                    ...paymentMethods.stripe,
+                    enabled: !paymentMethods.stripe.enabled,
+                  },
+                });
+              }
+            }}
           >
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center gap-4">
               <div
-                className={`p-3 rounded-full flex items-center justify-center h-12 w-12 ${paymentMethods.stripe.enabled
-                  ? "bg-purple-100 dark:bg-purple-800"
-                  : "bg-gray-100 dark:bg-gray-700"
+                className={`p-3 rounded-full flex items-center justify-center ${paymentMethods.stripe.enabled
+                  ? "bg-yellow-100 text-yellow-600 dark:bg-yellow-800 dark:text-yellow-200"
+                  : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
                   }`}
               >
                 <svg
@@ -847,12 +845,15 @@ export const InvoiceForm = ({
                 >
                   <path
                     d="M15.338 14.258c0-1.088.904-1.5 2.385-1.5 1.977 0 4.65.6 6.702 1.65V9.042c-2.227-.894-4.417-1.235-6.7-1.235-5.464 0-9.1 2.85-9.1 7.236 0 7.115 9.79 5.971 9.79 9.044 0 1.19-1.033 1.578-2.486 1.578-2.152 0-4.907-.883-7.094-2.071v5.435c2.412 1.065 4.85 1.514 7.092 1.514 5.567 0 9.343-2.75 9.343-7.21-.026-7.35-9.932-6-9.932-9.075z"
-                    fill={paymentMethods.stripe.enabled ? "#6772e5" : "#6B7280"}
+                    fill="currentColor"
                     fillRule="evenodd"
                   />
                 </svg>
               </div>
-              <span className="font-medium">Stripe</span>
+              <div>
+                <span className="font-medium text-gray-900 dark:text-gray-100">Stripe</span>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Online payment processing</p>
+              </div>
             </div>
           </div>
         </div>
@@ -860,7 +861,7 @@ export const InvoiceForm = ({
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
         <h2 className="text-lg font-semibold mb-4">Notes</h2>
         <textarea
-          className="w-full min-h-[100px] p-3 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+          className="w-full min-h-[100px] p-3 border rounded-md dark:bg-gray-700 dark:border-gray-600 outline-none focus-within:border-yellow-400"
           placeholder="Add any additional notes or payment terms..."
           value={notes}
           onChange={(e) => setNotes(e.target.value)}

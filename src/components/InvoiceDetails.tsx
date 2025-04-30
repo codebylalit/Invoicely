@@ -134,7 +134,7 @@ export const InvoiceDetails = ({
             </label>
             <input
               type="text"
-              className="invoice-input w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="invoice-input w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus-within:border-yellow-400"
               value={invoiceTitle}
               onChange={(e) => setInvoiceTitle(e.target.value)}
             />
@@ -145,7 +145,7 @@ export const InvoiceDetails = ({
             </label>
             <input
               type="text"
-              className="invoice-input w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="invoice-input w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus-within:border-yellow-400"
               value={invoiceNumber}
               onChange={(e) => setInvoiceNumber(e.target.value)}
             />
@@ -213,7 +213,7 @@ export const InvoiceDetails = ({
               <div className="relative">
                 <input
                   type="text"
-                  className="invoice-input pl-10 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  className="invoice-input pl-10 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus-within:border-yellow-400"
                   placeholder="Client Name"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
@@ -270,7 +270,7 @@ export const InvoiceDetails = ({
               <div className="relative">
                 <input
                   type="email"
-                  className="invoice-input pl-10 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  className="invoice-input pl-10 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus-within:border-yellow-400"
                   placeholder="client@email.com"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
@@ -283,7 +283,7 @@ export const InvoiceDetails = ({
 
               <div className="relative">
                 <textarea
-                  className="invoice-textarea pl-10 h-24 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  className="invoice-textarea pl-10 h-24 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus-within:border-yellow-400"
                   placeholder="Additional client details or address"
                   value={customerDetails}
                   onChange={(e) => setCustomerDetails(e.target.value)}
@@ -311,7 +311,7 @@ export const InvoiceDetails = ({
             <div className="relative">
               <input
                 type="date"
-                className="invoice-input pr-10 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                className="invoice-input pr-10 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus-within:border-yellow-400"
                 value={issuedDate}
                 onChange={(e) => setIssuedDate(e.target.value)}
               />
@@ -329,7 +329,7 @@ export const InvoiceDetails = ({
             <div className="relative">
               <input
                 type="date"
-                className="invoice-input pr-10 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                className="invoice-input pr-10 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus-within:border-yellow-400"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
               />

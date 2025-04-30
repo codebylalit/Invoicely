@@ -90,7 +90,7 @@ export const InvoiceItems = ({
                   <td className="py-2">
                     <input
                       type="text"
-                      className="invoice-input-minimal w-full p-1 bg-transparent border-0 focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-gray-100"
+                      className="invoice-input-minimal w-full p-1 outline-none focus-within:border-yellow-400  text-gray-900 dark:text-gray-100"
                       placeholder="Item description"
                       value={item.description}
                       onChange={(e) =>
@@ -101,7 +101,7 @@ export const InvoiceItems = ({
                   <td className="py-2">
                     <input
                       type="number"
-                      className="invoice-input-minimal w-full text-right p-1 bg-transparent border-0 focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-gray-100"
+                      className="invoice-input-minimal w-full text-right p-1 bg-transparent border-0 outline-none focus-within:border-yellow-400 text-gray-900 dark:text-gray-100"
                       min="1"
                       value={item.quantity}
                       onChange={(e) =>
@@ -121,7 +121,7 @@ export const InvoiceItems = ({
                       />
                       <input
                         type="number"
-                        className="invoice-input-minimal w-full text-right pl-6 p-1 bg-transparent border-0 focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-gray-100"
+                        className="invoice-input-minimal w-full text-right pl-6 p-1 bg-transparent border-0 outline-none focus-within:border-yellow-400 text-gray-900 dark:text-gray-100"
                         step="0.01"
                         min="0"
                         value={item.unitPrice}
@@ -187,7 +187,7 @@ export const InvoiceItems = ({
                 <div className="flex space-x-2 items-center">
                   <input
                     type="text"
-                    className="invoice-input-minimal w-24 p-1 bg-transparent border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-gray-100"
+                    className="invoice-input-minimal w-24 p-1 bg-transparent border border-gray-200 dark:border-gray-700 rounded-md outline-none focus-within:border-yellow-400 text-gray-900 dark:text-gray-100"
                     placeholder="Tax name"
                     value={tax.name}
                     onChange={(e) =>
@@ -197,7 +197,7 @@ export const InvoiceItems = ({
                   <div className="relative">
                     <input
                       type="number"
-                      className="invoice-input-minimal w-16 pr-6 p-1 bg-transparent border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-gray-100"
+                      className="invoice-input-minimal w-16 pr-6 p-1 bg-transparent border border-gray-200 dark:border-gray-700 rounded-md outline-none focus-within:border-yellow-400 text-gray-900 dark:text-gray-100"
                       min="0"
                       max="100"
                       step="0.01"
@@ -238,7 +238,7 @@ export const InvoiceItems = ({
                 <div className="flex space-x-2 items-center">
                   <input
                     type="text"
-                    className="invoice-input-minimal w-24 p-1 bg-transparent border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-gray-100"
+                    className="invoice-input-minimal w-24 p-1 bg-transparent border border-gray-200 dark:border-gray-700 rounded-md outline-none focus-within:border-yellow-400 text-gray-900 dark:text-gray-100"
                     placeholder="Discount name"
                     value={discount.name}
                     onChange={(e) =>
@@ -248,7 +248,7 @@ export const InvoiceItems = ({
                   <div className="relative">
                     <input
                       type="number"
-                      className="invoice-input-minimal w-16 pr-6 p-1 bg-transparent border border-gray-200 dark:border-gray-700 rounded-md focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-gray-100"
+                      className="invoice-input-minimal w-16 pr-6 p-1 bg-transparent border border-gray-200 dark:border-gray-700 rounded-md outline-none focus-within:border-yellow-400 text-gray-900 dark:text-gray-100"
                       min="0"
                       max="100"
                       step="0.01"
