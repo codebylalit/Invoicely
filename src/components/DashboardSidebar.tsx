@@ -3,6 +3,7 @@ import { LayoutGrid, Users, FileText, Package, FileSpreadsheet, Settings, LogOut
 import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useEffect, useState } from 'react';
 import ThemeToggle from "./ThemeToggle";
+import { toast } from "@/hooks/use-toast";
 
 const menuItems = [
   { icon: LayoutGrid, label: "Dashboard", path: "/app" },
@@ -16,8 +17,9 @@ const DashboardSidebar = () => {
   const location = useLocation();
   const session = useSession();
   const supabase = useSupabaseClient();
+const [loading, setLoading] = useState(false);
   const [userProfile, setUserProfile] = useState({
-    name: 'Lalit Gaming',
+    name: '',
     email: session?.user?.email || 'Loading...',
     tier: 'free'
   });
@@ -29,8 +31,8 @@ const DashboardSidebar = () => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('name, tier')
-          .eq('id', session.user.id)
+          .select('contact_name, tier')
+          .eq('user_id', session.user.id)
           .single();
 
         if (error) {
@@ -40,7 +42,7 @@ const DashboardSidebar = () => {
 
         if (data) {
           setUserProfile({
-            name: data.name || 'User',
+            name: data.contact_name || 'User',
             email: session.user.email || '',
             tier: data.tier || 'free'
           });
@@ -52,7 +54,54 @@ const DashboardSidebar = () => {
 
     fetchUserProfile();
   }, [session, supabase]);
+// Business details form state
+  const [businessDetails, setBusinessDetails] = useState({
+    contact_name: "",
+    business_name: "",
+    email: "",
+    address: "",
+    city: "",
+    postal_code: "",
+    region_state: "",
+    country: "",
+    phone_number: "",
+    vat_number: "",
+    logo_url: null,
+  });
+  // Fetch business details from Supabase
+  const fetchBusinessDetails = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("business_details")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .single();
 
+      if (error && error.code !== "PGRST116") {
+        throw error;
+      }
+
+      if (data) {
+        setBusinessDetails(data);
+      }
+    } catch (error) {
+      console.error("Error fetching business details:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load business details.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+    // Fetch user data on component mount
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchBusinessDetails();
+    }
+  }, [session]);
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -68,19 +117,19 @@ const DashboardSidebar = () => {
     };
 
   return (
-    <aside className="w-64 h-screen bg-background border-r border-border flex flex-col">
+    <aside className="w-64 h-screen fixed left-0 top-0 bg-background dark:bg-invoice-darkBg border-r border-border dark:border-gray-700 flex flex-col">
       {/* Logo */}
       <div className="p-6">
         <Link to="/app" className="flex items-center gap-2">
           <div className="bg-orange-500 h-8 w-8 rounded-md flex items-center justify-center">
-            <div className="bg-gray-800 h-4 w-5 rounded-r-full"></div>
+            <div className="bg-gray-800 dark:bg-gray-200 h-4 w-5 rounded-r-full"></div>
           </div>
-          <span className="font-bold text-lg text-invoice-lightText dark:text-invoice-darkText ">Invoicely</span>
+          <span className="font-bold text-lg text-invoice-lightText dark:text-invoice-darkText">Invoicely</span>
         </Link>
       </div>
       
       {/* Main navigation */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -89,32 +138,31 @@ const DashboardSidebar = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-md transition-colors  ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-md transition-colors ${
                 isActive
-                  ? "bg-gray-100 text-gray-800 font-medium"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  ? "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium"
+                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200"
               }`}
             >
               <Icon className="h-5 w-5" />
               <span>{item.label}</span>
             </Link>
-            
-          );
+                      );
         })}
       </nav>
       
       {/* Upgrade button */}
-      <div className="px-2">
+      <div className="px-2 mt-auto">
         {userProfile.tier === "pro" ? (
           <div className="w-full flex flex-col items-center py-2">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 mb-1">
-              <svg className="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 mb-1">
+              <svg className="w-4 h-4 mr-1 text-orange-500 dark:text-orange-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               Pro Plan Active
             </span>
             <button
-              className="w-full py-1 bg-green-600 text-white rounded-md cursor-default mt-1"
+              className="w-full py-1 bg-orange-500 dark:bg-orange-600 text-white rounded-md cursor-default mt-1 font-semibold"
               disabled
             >
               You are Pro
@@ -122,19 +170,18 @@ const DashboardSidebar = () => {
           </div>
         ) : (
           <button
-            className="w-full py-1 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors"
+            className="w-full py-1 bg-gray-800 dark:bg-gray-700 text-white rounded-md hover:bg-orange-500 dark:hover:bg-orange-600 transition-colors font-semibold"
             onClick={goToSubscription}
           >
             Upgrade to Pro
           </button>
         )}
       </div>
-      
-      
+            
       {/* User profile */}
-      <div className="p-4 m-4 flex items-center justify-between border-t border-gray-100 pt-4">
+      <div className="p-4 m-4 flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-4">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
             <img
               src="/api/placeholder/40/40"
               alt="User avatar"
@@ -142,11 +189,14 @@ const DashboardSidebar = () => {
             />
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-700">{userProfile.name}</span>
-            <span className="text-xs text-gray-500">{userProfile.email}</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+  {businessDetails.contact_name || "Hello there!"}
+</span>
+
+            <span className="text-xs text-gray-500 dark:text-gray-400">{userProfile.email}</span>
           </div>
         </div>
-        <button onClick={handleSignOut} className="text-gray-500 hover:text-gray-700">
+        <button onClick={handleSignOut} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
           <LogOut className="h-5 w-5" />
         </button>
       </div>
