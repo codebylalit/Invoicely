@@ -3,8 +3,8 @@ import DashboardHeader from "@/components/DashboardHeader";
 import InvoiceStats from "@/components/InvoiceStats";
 import CreateInvoiceButton from "@/components/CreateInvoiceButton";
 import { FileText } from "lucide-react";
-import { Button } from "../components/ui/Button";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/Button";
 
 const Dashboard = () => {
   return (
