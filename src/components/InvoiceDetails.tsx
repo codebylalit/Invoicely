@@ -14,7 +14,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 interface Client {
   id: string;

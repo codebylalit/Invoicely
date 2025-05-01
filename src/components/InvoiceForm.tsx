@@ -5,7 +5,7 @@ import { InvoiceItems } from "./InvoiceItems";
 import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { Banknote } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 interface Invoice {
   status: string;

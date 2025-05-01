@@ -1,5 +1,5 @@
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import Subscription from "@/components/Subscription";

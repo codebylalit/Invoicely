@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Invoice, InvoiceItem, TaxItem, DiscountItem, PaymentMethod } from "@/types/invoice";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useSession } from "@supabase/auth-helpers-react";
 import emailjs from "@emailjs/browser";

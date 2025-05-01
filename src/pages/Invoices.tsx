@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import CreateInvoiceButton from "@/components/CreateInvoiceButton";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Eye, Download, Trash, Check, AlertCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";

@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import PayPalButton from "./subscription/PayPalButton";
 import { useNavigate } from "react-router-dom";

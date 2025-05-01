@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckIcon, FileText, ZapIcon, CreditCard, Clock, Send } from "lucide-react";
 import { Link } from "react-router-dom";
