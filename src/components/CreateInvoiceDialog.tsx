@@ -78,7 +78,7 @@ const CreateInvoiceDialog = () => {
       <DialogTrigger asChild>
         <Button className="w-full md:w-auto">
           <FileText className="w-4 h-4 mr-2" />
-          New invoice
+          Create invoice
         </Button>
       </DialogTrigger>
 

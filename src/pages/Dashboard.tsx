@@ -21,7 +21,7 @@ const Dashboard = () => {
           </Link>
         </div>
 
-        <InvoiceStats />
+        <InvoiceStats updateTrigger={0} />
 
         <div className="text-center text-muted-foreground">
           <p>Time to get paid?</p>

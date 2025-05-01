@@ -101,7 +101,7 @@ const Landing = () => {
       </div>
 
       {/* Hero Section */}
-      <section className="pt-40 pb-20 relative overflow-hidden">
+      <section className="pt-48 pb-20 relative overflow-hidden">
         <div className="max-w-5xl mx-auto px-8">
           {/* Paper craft elements */}
           <div className="absolute top-20 right-[20%] transform rotate-12">
@@ -133,28 +133,30 @@ const Landing = () => {
       </section>
 
       {/* Preview Section */}
-      <section className="py-16 relative">
-        <div className="max-w-5xl mx-auto px-8">
-          <div className="relative transform hover:rotate-1 transition-transform duration-300">
-            <div className="absolute inset-0 bg-[#FFB800] rounded-2xl transform rotate-3 shadow-xl" />
-            <div className="absolute inset-0 bg-[#FFB800]/20 rounded-2xl transform rotate-6 shadow-lg" />
-            <div className="relative bg-white rounded-2xl shadow-xl p-6 transform -rotate-2">
-              {/* Invoice Form Mockup */}
-              <div className="aspect-[16/9] relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-[90%] h-[85%] flex gap-8">
-                    <div className="flex-1 flex flex-col gap-4">
-                      <div className="h-8 w-48 bg-[#F5F1EA] rounded shadow-sm" />
-                      <div className="h-10 w-full bg-[#F5F1EA] rounded shadow-sm" />
-                      <div className="h-32 w-full bg-[#F5F1EA] rounded shadow-sm" />
-                      <div className="h-10 w-3/4 bg-[#F5F1EA] rounded shadow-sm" />
-                    </div>
-                    <div className="w-96 rounded-lg p-4 border-2 border-[#F5F1EA] shadow-sm">
-                      <div className="h-8 w-32 bg-[#F5F1EA] rounded mb-4 shadow-sm" />
-                      <div className="h-64 w-full bg-[#F5F1EA] rounded shadow-sm" />
-                    </div>
-                  </div>
-                </div>
+      <section className="py-24 bg-[#F5F1EA]/50">
+        <div className="max-w-6xl mx-auto px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4 text-[#2D2D2D]">Prompt It All Takes</h2>
+            <p className="text-[#6B6B6B] text-lg max-w-2xl mx-auto">
+              Watch how Invoicely transforms your billing process with AI-powered features
+            </p>
+          </div>
+
+          <div className="overflow-hidden">
+            <div className="p-8">
+              {/* Video Preview */}
+              <div className="aspect-video rounded-lg overflow-hidden bg-[#1C1C1C]">
+                <video
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  poster="/video-poster.jpg"
+                >
+                  <source src="/invoicely preview.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               </div>
             </div>
           </div>
@@ -162,7 +164,7 @@ const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-[#F5F1EA]">
         <div className="max-w-5xl mx-auto px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4 text-[#2D2D2D]">Features</h2>
@@ -171,32 +173,32 @@ const Landing = () => {
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-6 rounded-xl bg-[#F5F1EA] shadow-lg transform hover:-rotate-2 transition-transform">
+            <div className="p-6 rounded-xl border bg-[#F5F1EA] shadow-lg transform hover:-rotate-2 transition-transform">
               <ZapIcon className="h-8 w-8 text-[#FFB800] mb-4" />
               <h3 className="text-xl font-semibold mb-2 text-[#2D2D2D]">AI-Powered Generation</h3>
               <p className="text-[#6B6B6B]">Generate professional invoices instantly using AI, saving you time and effort.</p>
             </div>
-            <div className="p-6 rounded-xl bg-[#F5F1EA] shadow-lg transform hover:rotate-2 transition-transform">
+            <div className="p-6 rounded-xl  border g-[#F5F1EA] shadow-lg transform hover:rotate-2 transition-transform">
               <FileText className="h-8 w-8 text-[#FFB800] mb-4" />
               <h3 className="text-xl font-semibold mb-2 text-[#2D2D2D]">Smart Templates</h3>
               <p className="text-[#6B6B6B]">Choose from a variety of professional templates that adapt to your business needs.</p>
             </div>
-            <div className="p-6 rounded-xl bg-[#F5F1EA] shadow-lg transform hover:-rotate-2 transition-transform">
+            <div className="p-6 rounded-xl  border bg-[#F5F1EA] shadow-lg transform hover:-rotate-2 transition-transform">
               <Send className="h-8 w-8 text-[#FFB800] mb-4" />
               <h3 className="text-xl font-semibold mb-2 text-[#2D2D2D]">Instant Delivery</h3>
               <p className="text-[#6B6B6B]">Send invoices directly to clients via email with just one click.</p>
             </div>
-            <div className="p-6 rounded-xl bg-[#F5F1EA] shadow-lg transform hover:rotate-2 transition-transform">
+            <div className="p-6 rounded-xl  border bg-[#F5F1EA] shadow-lg transform hover:rotate-2 transition-transform">
               <CreditCard className="h-8 w-8 text-[#FFB800] mb-4" />
               <h3 className="text-xl font-semibold mb-2 text-[#2D2D2D]">Payment Tracking</h3>
               <p className="text-[#6B6B6B]">Monitor payment status and send automatic reminders for overdue invoices.</p>
             </div>
-            <div className="p-6 rounded-xl bg-[#F5F1EA] shadow-lg transform hover:-rotate-2 transition-transform">
+            <div className="p-6 rounded-xl  border bg-[#F5F1EA] shadow-lg transform hover:-rotate-2 transition-transform">
               <Clock className="h-8 w-8 text-[#FFB800] mb-4" />
               <h3 className="text-xl font-semibold mb-2 text-[#2D2D2D]">Recurring Invoices</h3>
               <p className="text-[#6B6B6B]">Set up automatic recurring invoices for regular clients and subscriptions.</p>
             </div>
-            <div className="p-6 rounded-xl bg-[#F5F1EA] shadow-lg transform hover:rotate-2 transition-transform">
+            <div className="p-6 rounded-xl  border bg-[#F5F1EA] shadow-lg transform hover:rotate-2 transition-transform">
               <div className="h-8 w-8 text-[#FFB800] mb-4 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
@@ -258,7 +260,7 @@ const Landing = () => {
         </div>
       </section>
 
-      <footer className="py-8 bg-white">
+      <footer className="py-8 bg-[#F5F1EA] border-t">
         <div className="max-w-5xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center gap-2 mb-4 md:mb-0">
             <span className="font-bold text-[#2D2D2D]">Invoicely</span>

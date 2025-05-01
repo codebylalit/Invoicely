@@ -35,7 +35,7 @@ const ThemeToggle = () => {
   return (
     <Button
       onClick={toggleTheme}
-      className="flex items-center justify-center p-2 rounded-full bg-secondary text-foreground hover:bg-muted transition-colors"
+      className="flex items-center justify-center rounded-full bg-secondary text-foreground hover:bg-muted transition-colors"
       aria-label="Toggle theme"
     >
       {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}

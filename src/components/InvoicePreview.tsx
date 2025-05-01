@@ -1359,6 +1359,7 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
               <Button
                 onClick={() => setShowEmailModal(false)}
                 variant="ghost"
+                className="h-9 w-9 p-0 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center"
               >
                 <svg
                   className="w-5 h-5"
@@ -1378,7 +1379,7 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Recipients
                     </label>
-                    <div className="min-h-[42px] flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 focus-within:border-yellow-400 dark:focus-within:border-yellow-400">
+                    <div className="min-h-[42px] flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 focus-within:border-blue-500 dark:focus-within:border-blue-400">
                       {emailFormData.to.map((email, index) => (
                         <div
                           key={`to-${index}`}
@@ -1388,6 +1389,7 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
                           <button
                             type="button"
                             onClick={() => handleRemoveEmail(index, "to")}
+                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                           >
                             ×
                           </button>
@@ -1521,7 +1523,7 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
           }
         }
         .animate-modal-slide-up {
-          animation: modal-slide-up 0.3s ease-out;
+          animation: modal-slide-up 0.1s ease-out;
         }
         
         @keyframes success-scale {
