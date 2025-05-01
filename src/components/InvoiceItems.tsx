@@ -1,6 +1,7 @@
 import { Plus, Trash, DollarSign, Percent } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "./ui/Button";
+import { Button } from "@/components/ui/button";
+
 
 interface InvoiceItem {
   id: string;

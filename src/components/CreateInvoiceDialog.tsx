@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import InvoicePromptInput, { InvoiceForm } from "./InvoiceForm";
 import InvoicePreview from "./InvoicePreview";
-import { Button } from "./ui/Button";
+import { Button } from "@/components/ui/button";
+
 import { FileText, Loader2 } from "lucide-react";
 import type { Invoice } from "@/types/invoice";
 import { useInvoiceManager } from "@/hooks/useInvoiceManager";

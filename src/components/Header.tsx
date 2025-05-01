@@ -1,7 +1,7 @@
 import ThemeToggle from "./ThemeToggle";
 import { FileText, LogOut } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Button } from "./ui/Button";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from '@supabase/auth-helpers-react';
 import { useToast } from "./ui/use-toast";
