@@ -377,7 +377,7 @@ const Settings = () => {
                   name="contact_name"
                   value={businessDetails.contact_name}
                   onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
                   placeholder="John Doe"
                 />
               </div>
@@ -391,7 +391,7 @@ const Settings = () => {
                   name="business_name"
                   value={businessDetails.business_name}
                   onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
                 />
               </div>
 
@@ -404,7 +404,7 @@ const Settings = () => {
                   name="email"
                   value={businessDetails.email}
                   onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
                 />
               </div>
 
@@ -417,7 +417,7 @@ const Settings = () => {
                   name="phone_number"
                   value={businessDetails.phone_number}
                   onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
                 />
               </div>
 
@@ -430,7 +430,7 @@ const Settings = () => {
                   name="address"
                   value={businessDetails.address}
                   onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
                 />
               </div>
 
@@ -443,7 +443,7 @@ const Settings = () => {
                   name="city"
                   value={businessDetails.city}
                   onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
                 />
               </div>
 
@@ -456,7 +456,7 @@ const Settings = () => {
                   name="postal_code"
                   value={businessDetails.postal_code}
                   onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
                 />
               </div>
 
@@ -469,7 +469,7 @@ const Settings = () => {
                   name="country"
                   value={businessDetails.country}
                   onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
                 />
               </div>
 
@@ -482,7 +482,7 @@ const Settings = () => {
                   name="region_state"
                   value={businessDetails.region_state}
                   onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
                 />
               </div>
 
@@ -495,7 +495,7 @@ const Settings = () => {
                   name="vat_number"
                   value={businessDetails.vat_number}
                   onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
                 />
               </div>
 

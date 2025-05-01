@@ -76,16 +76,27 @@ export const InvoiceDetails = ({
 
   // Check if business details are complete
   const isBusinessDetailsComplete = () => {
-    return (
-      businessDetails?.contact_name &&
-      businessDetails?.email &&
-      businessDetails?.address &&
-      businessDetails?.city &&
-      businessDetails?.postal_code &&
-      businessDetails?.region_state &&
-      businessDetails?.country &&
-      businessDetails?.phone_number
-    );
+    const requiredFields = {
+      contact_name: businessDetails?.contact_name,
+      email: businessDetails?.email,
+      address: businessDetails?.address,
+      // city: businessDetails?.city,
+      // postal_code: businessDetails?.postal_code,
+      // region_state: businessDetails?.region_state,
+      // country: businessDetails?.country,
+      // phone_number: businessDetails?.phone_number
+    };
+
+    // Log missing fields for debugging
+    const missingFields = Object.entries(requiredFields)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key);
+
+    if (missingFields.length > 0) {
+      console.log('Missing business details fields:', missingFields);
+    }
+
+    return Object.values(requiredFields).every(value => value);
   };
 
   // Filter clients as user types in the name field
@@ -161,27 +172,40 @@ export const InvoiceDetails = ({
         <div className="grid md:grid-cols-2 gap-6">
           {/* From Section */}
           {!isBusinessDetailsComplete() ? (
-            <div className="p-6 border-2 border-primary/20 rounded-lg space-y-4 bg-primary/10 dark:bg-primary/20">
+            <div className="p-6 border-2 border-primary/20 rounded-lg space-y-4 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
               <div className="flex items-center gap-3">
-                <Settings className="text-primary" size={24} />
+                <div className="p-2 rounded-full bg-primary/10 dark:bg-primary/20">
+                  <Settings className="text-primary" size={20} />
+                </div>
                 <h3 className="text-lg font-semibold text-invoice-lightText dark:text-invoice-darkText">
                   Business Details Required
                 </h3>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                To create professional invoices, you need to add your business details first. This information will be automatically used in all your invoices.
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => navigate('/app/settings')}
-                  className="inline-flex items-center gap-2"
-                >
-                  <Settings size={16} />
-                  Go to Settings
-                </Button>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  Required fields: Contact name, Email, Address, City, Postal Code, Region/State, Country, Phone
-                </span>
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  To create professional invoices, you need to add your business details first. This information will be automatically used in all your invoices.
+                </p>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    onClick={() => navigate('/app/settings')}
+                    className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white"
+                  >
+                    <Settings size={16} />
+                    Go to Settings
+                  </Button>
+                  {/* <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                    <p className="font-medium">Required Information:</p>
+                    <ul className="list-disc list-inside space-y-0.5">
+                      <li>Contact Name</li>
+                      <li>Email Address</li>
+                      <li>Business Address</li>
+                      <li>City & Postal Code</li>
+                      <li>Region/State</li>
+                      <li>Country</li>
+                      <li>Phone Number</li>
+                    </ul>
+                  </div> */}
+                </div>
               </div>
             </div>
           ) : (
@@ -190,7 +214,7 @@ export const InvoiceDetails = ({
                 From
               </h3>
               <div className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
-                <p className="font-medium">{businessDetails.contact_name}</p>
+                <p className="font-medium">{businessDetails.business_name}</p>
                 <p>{businessDetails.email}</p>
                 <p>
                   {businessDetails.address}, {businessDetails.city},{" "}

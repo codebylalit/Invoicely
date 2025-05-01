@@ -13,81 +13,75 @@ export interface InvoiceTemplate {
     font: string;
     background: string;
     accent: string;
+    layout: string;
   };
 }
 
 export const invoiceTemplates: InvoiceTemplate[] = [
   {
     id: 0,
-    name: "Basic",
-    preview: "/templates/basic.png",
-    description: "Simple, clean default template for everyday use",
+    name: "Classic",
+    preview: "/templates/classic.png",
+    description: "Traditional layout with clear sections and professional styling",
     color: "bg-blue-600",
     isDefault: true,
     styles: {
-      font: "font-sans",
+      font: "font-['Inter']",
       background: "bg-white",
       accent: "text-blue-600",
+      layout: "classic",
     },
   },
   {
     id: 1,
-    name: "Essential",
-    preview: "/templates/essential.png",
-    description: "Ultra-minimal design with perfect whitespace balance",
-    color: "bg-slate-800",
+    name: "Modern",
+    preview: "/templates/modern.png",
+    description: "Contemporary design with bold accents and clean typography",
+    color: "bg-purple-600",
     styles: {
-      font: "font-sans",
-      background: "bg-white",
-      accent: "text-slate-800",
+      font: "font-['Poppins']",
+      background: "bg-gray-50",
+      accent: "text-purple-600",
+      layout: "modern",
     },
   },
   {
     id: 2,
-    name: "Monochrome",
-    preview: "/templates/monochrome.png",
-    description: "Clean black and white design with subtle typography",
-    color: "bg-gray-900",
+    name: "Minimal",
+    preview: "/templates/minimal.png",
+    description: "Simplistic design with maximum whitespace and minimal elements",
+    color: "bg-gray-800",
     styles: {
-      font: "font-sans",
-      background: "bg-gray-50",
-      accent: "text-gray-900",
+      font: "font-['Montserrat']",
+      background: "bg-white",
+      accent: "text-gray-800",
+      layout: "minimal",
     },
   },
   {
     id: 3,
-    name: "Swiss",
-    preview: "/templates/swiss.png",
-    description: "Inspired by Swiss design principles with clean grid layout",
-    color: "bg-red-500",
+    name: "Default",
+    preview: "/templates/default.png",
+    description: "Standard layout with balanced spacing and clear hierarchy",
+    color: "bg-blue-500",
     styles: {
-      font: "font-sans",
+      font: "font-['Poppins']",
       background: "bg-white",
-      accent: "text-red-500",
+      accent: "text-blue-500",
+      layout: "default",
     },
   },
   {
     id: 4,
-    name: "Nordic",
-    preview: "/templates/nordic.png",
-    description: "Scandinavian-inspired minimalism with functional beauty",
-    color: "bg-blue-900",
+    name: "Billy",
+    preview: "/templates/billy.png",
+    description: "Clean, modern, and centered layout with status badge and summary.",
+    color: "bg-white",
     styles: {
-      font: "font-sans",
-      background: "bg-blue-50",
-      accent: "text-blue-900",
-    },
-  },
-  {
-    id: 5,
-    name: "Zen",
-    preview: "/templates/zen.png",
-    description: "Japanese-inspired simplicity with harmonious spacing",
-    color: "bg-stone-800",
-    styles: {
-      font: "font-serif",
-      background: "bg-stone-50",
-      accent: "text-stone-800",
+      font: "font-['Open_Sans']",
+      background: "bg-white",
+      accent: "text-blue-400",
+      layout: "billy",
     },
   },
 ];
@@ -115,10 +109,16 @@ export const TemplateSelectionModal: React.FC<TemplateSelectionModalProps> = ({
     navigate("/app/settings?tab=subscription");
   };
 
+  const containerClasses = `
+    ${selectedTemplate?.styles.layout === "billy" ? "bg-white" : "bg-white dark:bg-invoice-darkBg"}
+    p-6 rounded-md shadow-sm w-full h-full overflow-auto
+    ${selectedTemplate ? selectedTemplate.styles.font : ""}
+    ${selectedTemplate && selectedTemplate.styles.layout !== "billy" ? selectedTemplate.styles.background : ""}
+  `;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-900 rounded-md shadow-lg max-w-3xl w-full p-6 max-h-[90vh] overflow-auto">
+    <div className="fixed inset-0 bg-opacity-30 flex items-center justify-center z-50">
+      <div className="bg-white rounded-md shadow-lg max-w-3xl w-full p-6 max-h-[90vh] overflow-auto">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-xl font-medium dark:text-white">
             Select Template
@@ -140,8 +140,8 @@ export const TemplateSelectionModal: React.FC<TemplateSelectionModalProps> = ({
               <div
                 key={template.id}
                 className={`relative border rounded-lg p-4 cursor-pointer hover:border-blue-500 transition-all ${selectedTemplate?.id === template.id
-                    ? "border-blue-500 ring-2 ring-blue-200"
-                    : ""
+                  ? "border-blue-500 ring-2 ring-blue-200"
+                  : ""
                   } ${isDisabled ? "opacity-70" : ""}`}
                 onClick={() => !isDisabled && onSelectTemplate(template)}
               >
@@ -178,7 +178,7 @@ export const TemplateSelectionModal: React.FC<TemplateSelectionModalProps> = ({
         </div>
 
         {userSubscription.tier !== "pro" && (
-          <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md">
+          <div className="mt-6 bg-blue-50 p-4 rounded-md">
             <div className="flex items-center gap-3">
               <div className="text-blue-600 dark:text-blue-400 flex-shrink-0">
                 <svg

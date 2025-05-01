@@ -125,7 +125,7 @@ const CreateInvoiceDialog = () => {
             />
           </div>
 
-          <div className="flex-1 md:pl-4 overflow-y-auto pb-2">
+          <div className="flex-1 md:pl-4 overflow-y-auto">
             <InvoicePreview invoice={invoiceDraft} showSendByEmail />
           </div>
         </div>

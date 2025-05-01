@@ -81,46 +81,52 @@ const mockAiProcess = (prompt: string): Invoice => {
   // Mock AI processing for invoice generation
   const currentDate = new Date();
   const dueDate = new Date();
-  dueDate.setDate(currentDate.getDate() + 30); // Default to 30 days
+  dueDate.setDate(currentDate.getDate() + 0); // Default to 30 days
 
   let clientName = "";
   let clientEmail = "";
   let amount = 0;
   let description = prompt;
 
-  // Extract email address
-  const emailMatch = prompt.match(/\(([^\)]+@[^\)]+)\)/);
+  // Extract email address - more flexible pattern
+  const emailMatch = prompt.match(/(?:\(|\[)?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?:\)|\])?/);
   if (emailMatch) {
     clientEmail = emailMatch[1].trim();
     // Remove the email part from the prompt for further processing
-    description = prompt.replace(emailMatch[0], "");
+    description = prompt.replace(emailMatch[0], "").trim();
   }
 
-  // Extract client name (assuming it's before the email)
-  const nameMatch = description.match(
-    /for\s+([A-Za-z\s]+?)(?:\s*,|\s*\(|\s*$)/i
-  );
+  // Extract amount - more flexible pattern
+  const amountMatch = prompt.match(/(?:USD|$|€|£)?\s*(\d+(?:\.\d{1,2})?)/i);
+  if (amountMatch) {
+    amount = parseFloat(amountMatch[1]);
+    // Remove the amount part from the description
+    description = description.replace(amountMatch[0], "").trim();
+  }
+
+  // Extract client name - more flexible pattern
+  const nameMatch = description.match(/(?:for|to|client|customer)\s+([A-Za-z\s]+?)(?:\s*,|\s*\(|\s*$|\s*\[|\s*\]|\s*\-)/i);
   if (nameMatch) {
     clientName = nameMatch[1].trim();
-    // Extract the description (everything before "for [name]")
-    const descParts = description.split(/for\s+[A-Za-z\s]+/i);
+    // Extract the description (everything before the name pattern)
+    const descParts = description.split(/(?:for|to|client|customer)\s+[A-Za-z\s]+/i);
     if (descParts.length > 0) {
       description = descParts[0].trim();
     }
   }
 
-  // Extract amount
-  const amountMatch = prompt.match(/\$(\d+(\.\d{1,2})?)/);
-  if (amountMatch) {
-    amount = parseFloat(amountMatch[1]);
-  }
-
-  // Extract due date
-  const dueDaysMatch = prompt.match(/due\s+in\s+(\d+)\s+days/i);
+  // Extract due date - more flexible pattern
+  const dueDaysMatch = prompt.match(/(?:due|payment|payable)\s+(?:in|after|within)?\s*(\d+)\s*(?:days|day|d)?/i);
   if (dueDaysMatch) {
     const days = parseInt(dueDaysMatch[1]);
     dueDate.setDate(currentDate.getDate() + days);
   }
+
+  // Clean up description
+  description = description
+    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+    .replace(/^\s+|\s+$/g, '') // Trim whitespace
+    .replace(/[.,]$/, ''); // Remove trailing punctuation
 
   return {
     status: "draft",
@@ -131,7 +137,7 @@ const mockAiProcess = (prompt: string): Invoice => {
     items: [
       {
         id: "0",
-        description: description,
+        description: description || "Service provided",
         quantity: 1,
         unitPrice: amount,
         totalPrice: amount,
@@ -218,7 +224,7 @@ export const InvoiceForm = ({
     bankTransferDetails: "",
     paymentMethod: null,
   });
-  const [showPaymentInInvoice, setShowPaymentInInvoice] = useState(true);
+  const [showPaymentInInvoice, setShowPaymentInInvoice] = useState(false);
 
   // Create current invoice object based on form state
   const generateCurrentInvoice = useCallback(() => {
@@ -515,7 +521,6 @@ export const InvoiceForm = ({
           connectURL: paymentMethods.stripe.connectURL,
         },
       });
-      setShowPaymentInInvoice(true);
 
       // Set flag to enable real-time updates
       setHasUsedPrompt(true);
@@ -523,7 +528,7 @@ export const InvoiceForm = ({
       // Generate current invoice
       const currentInvoice = {
         ...generatedInvoice,
-        showPaymentMethods: true,
+        showPaymentMethods: showPaymentInInvoice,
       };
 
       onGenerate(currentInvoice);
