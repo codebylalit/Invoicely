@@ -3,7 +3,8 @@ import { LayoutGrid, Users, FileText, Package, FileSpreadsheet, Settings, LogOut
 import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
 import { useEffect, useState } from 'react';
 import ThemeToggle from "./ThemeToggle";
-import { Button } from "./ui/Button";
+import { Button } from "@/components/ui/button";
+
 
 const menuItems = [
   { icon: LayoutGrid, label: "Dashboard", path: "/app" },
