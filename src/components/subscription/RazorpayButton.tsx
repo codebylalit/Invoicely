@@ -61,7 +61,7 @@ const RazorpayButton = ({
             const options = {
                 key: data.keyId,
                 amount: amount * 100, // Convert to paise
-                currency: "INR",
+                currency: "USD",
                 name: "Invoice Genius",
                 description: `${plan} Plan Subscription`,
                 order_id: data.orderId,
