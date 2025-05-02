@@ -62,7 +62,7 @@ const RazorpayButton = ({
                 key: data.keyId,
                 amount: amount * 100, // Convert to paise
                 currency: "USD",
-                name: "Invoice Genius",
+                name: "Invoicely",
                 description: `${plan} Plan Subscription`,
                 order_id: data.orderId,
                 handler: async function (response: any) {
