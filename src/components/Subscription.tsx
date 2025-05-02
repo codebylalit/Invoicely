@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import RazorpayButton from "./subscription/RazorpayButton";
 import { useNavigate } from "react-router-dom";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import RazorpayButton from "./subscription/RazorpayButton";
 
 interface SubscriptionProps {
   userSubscription: {
     tier: string;
     paymentMethod: string | null;
     bankTransferDetails: string;
+    subscriptionId: string;
+    planId: string;
   };
   setUserSubscription: (subscription: any) => void;
 }
@@ -22,27 +24,31 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
   const supabase = useSupabaseClient();
 
   // Handle subscription update after successful payment
-  const handleSubscriptionSuccess = async (plan: string) => {
+  const handleSubscriptionSuccess = async (plan: string, subscriptionId: string, planId: string) => {
     try {
       setUpgrading(true);
 
-      // Update subscription in database
+      // Update subscription in database with subscription and plan IDs
       const { error } = await supabase
         .from("profiles")
         .update({
           tier: plan,
           payment_method: "razorpay",
+          subscription_id: subscriptionId,
+          plan_id: planId,
           updated_at: new Date()
         })
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
 
       if (error) throw error;
 
-      // Update local state
+      // Update local state with subscription and plan IDs
       setUserSubscription((prev: any) => ({
         ...prev,
         tier: plan,
         paymentMethod: "razorpay",
+        subscriptionId,
+        planId
       }));
 
       // Show success message
@@ -52,7 +58,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
       });
 
       // Refresh subscription tab
-      navigate("/app/settings?from=razorpay", { replace: true });
+      navigate("/subscription?from=razorpay", { replace: true });
 
     } catch (error) {
       console.error("Error updating subscription:", error);
@@ -71,12 +77,14 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
     try {
       setCancelling(true);
 
-      // Update subscription in database
+      // Update subscription in database - clear subscription and plan IDs
       const { error } = await supabase
         .from("profiles")
         .update({
           tier: "free",
           payment_method: null,
+          subscription_id: null,
+          plan_id: null,
           updated_at: new Date()
         })
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
@@ -88,6 +96,8 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
         ...prev,
         tier: "free",
         paymentMethod: null,
+        subscriptionId: "",
+        planId: ""
       }));
 
       // Show success message
@@ -97,7 +107,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
       });
 
       // Refresh subscription tab
-      navigate("/app/settings?from=cancel", { replace: true });
+      navigate("/subscription?from=cancel", { replace: true });
 
     } catch (error) {
       console.error("Error cancelling subscription:", error);
@@ -111,25 +121,28 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
     }
   };
 
-  // Handle upgrade to selected plan (mock function)
-  const handleUpgradePlan = (plan: string) => {
-    setUpgrading(true);
-    setTimeout(() => {
-      setUpgrading(false);
-      setUserSubscription((prev: any) => ({
-        ...prev,
-        tier: plan,
-      }));
-      toast({
-        title: "Success",
-        description: `You've successfully upgraded to the ${plan} plan! (mock)`,
-      });
-    }, 1200);
+  // Display current subscription info if available
+  const renderCurrentSubscriptionInfo = () => {
+    if (userSubscription.subscriptionId) {
+      return (
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <h3 className="font-medium text-invoice-lightText dark:text-invoice-darkText">Your Current Subscription</h3>
+          <div className="mt-2 space-y-1 text-sm">
+            <p><span className="font-medium">Subscription ID:</span> {userSubscription.subscriptionId}</p>
+            {userSubscription.planId && <p><span className="font-medium">Plan ID:</span> {userSubscription.planId}</p>}
+            <p><span className="font-medium">Current Tier:</span> {userSubscription.tier}</p>
+            <p><span className="font-medium">Payment Method:</span> {userSubscription.paymentMethod || "None"}</p>
+          </div>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
     <div className="bg-white dark:bg-invoice-darkBg shadow rounded-lg p-6">
       <h2 className="text-lg font-medium mb-6 text-invoice-lightText dark:text-invoice-darkText">Simple pricing, no hidden fees</h2>
+      {renderCurrentSubscriptionInfo()}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Free Plan */}

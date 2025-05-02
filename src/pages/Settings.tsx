@@ -21,6 +21,8 @@ const Settings = () => {
     tier: "free", // free, growing, advanced
     paymentMethod: null, // stripe, null
     bankTransferDetails: "",
+    subscriptionId: "",
+    planId: "",
   });
 
   // Business details form state
@@ -42,7 +44,6 @@ const Settings = () => {
   useEffect(() => {
     if (session?.user?.id) {
       fetchBusinessDetails();
-      fetchUserSubscription();
     }
   }, [session]);
 
@@ -123,35 +124,42 @@ const Settings = () => {
     }
   };
 
-  // Fetch user subscription from Supabase
-  const fetchUserSubscription = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("tier, payment_method, bank_transfer_details")
-        .eq("user_id", session.user.id)
-        .single();
+  useEffect(() => {
+    const fetchUserSubscription = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
 
-      if (error && error.code !== "PGRST116") {
-        throw error;
+        if (!user) {
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("tier, payment_method, bank_transfer_details, subscription_id, plan_id")
+          .eq("user_id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching user subscription:", error);
+          return;
+        }
+
+        setUserSubscription({
+          tier: data.tier || "free",
+          paymentMethod: data.payment_method || null,
+          bankTransferDetails: data.bank_transfer_details || "",
+          subscriptionId: data.subscription_id || "",
+          planId: data.plan_id || "",
+        });
+      } catch (error) {
+        console.error("Error in subscription fetch:", error);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      setUserSubscription({
-        tier: data?.tier || "free",
-        paymentMethod: data?.payment_method || null,
-        bankTransferDetails: data?.bank_transfer_details || "",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load payment details.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchUserSubscription();
+  }, [supabase]);
 
   // Handle input changes for business details form
   const handleBusinessInputChange = (e) => {

@@ -6,7 +6,7 @@ import { toast } from "@/components/ui/use-toast";
 interface RazorpayButtonProps {
     plan: string;
     amount: number;
-    onSuccess: (plan: string) => void;
+    onSuccess: (plan: string, subscriptionId: string, planId: string) => void;
     disabled?: boolean;
     className?: string;
 }
@@ -89,7 +89,12 @@ const RazorpayButton = ({
                             description: `You've successfully upgraded to the ${plan} plan!`,
                         });
 
-                        onSuccess(plan);
+                        // Pass subscription and plan IDs to parent component
+                        onSuccess(
+                            plan,
+                            verifyData.subscriptionId || "",
+                            verifyData.planId || ""
+                        );
                     } catch (error: any) {
                         console.error("Payment verification error:", error);
                         toast({
@@ -135,4 +140,4 @@ const RazorpayButton = ({
     );
 };
 
-export default RazorpayButton; 
+export default RazorpayButton;
