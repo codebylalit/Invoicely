@@ -261,6 +261,8 @@ const Landing = () => {
             <Link to="/terms" className="hover:text-[#2D2D2D]">Terms and conditions</Link>
             <Link to="/privacy" className="hover:text-[#2D2D2D]">Privacy policy</Link>
             <Link to="/refunds" className="hover:text-[#2D2D2D]">Cancellation & Refunds</Link>
+            <Link to="/contact-us" className="hover:text-[#2D2D2D]">Contact Us</Link>
+
           </div>
         </div>
       </footer>
