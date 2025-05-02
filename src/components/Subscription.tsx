@@ -16,6 +16,7 @@ interface SubscriptionProps {
 
 const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionProps) => {
   const [upgrading, setUpgrading] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [billingCycle, setBillingCycle] = useState("monthly");
   const navigate = useNavigate();
   const supabase = useSupabaseClient();
@@ -65,6 +66,51 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
     }
   };
 
+  // Handle subscription cancellation
+  const handleCancelSubscription = async () => {
+    try {
+      setCancelling(true);
+
+      // Update subscription in database
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          tier: "free",
+          payment_method: null,
+          updated_at: new Date()
+        })
+        .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setUserSubscription((prev: any) => ({
+        ...prev,
+        tier: "free",
+        paymentMethod: null,
+      }));
+
+      // Show success message
+      toast({
+        title: "Subscription Cancelled",
+        description: "Your Pro subscription has been cancelled. You are now on the Free plan.",
+      });
+
+      // Refresh subscription tab
+      navigate("/app/settings?from=cancel", { replace: true });
+
+    } catch (error) {
+      console.error("Error cancelling subscription:", error);
+      toast({
+        title: "Cancellation Error",
+        description: "We couldn't cancel your subscription. Please contact support.",
+        variant: "destructive",
+      });
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   // Handle upgrade to selected plan (mock function)
   const handleUpgradePlan = (plan: string) => {
     setUpgrading(true);
@@ -104,7 +150,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
             <ul className="space-y-2">
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
-                  className="h-4 w-4 mr-2 text-green-500"
+                  className="h-4 w-4 mr-2 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -118,7 +164,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               </li>
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
-                  className="h-4 w-4 mr-2 text-green-500"
+                  className="h-4 w-4 mr-2 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -132,7 +178,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               </li>
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
-                  className="h-4 w-4 mr-2 text-green-500"
+                  className="h-4 w-4 mr-2 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -146,7 +192,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               </li>
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
-                  className="h-4 w-4 mr-2 text-green-500"
+                  className="h-4 w-4 mr-2 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -160,7 +206,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               </li>
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
-                  className="h-4 w-4 mr-2 text-green-500"
+                  className="h-4 w-4 mr-2 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -174,7 +220,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               </li>
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
-                  className="h-4 w-4 mr-2 text-green-500"
+                  className="h-4 w-4 mr-2 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -191,7 +237,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
         </div>
 
         {/* Pro Plan */}
-        <div className="border border-green-500 dark:border-green-400 rounded-lg overflow-hidden">
+        <div className="border border-yellow-400 dark:border-green-400 rounded-lg overflow-hidden">
           <div className="p-6">
             <h3 className="text-lg font-medium text-invoice-lightText dark:text-invoice-darkText">Pro</h3>
             <div className="mt-2">
@@ -201,9 +247,19 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">For growing businesses</p>
 
             {userSubscription.tier === "pro" ? (
-              <Button className="mt-4 w-full py-2 px-4 rounded-md text-center cursor-not-allowed">
-                Current Plan
-              </Button>
+              <div className="space-y-2">
+                <Button className="mt-4 w-full py-2 px-4 rounded-md text-center cursor-not-allowed">
+                  Current Plan
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full py-2 px-4 rounded-md text-center"
+                  onClick={handleCancelSubscription}
+                  disabled={cancelling}
+                >
+                  {cancelling ? "Cancelling..." : "Cancel Subscription"}
+                </Button>
+              </div>
             ) : (
               <PayPalButton
                 plan="pro"
@@ -219,7 +275,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
             <ul className="space-y-2">
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
-                  className="h-4 w-4 mr-2 text-green-500"
+                  className="h-4 w-4 mr-2 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -233,7 +289,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               </li>
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
-                  className="h-4 w-4 mr-2 text-green-500"
+                  className="h-4 w-4 mr-2 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -247,7 +303,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               </li>
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
-                  className="h-4 w-4 mr-2 text-green-500"
+                  className="h-4 w-4 mr-2 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -261,7 +317,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               </li>
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
-                  className="h-4 w-4 mr-2 text-green-500"
+                  className="h-4 w-4 mr-2 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -275,7 +331,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               </li>
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
-                  className="h-4 w-4 mr-2 text-green-500"
+                  className="h-4 w-4 mr-2 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -289,7 +345,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               </li>
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
-                  className="h-4 w-4 mr-2 text-green-500"
+                  className="h-4 w-4 mr-2 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -303,7 +359,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               </li>
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
                 <svg
-                  className="h-4 w-4 mr-2 text-green-500"
+                  className="h-4 w-4 mr-2 text-yellow-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >

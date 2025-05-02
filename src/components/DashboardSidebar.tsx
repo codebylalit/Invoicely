@@ -130,6 +130,13 @@ const DashboardSidebar = () => {
             >
               You are Pro
             </Button>
+            <Button
+              variant="outline"
+              className="w-full py-1 mt-2 text-gray-600 dark:text-gray-300 rounded-md font-semibold"
+              onClick={goToSubscription}
+            >
+              Manage Subscription
+            </Button>
           </div>
         ) : (
           <Button

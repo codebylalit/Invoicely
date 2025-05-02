@@ -6,7 +6,7 @@ const Privacy = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-[#F5F1EA] py-12">
+        <div className="min-h-screen bg-[#F6F5F1] py-12">
             <div className="max-w-4xl mx-auto px-4">
                 <Button
                     onClick={() => navigate(-1)}
