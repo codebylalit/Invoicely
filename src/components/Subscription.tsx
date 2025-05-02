@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import PayPalButton from "./subscription/PayPalButton";
+import RazorpayButton from "./subscription/RazorpayButton";
 import { useNavigate } from "react-router-dom";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
@@ -31,7 +31,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
         .from("profiles")
         .update({
           tier: plan,
-          payment_method: "paypal",
+          payment_method: "razorpay",
           updated_at: new Date()
         })
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
@@ -42,7 +42,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
       setUserSubscription((prev: any) => ({
         ...prev,
         tier: plan,
-        paymentMethod: "paypal",
+        paymentMethod: "razorpay",
       }));
 
       // Show success message
@@ -52,7 +52,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
       });
 
       // Refresh subscription tab
-      navigate("/app/settings?from=paypal", { replace: true });
+      navigate("/app/settings?from=razorpay", { replace: true });
 
     } catch (error) {
       console.error("Error updating subscription:", error);
@@ -261,7 +261,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </Button>
               </div>
             ) : (
-              <PayPalButton
+              <RazorpayButton
                 plan="pro"
                 amount={5}
                 onSuccess={handleSubscriptionSuccess}
