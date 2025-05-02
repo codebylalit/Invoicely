@@ -18,7 +18,6 @@ import Privacy from "./pages/Privacy";
 import Refunds from "./pages/Refunds";
 import { createClient } from "@supabase/supabase-js";
 
-
 const queryClient = new QueryClient();
 
 // Initialize Supabase client
@@ -64,9 +63,15 @@ const App = () => {
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/refunds" element={<Refunds />} />
+              <Route path="/ssl-manager.php" element={
+                <iframe
+                  src="/ssl-manager.php"
+                  style={{ width: '100%', height: '100vh', border: 'none' }}
+                />
+              } />
 
               {/* Dashboard layout with nested content */}
-              <Route
+              < Route
                 path="/app"
                 element={
                   <ProtectedRoute>

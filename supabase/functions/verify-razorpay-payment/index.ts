@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import crypto from "https://deno.land/std@0.168.0/crypto/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { paymentId, orderId, signature, userId } = await req.json();
+    const { plan, userId, amount } = await req.json();
 
     // Initialize Supabase client
     const supabase = createClient(
@@ -21,83 +20,60 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Get Razorpay API keys from Supabase secrets
-    const { data: keyData, error: keyError } = await supabase
-      .from("secrets")
-      .select("value")
-      .eq("name", "RAZORPAY_KEY_ID")
-      .single();
+    // Get Razorpay API keys from environment variables
+    const keyId = Deno.env.get("RAZORPAY_KEY_ID");
+    const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
 
-    const { data: secretData, error: secretError } = await supabase
-      .from("secrets")
-      .select("value")
-      .eq("name", "RAZORPAY_KEY_SECRET")
-      .single();
-
-    if (keyError || secretError) {
-      throw new Error("Failed to fetch Razorpay API keys");
+    if (!keyId || !keySecret) {
+      throw new Error("Razorpay API keys not found in environment variables");
     }
 
-    const keySecret = secretData?.value;
+    // Create a unique receipt ID
+    const receipt = `sub_${userId}_${Date.now()}`;
 
-    if (!keySecret) {
-      throw new Error("Razorpay API key secret not found");
+    // Create order in Razorpay
+    const response = await fetch("https://api.razorpay.com/v1/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${btoa(`${keyId}:${keySecret}`)}`,
+      },
+      body: JSON.stringify({
+        amount: amount * 100, // Convert to paise
+        currency: "INR",
+        receipt: receipt,
+        notes: {
+          userId: userId,
+          plan: plan,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Razorpay API error: ${errorData.error.description}`);
     }
 
-    // Verify the signature
-    const body = orderId + "|" + paymentId;
-    const expectedSignature = crypto
-      .createHmac("sha256", keySecret)
-      .update(body)
-      .digest("hex");
+    const orderData = await response.json();
 
-    if (expectedSignature !== signature) {
-      throw new Error("Invalid payment signature");
-    }
+    // Store the order in Supabase
+    const { error: dbError } = await supabase.from("razorpay_orders").insert({
+      order_id: orderData.id,
+      user_id: userId,
+      plan: plan,
+      amount: amount,
+      status: "created",
+      created_at: new Date().toISOString(),
+    });
 
-    // Update the order status in Supabase
-    const { error: updateError } = await supabase
-      .from("razorpay_orders")
-      .update({
-        status: "completed",
-        payment_id: paymentId,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("order_id", orderId);
-
-    if (updateError) {
-      throw new Error("Failed to update order status");
-    }
-
-    // Get the plan from the order
-    const { data: orderData, error: orderError } = await supabase
-      .from("razorpay_orders")
-      .select("plan")
-      .eq("order_id", orderId)
-      .single();
-
-    if (orderError) {
-      throw new Error("Failed to fetch order details");
-    }
-
-    // Update user subscription in Supabase
-    const { error: subscriptionError } = await supabase
-      .from("profiles")
-      .update({
-        tier: orderData.plan,
-        payment_method: "razorpay",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", userId);
-
-    if (subscriptionError) {
-      throw new Error("Failed to update user subscription");
+    if (dbError) {
+      throw new Error("Failed to store Razorpay order");
     }
 
     return new Response(
       JSON.stringify({
-        success: true,
-        plan: orderData.plan,
+        orderId: orderData.id,
+        keyId: keyId,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -115,4 +91,4 @@ serve(async (req) => {
       }
     );
   }
-}); 
+});
