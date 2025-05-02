@@ -124,12 +124,12 @@ const DashboardSidebar = () => {
               </svg>
               Pro Plan Active
             </span>
-            <Button
+            {/* <Button
               className="w-full py-1 bg-primary text-white rounded-md cursor-default mt-1 font-semibold"
               disabled
             >
               You are Pro
-            </Button>
+            </Button> */}
             <Button
               variant="outline"
               className="w-full py-1 mt-2 text-gray-600 dark:text-gray-300 rounded-md font-semibold"
