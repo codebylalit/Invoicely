@@ -16,6 +16,8 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Refunds from "./pages/Refunds";
+import ShippingPolicy from "./pages/ShippingPolicy";
+import ContactUs from "./pages/ContactUs";
 import { createClient } from "@supabase/supabase-js";
 
 const queryClient = new QueryClient();
@@ -63,6 +65,8 @@ const App = () => {
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/refunds" element={<Refunds />} />
+              <Route path="/shipping-policy" element={<ShippingPolicy />} />
+              <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/ssl-manager.php" element={
                 <iframe
                   src="/ssl-manager.php"
