@@ -3,7 +3,7 @@ import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckIcon, FileText, ZapIcon, CreditCard, Clock, Send } from "lucide-react";
+import { CheckIcon, FileText, ZapIcon, CreditCard, Clock, Send, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import { PricingTier } from "@/types/subscription";
@@ -191,14 +191,10 @@ const Landing = () => {
               <p className="text-[#6B6B6B]">Set up automatic recurring invoices for regular clients and subscriptions.</p>
             </div>
             <div className="p-6 rounded-xl border bg-white shadow-lg transform hover:rotate-2 transition-transform">
-              <div className="h-8 w-8 text-[#FFB800] mb-4 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2 text-[#2D2D2D]">Smart Client Management</h3>
+              <User className="h-8 w-8 text-[#FFB800] mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-[#2D2D2D]">Client Management</h3>
               <p className="text-[#6B6B6B]">
-                Add client details once and reuse them for future tasks like invoicing, communication, and reporting—no more duplicate data entry.
+                Add client details once and reuse them for future invoices.
               </p>
             </div>
 

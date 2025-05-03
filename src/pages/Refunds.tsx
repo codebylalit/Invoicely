@@ -56,7 +56,7 @@ const Refunds = () => {
                                 To request a refund:
                             </p>
                             <ol className="list-decimal pl-6 space-y-2 mt-2">
-                                <li>Contact our support team at support@invoicely.com</li>
+                                <li>Contact our support team at support@invoicely.me</li>
                                 <li>Provide your account details and reason for the refund request</li>
                                 <li>Our team will review your request within 5 business days</li>
                                 <li>If approved, the refund will be processed to your original payment method</li>
@@ -73,7 +73,7 @@ const Refunds = () => {
                         <section>
                             <h2 className="text-xl font-semibold text-[#2D2D2D] mb-4">5. Contact Us</h2>
                             <p>
-                                For any questions about cancellations or refunds, please contact our support team at support@invoicely.com
+                                For any questions about cancellations or refunds, please contact our support team at support@invoicely.me
                             </p>
                         </section>
                     </CardContent>
