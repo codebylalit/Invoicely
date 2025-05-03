@@ -253,7 +253,8 @@ const Landing = () => {
       <footer className="py-8 bg-[#F6F5F1] border-t">
         <div className="max-w-5xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center gap-2 mb-4 md:mb-0">
-            <span className="font-bold text-[#2D2D2D]">Invoicely</span>
+            <span className="text-sm text-gray-600 font-medium">Made with <span className="text-yellow-500">💛</span></span>
+
           </div>
           <div className="flex flex-wrap justify-center gap-6 text-sm text-[#6B6B6B]">
             <Link to="/terms" className="hover:text-[#2D2D2D]">Terms and conditions</Link>

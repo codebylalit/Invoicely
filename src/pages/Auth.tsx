@@ -27,6 +27,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -63,7 +64,9 @@ const Auth = () => {
       <div className="w-full md:w-1/2 flex flex-col justify-center items-center bg-[#F8F8F8] px-6 py-12">
         <div className="w-full max-w-md">
           <div className="flex items-center gap-2 mb-8">
-            <FileText className="h-8 w-8 text-[#FFB800]" />
+            <div className="bg-primary h-8 w-8 rounded-md flex items-center justify-center">
+              <div className="bg-gray-800 h-4 w-5 rounded-r-full"></div>
+            </div>
             <span className="text-2xl font-bold text-[#2D2D2D]">Invoicely</span>
           </div>
           <h1 className="text-3xl font-bold text-[#2D2D2D] mb-2">
@@ -94,8 +97,8 @@ const Auth = () => {
           </div>
 
           {/* Email Form */}
-          <Card className="bg-white shadow-none border-none p-0">
-            <CardContent className="p-0">
+          <Card className="p-2 border">
+            <CardContent className="p-2">
               <form onSubmit={handleAuth} className="space-y-4">
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium text-[#2D2D2D]">
@@ -104,11 +107,11 @@ const Auth = () => {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="m@example.com"
+                    placeholder="JohnSmith@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="bg-[#F6F5F1]/50 border-[#F6F5F1] focus:border-[#FFB800]"
+                    className="bg-[#F6F5F1]/50 dark:bg-gray-700 dark:border-gray-600 outline-none focus-within:border-yellow-400"
                   />
                 </div>
                 <div className="space-y-2">
@@ -121,7 +124,7 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="bg-[#F6F5F1]/50 border-[#F6F5F1] focus:border-[#FFB800]"
+                    className="bg-[#F6F5F1]/50 focus-within:border-yellow-400 outline-none"
                   />
                 </div>
                 <Button
@@ -154,23 +157,41 @@ const Auth = () => {
         </div>
       </div>
 
-      {/* Right Side */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center items-center bg-[#F5FCEB] px-6 py-12">
-        <div className="w-full max-w-md">
-          <h2 className="text-2xl md:text-3xl font-bold text-[#222] mb-6 mt-2 md:mt-0">
-            Try Advanced features
+      <div className="w-full md:w-1/2 flex flex-col justify-center items-center bg-[#F5FCEB] px-16 py-12">
+        <div className="w-full max-w-5xl mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#222] mb-4 text-center">
+            Get Paid On Time, Every Time
           </h2>
-          <p className="text-[#222] mb-6">Unlock all these benefits:</p>
-          <ul className="space-y-5">
-            {features.map((feature) => (
-              <li key={feature} className="flex items-center gap-3 text-lg text-[#222]">
-                <Check className="h-6 w-6 text-[#4CAF50]" />
-                {feature}
-              </li>
-            ))}
-          </ul>
+          <p className="text-lg text-[#555] mb-10 text-center">
+            Smart invoicing that eliminates delays and excuses
+          </p>
+
+          <div className="relative w-full max-w-4xl mx-auto mt-10">
+            {/* MacBook Mockup */}
+            <img
+              src="./MacBook.png"
+              alt="MacBook Mockup"
+              className="w-full h-auto"
+            />
+
+            {/* Embedded Video positioned inside screen */}
+            <div className="absolute top-[2%] left-[9.3%] w-[82%] h-[90%] overflow-hidden rounded">
+              <video
+                src="/invoicely preview.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-contain"
+              />
+            </div>
+          </div>
+
         </div>
+
+
       </div>
+
     </div>
   );
 };
