@@ -201,7 +201,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
       {/* Pricing Section */}
       <section className="py-20 bg-[#F6F5F1]">
         <div className="max-w-5xl mx-auto px-8">
