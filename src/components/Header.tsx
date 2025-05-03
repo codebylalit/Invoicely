@@ -33,7 +33,7 @@ const Header = () => {
       <Link to="/" className="flex items-center gap-2">
         <FileText className="text-primary" size={22} />
         <h1 className="text-lg font-bold text-invoice-lightText dark:text-invoice-darkText">
-          Invoicely
+          invoicelly
         </h1>
       </Link>
 

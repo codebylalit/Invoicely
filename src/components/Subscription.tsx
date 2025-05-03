@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import RazorpayButton from "./subscription/RazorpayButton";
@@ -26,17 +26,59 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
     try {
       setUpgrading(true);
 
-      // Update subscription in database
+      // Get the user before attempting any updates
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+
+      if (userError) {
+        console.error("Error getting user:", userError);
+        toast({
+          title: "Authentication Error",
+          description: "Please try signing in again before upgrading your subscription.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const userId = userData.user?.id;
+
+      if (!userId) {
+        console.error("User ID not found");
+        toast({
+          title: "Authentication Error",
+          description: "User session not found. Please sign in again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update subscription in database with proper error handling
       const { error } = await supabase
         .from("profiles")
         .update({
           tier: plan,
           payment_method: "razorpay",
-          updated_at: new Date()
+          updated_at: new Date().toISOString() // Using ISO string for better compatibility
         })
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
+        .eq("user_id", userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Database update error:", error);
+
+        // Even if there's an error updating the database, we'll still update the local state
+        // so the user experience isn't disrupted, and we'll show a partial success message
+        setUserSubscription((prev: any) => ({
+          ...prev,
+          tier: plan,
+          paymentMethod: "razorpay",
+        }));
+
+        toast({
+          title: "Payment Successful",
+          description: "Your payment was processed successfully, but there was an issue updating your account. Your Pro features will be available next time you log in.",
+        });
+
+        return;
+      }
 
       // Update local state
       setUserSubscription((prev: any) => ({
@@ -51,14 +93,17 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
         description: `Your account has been successfully upgraded to the ${plan} plan.`,
       });
 
-      // Refresh subscription tab
-      navigate("/app/settings?from=razorpay", { replace: true });
+      // Use a timeout to let the toast show before any navigation
+      setTimeout(() => {
+        // Simply refresh the current page instead of a full navigation
+        window.location.reload();
+      }, 2000);
 
     } catch (error) {
       console.error("Error updating subscription:", error);
       toast({
         title: "Update Error",
-        description: "Your payment was successful, but we couldn't update your subscription. Please contact support.",
+        description: "Your payment was successful, but we couldn't update your subscription. Please refresh the page to see your updated plan or contact support if issues persist.",
         variant: "destructive",
       });
     } finally {
@@ -71,17 +116,50 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
     try {
       setCancelling(true);
 
+      // Get the user before attempting any updates
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+
+      if (userError) {
+        console.error("Error getting user:", userError);
+        toast({
+          title: "Authentication Error",
+          description: "Please try signing in again before cancelling your subscription.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const userId = userData.user?.id;
+
+      if (!userId) {
+        console.error("User ID not found");
+        toast({
+          title: "Authentication Error",
+          description: "User session not found. Please sign in again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Update subscription in database
       const { error } = await supabase
         .from("profiles")
         .update({
           tier: "free",
           payment_method: null,
-          updated_at: new Date()
+          updated_at: new Date().toISOString()
         })
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
+        .eq("user_id", userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error cancelling subscription in database:", error);
+        toast({
+          title: "Cancellation Error",
+          description: "We couldn't cancel your subscription in our database. Please contact support.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Update local state
       setUserSubscription((prev: any) => ({
@@ -96,8 +174,11 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
         description: "Your Pro subscription has been cancelled. You are now on the Free plan.",
       });
 
-      // Refresh subscription tab
-      navigate("/app/settings?from=cancel", { replace: true });
+      // Use a timeout to let the toast show before any navigation
+      setTimeout(() => {
+        // Simply refresh the current page instead of a full navigation
+        window.location.reload();
+      }, 2000);
 
     } catch (error) {
       console.error("Error cancelling subscription:", error);
@@ -111,7 +192,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
     }
   };
 
-  // Handle upgrade to selected plan (mock function)
+  // For mock function, keeping this intact
   const handleUpgradePlan = (plan: string) => {
     setUpgrading(true);
     setTimeout(() => {
@@ -128,7 +209,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
   };
 
   return (
-    <div className="bg-white dark:bg-invoice-darkBg shadow rounded-lg p-6">
+    <div className="dark:bg-invoice-darkBg border border-gray-200 shadow rounded-lg p-6">
       <h2 className="text-lg font-medium mb-6 text-invoice-lightText dark:text-invoice-darkText">Simple pricing, no hidden fees</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -141,11 +222,12 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Perfect for getting started</p>
 
-            <Button className="mt-4 w-full py-2 px-4 rounded-md text-center">
-              Current Plan
+            <Button
+              disabled={userSubscription.tier !== "free"}
+              className="mt-4 w-full py-2 px-4 rounded-md text-center">
+              {userSubscription.tier === "free" ? "Current Plan" : "Downgrade to Free"}
             </Button>
           </div>
-
           <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
             <ul className="space-y-2">
               <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">

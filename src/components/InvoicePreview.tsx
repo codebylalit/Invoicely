@@ -1229,7 +1229,7 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
                   <div className="flex  items-center">
                     <span>Made with</span>
                     <div className="mx-1 font-medium text-blue-500" >
-                     <Link to="https://invoicely.me" target="_blank" rel="noopener noreferrer">Invoicely</Link>
+                      <Link to="https://invoicelly.me" target="_blank" rel="noopener noreferrer">invoicelly</Link>
                     </div>
                     <div className="bg-primary h-4 w-4 rounded flex items-center justify-center">
                       <div className="bg-gray-800 dark:bg-gray-200 h-2 w-2 rounded-r-full"></div>

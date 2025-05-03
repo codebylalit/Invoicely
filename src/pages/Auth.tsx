@@ -67,10 +67,10 @@ const Auth = () => {
             <div className="bg-primary h-8 w-8 rounded-md flex items-center justify-center">
               <div className="bg-gray-800 h-4 w-5 rounded-r-full"></div>
             </div>
-            <span className="text-2xl font-bold text-[#2D2D2D]">Invoicely</span>
+            <span className="text-2xl font-bold text-[#2D2D2D]">invoicelly</span>
           </div>
           <h1 className="text-3xl font-bold text-[#2D2D2D] mb-2">
-            {isLogin ? "Sign in to Invoicely" : "Get started with Invoicely"}
+            {isLogin ? "Sign in to invoicelly" : "Get started with invoicelly"}
           </h1>
           <p className="text-[#6B6B6B] mb-6">
             {isLogin
@@ -140,7 +140,7 @@ const Auth = () => {
 
           {/* Terms and toggle */}
           <p className="text-xs text-[#6B6B6B] mt-6 text-center">
-            Signing up for Invoicely means that you agree with our{' '}
+            Signing up for invoicelly means that you agree with our{' '}
             <Link to="/terms" className="underline hover:text-[#FFB800]">Terms of Use</Link> and{' '}
             <Link to="/privacy" className="underline hover:text-[#FFB800]">Privacy Policy</Link>.
           </p>

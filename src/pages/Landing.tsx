@@ -87,7 +87,7 @@ const Landing = () => {
       >
         <div className="max-w-5xl mx-auto px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-[#2D2D2D] text-2xl tracking-tight">Invoicely</span>
+            <span className="font-bold text-[#2D2D2D] text-2xl tracking-tight">Invoicelly</span>
           </div>
           <Button
             onClick={() => navigate('/auth')}
@@ -119,7 +119,7 @@ const Landing = () => {
               A smarter way to invoice awaits.
             </h1>
             <p className="text-[#6B6B6B] text-lg mb-8 max-w-3xl mx-auto">
-              Say goodbye to tedious invoice drafting. With Invoicely, a simple prompt is all it takes.
+              Say goodbye to tedious invoice drafting. With invoicelly, a simple prompt is all it takes.
             </p>
             <Button
               onClick={() => navigate('/auth')}

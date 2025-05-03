@@ -114,7 +114,7 @@ const DashboardSidebar = () => {
           <div className="bg-primary h-8 w-8 rounded-md flex items-center justify-center">
             <div className="bg-gray-800 h-4 w-5 rounded-r-full"></div>
           </div>
-          <span className="font-bold text-lg text-invoice-lightText dark:text-invoice-darkText">Invoicely</span>
+          <span className="font-bold text-lg text-invoice-lightText dark:text-invoice-darkText">invoicelly</span>
         </Link>
       </div>
 

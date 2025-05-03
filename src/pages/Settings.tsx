@@ -341,7 +341,7 @@ const Settings = () => {
 
         {/* Business Details Form */}
         {activeTab === "business" && (
-          <div className="bg-white dark:bg-invoice-darkBg rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+          <div className="dark:bg-invoice-darkBg rounded-lg p-6 border border-gray-200 shadow  dark:border-gray-800">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Business Details</h2>
@@ -535,7 +535,7 @@ const Settings = () => {
 
         {/* Payment Details */}
         {activeTab === "payment" && (
-          <div className="bg-white dark:bg-invoice-darkBg rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+          <div className=" dark:bg-invoice-darkBg rounded-lg p-6 border border-gray-200 shadow  dark:border-gray-800">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Payment Details</h2>
@@ -669,10 +669,9 @@ SWIFT/BIC: BANK1234XXX"
             setUserSubscription={setUserSubscription}
           />
         )}
-
         {/* Theme Settings */}
         {activeTab === "theme" && (
-          <div className="bg-white dark:bg-invoice-darkBg rounded-lg p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+          <div className="dark:bg-invoice-darkBg rounded-lg p-6 border border-gray-200 shadow  dark:border-gray-800">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Theme Settings</h2>
             </div>

@@ -22,6 +22,23 @@ const RazorpayButton = ({
     const session = useSession();
     const supabase = useSupabaseClient();
 
+    const loadRazorpayScript = (): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            if (document.querySelector("script[src='https://checkout.razorpay.com/v1/checkout.js']")) {
+                resolve(); // Script already loaded
+                return;
+            }
+
+            const script = document.createElement("script");
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            script.async = true;
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load Razorpay script"));
+            document.body.appendChild(script);
+        });
+    };
+
+
     const handlePayment = async () => {
         if (!session?.user) {
             toast({
@@ -36,38 +53,30 @@ const RazorpayButton = ({
 
         try {
             // Create a Razorpay order
-            const { data, error } = await supabase.functions.invoke(
-                "create-razorpay-order",
-                {
-                    body: {
-                        plan,
-                        userId: session.user.id,
-                        amount,
-                    },
-                }
-            );
+            const { data, error } = await supabase.functions.invoke("create-razorpay-order", {
+                body: {
+                    plan,
+                    userId: session.user.id,
+                    amount,
+                },
+            });
 
             if (error || !data?.orderId) {
                 throw new Error(error?.message || "Failed to create payment order");
             }
 
-            // Load Razorpay script
-            const script = document.createElement("script");
-            script.src = "https://checkout.razorpay.com/v1/checkout.js";
-            script.async = true;
-            document.body.appendChild(script);
+            // Ensure Razorpay script is loaded
+            await loadRazorpayScript();
 
-            // Initialize Razorpay checkout
             const options = {
                 key: data.keyId,
-                amount: amount * 100, // Convert to paise
+                amount: amount * 100,
                 currency: "USD",
                 name: "Invoicely",
                 description: `${plan} Plan Subscription`,
                 order_id: data.orderId,
                 handler: async function (response: any) {
                     try {
-                        // Verify the payment
                         const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
                             "verify-razorpay-payment",
                             {
@@ -111,7 +120,6 @@ const RazorpayButton = ({
             // @ts-ignore
             const razorpay = new window.Razorpay(options);
             razorpay.open();
-
         } catch (error: any) {
             console.error("Razorpay error:", error);
             toast({
@@ -123,7 +131,6 @@ const RazorpayButton = ({
             setLoading(false);
         }
     };
-
     return (
         <Button
             onClick={handlePayment}

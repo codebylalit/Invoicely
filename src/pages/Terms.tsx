@@ -26,14 +26,14 @@ const Terms = () => {
                         <section>
                             <h2 className="text-xl font-semibold text-[#2D2D2D] mb-4">1. Introduction</h2>
                             <p>
-                                Welcome to Invoicely. By accessing and using our services, you agree to be bound by these Terms and Conditions. Please read them carefully.
+                                Welcome to invoicelly. By accessing and using our services, you agree to be bound by these Terms and Conditions. Please read them carefully.
                             </p>
                         </section>
 
                         <section>
                             <h2 className="text-xl font-semibold text-[#2D2D2D] mb-4">2. Service Description</h2>
                             <p>
-                                Invoicely provides an online platform for creating, managing, and sending invoices. Our services include both free and paid subscription options.
+                                invoicelly provides an online platform for creating, managing, and sending invoices. Our services include both free and paid subscription options.
                             </p>
                         </section>
 
@@ -57,14 +57,14 @@ const Terms = () => {
                         <section>
                             <h2 className="text-xl font-semibold text-[#2D2D2D] mb-4">5. Intellectual Property</h2>
                             <p>
-                                All content and materials available on Invoicely are protected by intellectual property rights. You may not use, reproduce, or distribute any content without our permission.
+                                All content and materials available on invoicelly are protected by intellectual property rights. You may not use, reproduce, or distribute any content without our permission.
                             </p>
                         </section>
 
                         <section>
                             <h2 className="text-xl font-semibold text-[#2D2D2D] mb-4">6. Limitation of Liability</h2>
                             <p>
-                                Invoicely is not liable for any indirect, incidental, or consequential damages arising from your use of our services.
+                                invoicelly is not liable for any indirect, incidental, or consequential damages arising from your use of our services.
                             </p>
                         </section>
 
@@ -78,7 +78,7 @@ const Terms = () => {
                         <section>
                             <h2 className="text-xl font-semibold text-[#2D2D2D] mb-4">8. Contact Information</h2>
                             <p>
-                                For any questions regarding these terms, please contact us at support@invoicely.me
+                                For any questions regarding these terms, please contact us at support@invoicelly.me
                             </p>
                         </section>
                     </CardContent>
