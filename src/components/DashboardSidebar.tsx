@@ -86,7 +86,7 @@ const DashboardSidebar = () => {
       <div className="p-6">
         <Link to="/app" className="flex items-center gap-2">
           <div className="bg-primary h-8 w-8 rounded-md flex items-center justify-center">
-            <div className="bg-gray-800 dark:bg-gray-200 h-4 w-5 rounded-r-full"></div>
+            <div className="bg-gray-800 h-4 w-5 rounded-r-full"></div>
           </div>
           <span className="font-bold text-lg text-invoice-lightText dark:text-invoice-darkText">Invoicely</span>
         </Link>
@@ -140,7 +140,7 @@ const DashboardSidebar = () => {
           </div>
         ) : (
           <Button
-            className="w-full py-1 bg-primary text-white rounded-md transition-colors font-semibold"
+            className="w-full py-1 bg-primary rounded-md transition-colors font-semibold"
             onClick={goToSubscription}
           >
             Upgrade to Pro

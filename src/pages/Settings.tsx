@@ -695,7 +695,7 @@ SWIFT/BIC: BANK1234XXX"
                   )}
                 </Button>
               </div>
-
+{/* 
               <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
                 <h3 className="text-base font-medium text-invoice-lightText dark:text-invoice-darkText mb-4">Theme Preview</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -716,7 +716,7 @@ SWIFT/BIC: BANK1234XXX"
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         )}
