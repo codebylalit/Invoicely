@@ -67,11 +67,37 @@ const DashboardSidebar = () => {
     fetchUserData();
   }, [session, supabase]);
 
+  // Updated logout function with proper error handling
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      // First, try to refresh the session to ensure it's valid
+      const { error: refreshError } = await supabase.auth.refreshSession();
+
+      // Even if refresh fails, still attempt to sign out
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.error('Error signing out:', error);
+
+        // Force client-side cleanup even if server-side logout failed
+        if (error.message.includes('session_not_found') ||
+          error.message.includes('does not exist')) {
+          // Clear local storage and cookies related to auth
+          localStorage.removeItem('supabase.auth.token');
+
+          // For v2 of Supabase JS client
+          window.location.href = '/'; // Force reload to clear state
+        }
+      } else {
+        // Successful logout
+        window.location.href = '/'; // Redirect to home or login page
+      }
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Error in sign out process:', error);
+
+      // Force client-side logout as fallback
+      localStorage.removeItem('supabase.auth.token');
+      window.location.href = '/';
     }
   };
   const navigate = useNavigate();
