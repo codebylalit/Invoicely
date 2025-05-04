@@ -94,7 +94,7 @@ const Privacy = () => {
                         <section>
                             <h2 className="text-xl font-semibold text-[#2D2D2D] mb-4">8. Contact Us</h2>
                             <p>
-                                If you have any questions about this privacy policy, please contact us at support@invoicelly.me
+                                If you have any questions about this privacy policy, please contact us at support@invoicely.me
                             </p>
                         </section>
                     </CardContent>

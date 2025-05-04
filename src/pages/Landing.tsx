@@ -220,7 +220,7 @@ const Landing = () => {
                 <h3 className="text-2xl font-bold mb-2 text-[#2D2D2D]">{tier.name}</h3>
                 <div className="flex items-baseline mb-4">
                   <span className="text-4xl font-bold text-[#2D2D2D]">{tier.price}</span>
-                  {tier.price !== "$0" && (
+                  {tier.price !== "$99" && (
                   <span className="text-gray-500 dark:text-gray-400 ml-1">one-time</span>
                   )}
                 </div>

@@ -78,7 +78,7 @@ const Terms = () => {
                         <section>
                             <h2 className="text-xl font-semibold text-[#2D2D2D] mb-4">8. Contact Information</h2>
                             <p>
-                                For any questions regarding these terms, please contact us at support@invoicelly.me
+                                For any questions regarding these terms, please contact us at support@invoicely.me
                             </p>
                         </section>
                     </CardContent>
