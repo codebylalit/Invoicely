@@ -24,7 +24,7 @@ const pricingTiers: PricingTier[] = [
   },
   {
     name: "Pro",
-    price: "$5",
+    price: "$99",
     description: "For growing businesses",
     features: [
       { name: "AI-powered invoice generation", free: false, pro: true },
@@ -209,7 +209,6 @@ const Landing = () => {
             <p className="text-[#6B6B6B]">
               Unlock a suite of incredible features for a one-time payment of just $99 — yours forever.
             </p>
-
           </div>
           <div className="grid md:grid-cols-2 gap-8">
             {pricingTiers.map((tier) => (
@@ -220,8 +219,8 @@ const Landing = () => {
                 <h3 className="text-2xl font-bold mb-2 text-[#2D2D2D]">{tier.name}</h3>
                 <div className="flex items-baseline mb-4">
                   <span className="text-4xl font-bold text-[#2D2D2D]">{tier.price}</span>
-                  {tier.price !== "$99" && (
-                  <span className="text-gray-500 dark:text-gray-400 ml-1">one-time</span>
+                  {tier.price !== "$0" && (
+                    <span className="text-[#6B6B6B] ml-1">/one-time</span>
                   )}
                 </div>
                 <ul className="space-y-3 mb-6">
