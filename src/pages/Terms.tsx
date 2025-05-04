@@ -50,7 +50,7 @@ const Terms = () => {
                         <section>
                             <h2 className="text-xl font-semibold text-[#2D2D2D] mb-4">4. Subscription and Payments</h2>
                             <p>
-                                Paid subscriptions are billed on a monthly basis. You can cancel your subscription at any time, but no refunds will be provided for partial months.
+                                We currently offer a one-time subscription — pay once, and it's yours forever. There are no recurring charges, and you’ll continue to enjoy full access to all features without any ongoing fees.
                             </p>
                         </section>
 

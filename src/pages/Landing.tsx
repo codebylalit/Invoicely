@@ -207,8 +207,9 @@ const Landing = () => {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4 text-[#2D2D2D]">One simple price</h2>
             <p className="text-[#6B6B6B]">
-              Unlock a suite of incredible features for just $5/month.
+              Unlock a suite of incredible features for a one-time payment of just $99 — yours forever.
             </p>
+
           </div>
           <div className="grid md:grid-cols-2 gap-8">
             {pricingTiers.map((tier) => (
@@ -220,7 +221,7 @@ const Landing = () => {
                 <div className="flex items-baseline mb-4">
                   <span className="text-4xl font-bold text-[#2D2D2D]">{tier.price}</span>
                   {tier.price !== "$0" && (
-                    <span className="text-[#6B6B6B] ml-1">/month</span>
+                  <span className="text-gray-500 dark:text-gray-400 ml-1">one-time</span>
                   )}
                 </div>
                 <ul className="space-y-3 mb-6">

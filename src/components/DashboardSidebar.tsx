@@ -193,7 +193,7 @@ const DashboardSidebar = () => {
             <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">{userProfile.email}</span>
           </div>
         </div>
-        <Button onClick={handleSignOut} variant="ghost" size="icon" className="ml-2 text-gray-400 hover:text-primary p-2 rounded-full">
+        <Button onClick={handleSignOut} variant="ghost" size="icon" className="text-gray-400 hover:text-primary rounded-full">
           <LogOut className="h-5 w-5" />
         </Button>
       </div>

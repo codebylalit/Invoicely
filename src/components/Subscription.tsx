@@ -323,8 +323,8 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
           <div className="p-6">
             <h3 className="text-lg font-medium text-invoice-lightText dark:text-invoice-darkText">Pro</h3>
             <div className="mt-2">
-              <span className="text-2xl font-bold text-invoice-lightText dark:text-invoice-darkText">$5</span>
-              <span className="text-gray-500 dark:text-gray-400 ml-1">/mo</span>
+              <span className="text-2xl font-bold text-invoice-lightText dark:text-invoice-darkText">$99</span>
+              <span className="text-gray-500 dark:text-gray-400 ml-1">one-time</span>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">For growing businesses</p>
 
@@ -345,7 +345,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
             ) : (
               <RazorpayButton
                 plan="pro"
-                amount={5}
+                amount={99}
                 onSuccess={handleSubscriptionSuccess}
                 disabled={upgrading}
                 className="mt-4 w-full"

@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 // Define the subscription plan prices
 const PLAN_PRICES = {
-  pro: 5, // $5 per month
+  pro: 0, // $5 per month
   advanced: 10, // $10 per month (if you have this plan)
 };
 

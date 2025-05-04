@@ -72,7 +72,7 @@ const RazorpayButton = ({
                 key: data.keyId,
                 amount: amount * 100,
                 currency: "USD",
-                name: "Invoicely",
+                name: "Invoicelly",
                 description: `${plan} Plan Subscription`,
                 order_id: data.orderId,
                 handler: async function (response: any) {
