@@ -59,6 +59,7 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
   const [paymentDetails, setPaymentDetails] = useState({
     bankTransferDetails: "",
     paymentMethod: null,
+    paymentLink: "",
   });
 
   const [selectedTemplate, setSelectedTemplate] =
@@ -99,6 +100,7 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
       });
     }
   };
+
   // Default empty invoice for new/manual creation
   const defaultInvoice: Invoice = {
     status: "draft",
@@ -121,7 +123,7 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
     showPaymentMethods: false,
     paymentMethods: [
       { type: "bank", isEnabled: false },
-      { type: "stripe", isEnabled: false },
+      { type: "razorpay", isEnabled: false },
     ],
   };
 
@@ -163,6 +165,41 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
       total,
     };
   }, [displayInvoice.items, displayInvoice.discounts, displayInvoice.taxes]);
+
+  const fetchPaymentDetails = async () => {
+    try {
+      if (!session?.user?.id) return;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("payment_method, bank_transfer_details, payment_link")
+        .eq("user_id", session.user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setPaymentDetails({
+          bankTransferDetails: data.bank_transfer_details || "",
+          paymentMethod: data.payment_method || null,
+          paymentLink: data.payment_link || "",
+
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching payment details:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load payment details",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    console.log("Current payment details:", paymentDetails);
+  }, [paymentDetails]);
+
 
   const handleSelectTemplate = (template: InvoiceTemplate) => {
     // Check if user is trying to use a premium template while on free tier
@@ -277,34 +314,6 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
     } catch (error) {
       console.error("Error uploading PDF:", error);
       throw error;
-    }
-  };
-
-  const fetchPaymentDetails = async () => {
-    try {
-      if (!session?.user?.id) return;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("payment_method, bank_transfer_details")
-        .eq("user_id", session.user.id)
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        setPaymentDetails({
-          bankTransferDetails: data.bank_transfer_details || "",
-          paymentMethod: data.payment_method || null,
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching payment details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load payment details",
-        variant: "destructive",
-      });
     }
   };
 
@@ -942,14 +951,35 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
                     </div>
                   )}
                 {displayInvoice.paymentMethods?.some(
-                  (pm) => pm.type === "stripe" && pm.isEnabled
+                  (pm) =>
+                    ["stripe", "online", "razorpay"].includes(pm.type?.toLowerCase()) &&
+                    pm.isEnabled
                 ) && (
                     <div className="mt-3">
                       <p className="text-sm font-medium mb-1">Online Payment</p>
-                      <p className="text-sm">
-                        Payment can be made securely via credit card or online
-                        banking.
-                      </p>
+                      {paymentDetails?.paymentLink ? (
+                        <div>
+                          <p className="text-sm mb-1">
+                            Payment can be made securely via credit card or online banking.
+                          </p>
+                          <a
+                            href={
+                              paymentDetails.paymentLink.startsWith("http")
+                                ? paymentDetails.paymentLink
+                                : `https://${paymentDetails.paymentLink}`
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:underline break-all"
+                          >
+                            {paymentDetails.paymentLink}
+                          </a>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">
+                          No payment link provided. Please update your payment settings.
+                        </p>
+                      )}
                     </div>
                   )}
                 {!displayInvoice.paymentMethods?.some((pm) => pm.isEnabled) && (
@@ -1187,15 +1217,14 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
                   </div>
                 </div>
               </div>
-              {invoice.showPaymentMethods !== false && (
+              {(invoice.showPaymentMethods !== false || calculatedInvoice.showPaymentMethods !== false) && (
                 <div className="border-t border-gray-200 pt-4 mb-8">
-                  <h2 className="text-sm font-semibold text-gray-600 mb-2">
-                    PAYMENT INFORMATION
-                  </h2>
-                  {invoice.paymentMethods?.some(
+                  <h2 className="text-sm font-semibold text-gray-600 mb-2">PAYMENT INFORMATION</h2>
+
+                  {/* Bank Transfer */}
+                  {(invoice.paymentMethods || calculatedInvoice.paymentMethods)?.some(
                     (pm) => pm.type === "bank" && pm.isEnabled
-                  ) &&
-                    paymentDetails.bankTransferDetails && (
+                  ) && paymentDetails.bankTransferDetails && (
                       <div>
                         <p className="text-sm font-medium mb-1">Bank Transfer</p>
                         <p className="text-sm whitespace-pre-line">
@@ -1203,24 +1232,52 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
                         </p>
                       </div>
                     )}
-                  {invoice.paymentMethods?.some(
-                    (pm) => pm.type === "stripe" && pm.isEnabled
+
+                  {/* Online Payment */}
+                  {(invoice.paymentMethods || calculatedInvoice.paymentMethods)?.some(
+                    (pm) =>
+                      ["stripe", "online", "razorpay"].includes(pm.type?.toLowerCase()) &&
+                      pm.isEnabled
                   ) && (
                       <div className="mt-3">
                         <p className="text-sm font-medium mb-1">Online Payment</p>
-                        <p className="text-sm">
-                          Payment can be made securely via credit card or online
-                          banking.
-                        </p>
+                        {paymentDetails?.paymentLink ? (
+                          <div>
+                            <p className="text-sm mb-1">
+                              Payment can be made securely via credit card or online banking.
+                            </p>
+                            <a
+                              href={
+                                paymentDetails.paymentLink.startsWith("http")
+                                  ? paymentDetails.paymentLink
+                                  : `https://${paymentDetails.paymentLink}`
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:underline break-all"
+                            >
+                              {paymentDetails.paymentLink}
+                            </a>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-500">
+                            No payment link provided. Please update your payment settings.
+                          </p>
+                        )}
                       </div>
                     )}
-                  {!invoice.paymentMethods?.some((pm) => pm.isEnabled) && (
-                    <p className="text-sm text-gray-500">
-                      No payment method specified
-                    </p>
-                  )}
+
+
+                  {/* No Payment Method */}
+                  {![
+                    ...(invoice.paymentMethods || []),
+                    ...(calculatedInvoice.paymentMethods || []),
+                  ].some((pm) => pm.isEnabled) && (
+                      <p className="text-sm text-gray-500">No payment method specified</p>
+                    )}
                 </div>
               )}
+
               <div className="text-center text-gray-600 text-sm mt-12">
                 {invoice.notes || ""}
               </div>

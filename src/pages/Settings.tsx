@@ -16,11 +16,14 @@ const Settings = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+
   // User subscription state
   const [userSubscription, setUserSubscription] = useState({
     tier: "free", // free, growing, advanced
     paymentMethod: null, // stripe, null
     bankTransferDetails: "",
+    paymentLink: "", // Added paymentLink to state
+
   });
 
   // Business details form state
@@ -129,7 +132,7 @@ const Settings = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from("profiles")
-        .select("tier, payment_method, bank_transfer_details")
+        .select("tier, payment_method, bank_transfer_details, payment_link")
         .eq("user_id", session.user.id)
         .single();
 
@@ -141,6 +144,8 @@ const Settings = () => {
         tier: data?.tier || "free",
         paymentMethod: data?.payment_method || null,
         bankTransferDetails: data?.bank_transfer_details || "",
+        paymentLink: data?.payment_link || "", // Added payment_link to state
+
       });
     } catch (error) {
       toast({
@@ -262,6 +267,49 @@ const Settings = () => {
       setLoading(false);
     }
   };
+  // Handle payment link change
+  const handlePaymentLinkChange = (e) => {
+    setUserSubscription((prev) => ({
+      ...prev,
+      paymentLink: e.target.value,
+    }));
+  };
+
+  // Save payment link to Supabase
+  const savePaymentLink = async () => {
+    try {
+      setLoading(true);
+
+      // Update the profiles table with the payment link
+      const { error } = await supabase.from("profiles").upsert(
+        {
+          user_id: session.user.id,
+          payment_link: userSubscription.paymentLink,
+          updated_at: new Date(),
+        },
+        {
+          onConflict: "user_id",
+        }
+      );
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Payment link saved successfully",
+      });
+    } catch (error) {
+      console.error("Error saving payment link:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save payment link.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   // Save bank transfer details
   const savePaymentDetails = async () => {
@@ -301,22 +349,6 @@ const Settings = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Handle connect Stripe
-  const handleConnectStripe = () => {
-    setConnecting(true);
-    setTimeout(() => {
-      setConnecting(false);
-      setUserSubscription((prev) => ({
-        ...prev,
-        paymentMethod: "stripe",
-      }));
-      toast({
-        title: "Success",
-        description: "Stripe connected successfully (mock)",
-      });
-    }, 1200);
   };
 
   return (
@@ -607,7 +639,7 @@ SWIFT/BIC: BANK1234XXX"
                 </div>
               </div>
 
-              {/* Stripe */}
+              {/* Online Payment Link */}
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center mb-4">
                   <div className="bg-indigo-600 p-2 rounded-md mr-3">
@@ -625,76 +657,82 @@ SWIFT/BIC: BANK1234XXX"
                       />
                     </svg>
                   </div>
-                  <span className="font-medium text-invoice-lightText dark:text-invoice-darkText">Stripe</span>
+                  <span className="font-medium text-invoice-lightText dark:text-invoice-darkText">Online Payment</span>
                 </div>
 
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  Connect Stripe and accept Cards, Google & Apple Pay. Only
-                  standard Stripe processing fees apply.{" "}
-                  <a
-                    href="https://stripe.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-green-600 dark:text-green-400 hover:underline"
-                  >
-                    Learn more at Stripe
-                  </a>
+                  Add your preferred online payment link (e.g., Razorpay, Stripe Payment Link, UPI, etc.) to receive payments.
                 </p>
 
-                {userSubscription.paymentMethod === "stripe" ? (
-                  <div className="flex items-center text-sm text-green-600 dark:text-green-400 mb-4 font-medium">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Connected to Stripe
-                  </div>
-                ) : (
+                <div className="space-y-4">
+                  <input
+                    type="url"
+                    placeholder="https://your-payment-link.com"
+                    value={userSubscription.paymentLink || ""}
+                    onChange={handlePaymentLinkChange}
+                    className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+
                   <Button
-                    onClick={handleConnectStripe}
-                    disabled={connecting}
-                    className="w-full bg-green-600 hover:bg-green-700"
+                    onClick={savePaymentLink}
+                    disabled={loading}
+                    className="w-full"
                   >
-                    {connecting ? "Connecting..." : "Connect"}
+                    {loading ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Saving...
+                      </span>
+                    ) : (
+                      "Save payment link"
+                    )}
                   </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Subscription */}
-        {activeTab === "subscription" && (
-          <Subscription
-            userSubscription={userSubscription}
-            setUserSubscription={setUserSubscription}
-          />
-        )}
-        {/* Theme Settings */}
-        {activeTab === "theme" && (
-          <div className="dark:bg-invoice-darkBg rounded-lg p-6 border border-gray-200 shadow  dark:border-gray-800">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Theme Settings</h2>
-            </div>
-
-            <div className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div>
-                  <h3 className="text-base font-medium text-invoice-lightText dark:text-invoice-darkText">Dark Mode</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Switch between light and dark mode</p>
                 </div>
-                <Button
-                  onClick={toggleTheme}
-                  className="flex items-center justify-center p-2 rounded-full bg-white dark:bg-gray-700 text-invoice-lightText dark:text-invoice-darkText hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                  aria-label="Toggle theme"
-                >
-                  {isDarkMode ? (
-                    <Sun className="h-5 w-5" />
-                  ) : (
-                    <Moon className="h-5 w-5" />
-                  )}
-                </Button>
               </div>
-{/* 
+            </div>
+    </div>
+  )
+}
+
+{/* Subscription */ }
+{
+  activeTab === "subscription" && (
+    <Subscription
+      userSubscription={userSubscription}
+      setUserSubscription={setUserSubscription}
+    />
+  )
+}
+{/* Theme Settings */ }
+{
+  activeTab === "theme" && (
+    <div className="dark:bg-invoice-darkBg rounded-lg p-6 border border-gray-200 shadow  dark:border-gray-800">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Theme Settings</h2>
+      </div>
+
+      <div className="space-y-6">
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div>
+            <h3 className="text-base font-medium text-invoice-lightText dark:text-invoice-darkText">Dark Mode</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Switch between light and dark mode</p>
+          </div>
+          <Button
+            onClick={toggleTheme}
+            className="flex items-center justify-center p-2 rounded-full bg-white dark:bg-gray-700 text-invoice-lightText dark:text-invoice-darkText hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            aria-label="Toggle theme"
+          >
+            {isDarkMode ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
+        {/* 
               <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
                 <h3 className="text-base font-medium text-invoice-lightText dark:text-invoice-darkText mb-4">Theme Preview</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -716,11 +754,12 @@ SWIFT/BIC: BANK1234XXX"
                   </div>
                 </div>
               </div> */}
-            </div>
-          </div>
-        )}
       </div>
     </div>
+  )
+}
+      </div >
+    </div >
   );
 };
 

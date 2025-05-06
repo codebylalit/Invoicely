@@ -212,7 +212,7 @@ export const InvoiceForm = ({
   const [notes, setNotes] = useState("");
   const [paymentMethods, setPaymentMethods] = useState({
     bank: { enabled: false, instructions: "" },
-    stripe: { enabled: false, connectURL: "" },
+    online: { enabled: false, url: "" },
   });
   const [promptText, setPromptText] = useState("");
   const [hasUsedPrompt, setHasUsedPrompt] = useState(false);
@@ -223,6 +223,7 @@ export const InvoiceForm = ({
   const [paymentDetails, setPaymentDetails] = useState({
     bankTransferDetails: "",
     paymentMethod: null,
+    paymentLink: "",
   });
   const [showPaymentInInvoice, setShowPaymentInInvoice] = useState(false);
 
@@ -246,12 +247,12 @@ export const InvoiceForm = ({
         {
           type: "bank",
           isEnabled: paymentMethods.bank.enabled,
-          instructions: paymentMethods.bank.instructions,
+          instructions: paymentDetails.bankTransferDetails,
         },
         {
           type: "stripe",
-          isEnabled: paymentMethods.stripe.enabled,
-          connectURL: paymentMethods.stripe.connectURL,
+          isEnabled: paymentMethods.online.enabled,
+          connectURL: paymentDetails.paymentLink,
         },
       ],
       taxes,
@@ -395,7 +396,7 @@ export const InvoiceForm = ({
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("payment_method, bank_transfer_details")
+        .select("payment_method, bank_transfer_details, payment_link")
         .eq("user_id", session.user.id)
         .single();
 
@@ -405,6 +406,19 @@ export const InvoiceForm = ({
         setPaymentDetails({
           bankTransferDetails: data.bank_transfer_details || "",
           paymentMethod: data.payment_method || null,
+          paymentLink: data.payment_link || "",
+        });
+
+        // Initialize payment methods based on fetched data
+        setPaymentMethods({
+          bank: {
+            enabled: true,
+            instructions: data.bank_transfer_details || ""
+          },
+          online: {
+            enabled: !!data.payment_link,
+            url: data.payment_link || ""
+          },
         });
       }
     } catch (error) {
@@ -810,16 +824,16 @@ export const InvoiceForm = ({
               </div>
               <div>
                 <span className="font-medium text-gray-900 dark:text-gray-100">Bank Transfer</span>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Direct bank transfer details</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Bank Details</p>
               </div>
             </div>
           </div>
 
-          {/* Stripe Option */}
+          {/* Online Payment Link Option */}
           <div
             className={`p-5 border rounded-lg cursor-pointer transition-all duration-200 ${!showPaymentInInvoice
               ? "opacity-50 cursor-not-allowed"
-              : paymentMethods.stripe.enabled
+              : paymentMethods.online.enabled
                 ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20"
                 : "border-gray-200 dark:border-gray-700 hover:border-yellow-400 dark:hover:border-yellow-500"
               }`}
@@ -827,9 +841,9 @@ export const InvoiceForm = ({
               if (showPaymentInInvoice) {
                 setPaymentMethods({
                   ...paymentMethods,
-                  stripe: {
-                    ...paymentMethods.stripe,
-                    enabled: !paymentMethods.stripe.enabled,
+                  online: {
+                    ...paymentMethods.online,
+                    enabled: !paymentMethods.online.enabled,
                   },
                 });
               }
@@ -837,7 +851,7 @@ export const InvoiceForm = ({
           >
             <div className="flex items-center gap-4">
               <div
-                className={`p-3 rounded-full flex items-center justify-center ${paymentMethods.stripe.enabled
+                className={`p-3 rounded-full flex items-center justify-center ${paymentMethods.online.enabled
                   ? "bg-yellow-100 text-yellow-600 dark:bg-yellow-800 dark:text-yellow-200"
                   : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300"
                   }`}
@@ -845,19 +859,21 @@ export const InvoiceForm = ({
                 <svg
                   width="24"
                   height="24"
-                  viewBox="0 0 32 32"
+                  viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  <path
-                    d="M15.338 14.258c0-1.088.904-1.5 2.385-1.5 1.977 0 4.65.6 6.702 1.65V9.042c-2.227-.894-4.417-1.235-6.7-1.235-5.464 0-9.1 2.85-9.1 7.236 0 7.115 9.79 5.971 9.79 9.044 0 1.19-1.033 1.578-2.486 1.578-2.152 0-4.907-.883-7.094-2.071v5.435c2.412 1.065 4.85 1.514 7.092 1.514 5.567 0 9.343-2.75 9.343-7.21-.026-7.35-9.932-6-9.932-9.075z"
-                    fill="currentColor"
-                    fillRule="evenodd"
-                  />
+                  <rect x="2" y="5" width="20" height="14" rx="2" />
+                  <line x1="2" y1="10" x2="22" y2="10" />
                 </svg>
               </div>
               <div>
-                <span className="font-medium text-gray-900 dark:text-gray-100">Stripe</span>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Online payment processing</p>
+                <span className="font-medium text-gray-900 dark:text-gray-100">Online Payment</span>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Payment Link</p>
               </div>
             </div>
           </div>
