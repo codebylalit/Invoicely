@@ -295,9 +295,9 @@ const Invoices = () => {
                 <div>
                   <CardTitle className="text-lg flex items-center gap-2">
                     #{inv.invoice_number || "Draft"}
-                    <Badge className={`${getStatusColor(inv.status)}`}>
+                    {/* <Badge className={`${getStatusColor(inv.status)}`}>
                       {inv.status}
-                    </Badge>
+                    </Badge> */}
                   </CardTitle>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
                     {inv.client_name || "No client name"}

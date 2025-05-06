@@ -319,7 +319,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
         </div>
 
         {/* Pro Plan */}
-        <div className="border border-yellow-400 dark:border-green-400 rounded-lg overflow-hidden">
+        <div className="border border-yellow-400 dark:border-yellow-400 rounded-lg overflow-hidden">
           <div className="p-6">
             <h3 className="text-lg font-medium text-invoice-lightText dark:text-invoice-darkText">Pro</h3>
             <div className="mt-2">

@@ -373,7 +373,7 @@ const Settings = () => {
 
         {/* Business Details Form */}
         {activeTab === "business" && (
-          <div className="dark:bg-invoice-darkBg rounded-lg p-6 border border-gray-200 shadow  dark:border-gray-800">
+          <div className="dark:bg-invoice-darkBg rounded-lg p-6 border border-gray-200 shadow dark:border-gray-800">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Business Details</h2>
@@ -567,24 +567,24 @@ const Settings = () => {
 
         {/* Payment Details */}
         {activeTab === "payment" && (
-          <div className=" dark:bg-invoice-darkBg rounded-lg p-6 border border-gray-200 shadow  dark:border-gray-800">
-            <div className="flex items-center justify-between mb-6">
+          <div className="dark:bg-invoice-darkBg rounded-lg p-8 border border-gray-200 shadow dark:border-gray-800">
+            <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Payment Details</h2>
+                <h2 className="text-2xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Payment Details</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   Set up your preferred payment methods for receiving payments
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Bank Transfer */}
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center mb-4">
-                  <div className="bg-black p-2 rounded-md mr-3">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-6">
+                  <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-3 rounded-lg mr-4">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-white"
+                      className="h-6 w-6 text-white"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
@@ -597,8 +597,8 @@ const Settings = () => {
                     </svg>
                   </div>
                   <div>
-                    <span className="font-medium text-invoice-lightText dark:text-invoice-darkText">Bank Transfer</span>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Direct bank transfers from your clients</p>
+                    <h3 className="text-lg font-semibold text-invoice-lightText dark:text-invoice-darkText">Bank Transfer</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Direct bank transfers from your clients</p>
                   </div>
                 </div>
 
@@ -608,7 +608,7 @@ const Settings = () => {
                       Bank Details
                     </label>
                     <textarea
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 min-h-[120px] bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 min-h-[120px] bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors resize-none"
                       placeholder="Bank Name: Your Bank
 Account Name: Your Name
 Account Number: 123456789
@@ -622,10 +622,10 @@ SWIFT/BIC: BANK1234XXX"
                   <Button
                     onClick={savePaymentDetails}
                     disabled={loading}
-                    className="w-full"
+                    className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium py-2.5"
                   >
                     {loading ? (
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center justify-center gap-2">
                         <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -633,19 +633,19 @@ SWIFT/BIC: BANK1234XXX"
                         Saving...
                       </span>
                     ) : (
-                      "Save bank details"
+                      "Save Bank Details"
                     )}
                   </Button>
                 </div>
               </div>
 
               {/* Online Payment Link */}
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center mb-4">
-                  <div className="bg-indigo-600 p-2 rounded-md mr-3">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-6">
+                  <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 p-3 rounded-lg mr-4">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-white"
+                      className="h-6 w-6 text-white"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
@@ -657,29 +657,36 @@ SWIFT/BIC: BANK1234XXX"
                       />
                     </svg>
                   </div>
-                  <span className="font-medium text-invoice-lightText dark:text-invoice-darkText">Online Payment</span>
+                  <div>
+                    <h3 className="text-lg font-semibold text-invoice-lightText dark:text-invoice-darkText">Online Payment</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Receive payments through online payment links</p>
+                  </div>
                 </div>
 
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  Add your preferred online payment link (e.g., Razorpay, Stripe Payment Link, UPI, etc.) to receive payments.
-                </p>
-
                 <div className="space-y-4">
-                  <input
-                    type="url"
-                    placeholder="https://your-payment-link.com"
-                    value={userSubscription.paymentLink || ""}
-                    onChange={handlePaymentLinkChange}
-                    className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText mb-2">
+                      Payment Link
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://your-payment-link.com"
+                      value={userSubscription.paymentLink || ""}
+                      onChange={handlePaymentLinkChange}
+                      className="w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                    />
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      Add your preferred online payment link (e.g., Razorpay, Stripe Payment Link, UPI, etc.)
+                    </p>
+                  </div>
 
                   <Button
                     onClick={savePaymentLink}
                     disabled={loading}
-                    className="w-full"
+                    className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-medium py-2.5"
                   >
                     {loading ? (
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center justify-center gap-2">
                         <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -687,79 +694,53 @@ SWIFT/BIC: BANK1234XXX"
                         Saving...
                       </span>
                     ) : (
-                      "Save payment link"
+                      "Save Payment Link"
                     )}
                   </Button>
                 </div>
               </div>
             </div>
-    </div>
-  )
-}
-
-{/* Subscription */ }
-{
-  activeTab === "subscription" && (
-    <Subscription
-      userSubscription={userSubscription}
-      setUserSubscription={setUserSubscription}
-    />
-  )
-}
-{/* Theme Settings */ }
-{
-  activeTab === "theme" && (
-    <div className="dark:bg-invoice-darkBg rounded-lg p-6 border border-gray-200 shadow  dark:border-gray-800">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Theme Settings</h2>
-      </div>
-
-      <div className="space-y-6">
-        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div>
-            <h3 className="text-base font-medium text-invoice-lightText dark:text-invoice-darkText">Dark Mode</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Switch between light and dark mode</p>
           </div>
-          <Button
-            onClick={toggleTheme}
-            className="flex items-center justify-center p-2 rounded-full bg-white dark:bg-gray-700 text-invoice-lightText dark:text-invoice-darkText hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-            aria-label="Toggle theme"
-          >
-            {isDarkMode ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </Button>
-        </div>
-        {/* 
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                <h3 className="text-base font-medium text-invoice-lightText dark:text-invoice-darkText mb-4">Theme Preview</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-4 rounded-lg bg-white dark:bg-invoice-darkBg border border-gray-200 dark:border-gray-700">
-                    <h4 className="text-sm font-medium mb-2 text-invoice-lightText dark:text-invoice-darkText">Light Mode</h4>
-                    <div className="space-y-2">
-                      <div className="h-4 rounded bg-primary"></div>
-                      <div className="h-4 rounded bg-secondary"></div>
-                      <div className="h-4 rounded bg-accent"></div>
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-lg bg-gray-900 border border-gray-700">
-                    <h4 className="text-sm font-medium mb-2 text-white">Dark Mode</h4>
-                    <div className="space-y-2">
-                      <div className="h-4 rounded bg-primary"></div>
-                      <div className="h-4 rounded bg-secondary"></div>
-                      <div className="h-4 rounded bg-accent"></div>
-                    </div>
-                  </div>
+        )}
+
+        {/* Subscription */}
+        {activeTab === "subscription" && (
+          <Subscription
+            userSubscription={userSubscription}
+            setUserSubscription={setUserSubscription}
+          />
+        )}
+
+        {/* Theme Settings */}
+        {activeTab === "theme" && (
+          <div className="dark:bg-invoice-darkBg rounded-lg p-6 border border-gray-200 shadow  dark:border-gray-800">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Theme Settings</h2>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div>
+                  <h3 className="text-base font-medium text-invoice-lightText dark:text-invoice-darkText">Dark Mode</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Switch between light and dark mode</p>
                 </div>
-              </div> */}
+                <Button
+                  onClick={toggleTheme}
+                  className="flex items-center justify-center p-2 rounded-full bg-white dark:bg-gray-700 text-invoice-lightText dark:text-invoice-darkText hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  aria-label="Toggle theme"
+                >
+                  {isDarkMode ? (
+                    <Sun className="h-5 w-5" />
+                  ) : (
+                    <Moon className="h-5 w-5" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
-  )
-}
-      </div >
-    </div >
   );
 };
 
