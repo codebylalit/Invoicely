@@ -38,6 +38,7 @@ interface Invoice {
   taxes: TaxItem[];
   discounts: DiscountItem[];
   showPaymentMethods?: boolean; // Add this line
+  is_recurring: boolean;
 }
 
 
@@ -71,7 +72,7 @@ interface PaymentMethod {
   connectURL?: string;
 }
 // Format the invoice data from Supabase to match the format expected by InvoicePreview
-const formatInvoiceForPreview = (invoice: Invoice) => {
+const formatInvoiceForPreview = (invoice: any) => {
   // Parse the paymentMethods string if it exists, or provide a default empty array
   let parsedPaymentMethods = [];
   try {
@@ -89,26 +90,25 @@ const formatInvoiceForPreview = (invoice: Invoice) => {
     name: invoice.client_name,
     details: invoice.details,
     email: invoice.client_email,
-    subtotal: invoice.total || 0,
+    subtotal: invoice.subtotal || 0,
     total: invoice.total || 0,
     invoiceTitle: "Invoice",
     items: invoice.items || [],
     discounts: invoice.discounts || [],
     taxes: invoice.taxes || [],
     notes: invoice.notes || "",
-    // Ensure paymentMethods is properly structured
-    paymentMethods: [
-      {
-        type: "bank",
-        isEnabled: false,
-        instructions: "",
-      },
-      {
-        type: "stripe",
-        isEnabled: false,
-        connectURL: "",
-      },
+    paymentMethods: parsedPaymentMethods.length ? parsedPaymentMethods : [
+      { type: "bank", isEnabled: false, instructions: "" },
+      { type: "stripe", isEnabled: false, connectURL: "" },
     ],
+    // Recurring fields (map snake_case to camelCase)
+    is_recurring: invoice.is_recurring,
+    recurrence_frequency: invoice.recurrence_frequency,
+    recurrence_interval: invoice.recurrence_interval,
+    recurrence_start_date: invoice.recurrence_start_date,
+    recurrence_end_date: invoice.recurrence_end_date,
+    parent_invoice_id: invoice.parent_invoice_id,
+    next_recurrence_date: invoice.next_recurrence_date,
   };
 };
 
@@ -295,9 +295,11 @@ const Invoices = () => {
                 <div>
                   <CardTitle className="text-lg flex items-center gap-2">
                     #{inv.invoice_number || "Draft"}
-                    {/* <Badge className={`${getStatusColor(inv.status)}`}>
-                      {inv.status}
-                    </Badge> */}
+                    {inv.is_recurring && (
+                      <Badge className="bg-blue-500 text-white ml-2">
+                        Recurring Active
+                      </Badge>
+                    )}
                   </CardTitle>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
                     {inv.client_name || "No client name"}
@@ -371,9 +373,6 @@ const Invoices = () => {
                     >
                       <Download className="h-4 w-4 mr-1" /> Download
                     </Button>
-                    {/* <Button size="sm" variant="outline">
-                      <Download className="h-4 w-4 mr-1" /> Download
-                    </Button> */}
                     <Button
                       size="sm"
                       variant="outline"

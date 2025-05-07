@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { FileText, Download, Mail } from "lucide-react";
+import { FileText, Download, Mail, Calendar, RefreshCw } from "lucide-react";
 import {
   TemplateSelectionModal,
   InvoiceTemplate,
@@ -14,6 +14,8 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useSession } from "@supabase/auth-helpers-react";
 import emailjs from "@emailjs/browser";
 import { Link, useNavigate } from "react-router-dom";
+import InvoiceLayout from './invoice/InvoiceLayout';
+import EmailModal from './invoice/EmailModal';
 
 interface InvoicePreviewProps {
   invoice: Invoice | null;
@@ -24,6 +26,12 @@ interface EmailFormData {
   to: string[];
   cc: string[];
   message: string;
+}
+
+function formatDateSafe(dateStr) {
+  if (!dateStr) return 'N/A';
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString();
 }
 
 const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
@@ -633,445 +641,33 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
 
   const containerClasses = ` h-full overflow-auto ${isPdfView ? "pdf-view-mode" : ""
     } ${selectedTemplate ? selectedTemplate.styles.font : ""} ${selectedTemplate ? selectedTemplate.styles.background : ""
-    }`;
+    } bg-white text-invoice-lightText dark:bg-invoice-darkBg dark:text-invoice-darkText`;
 
-  const renderInvoiceLayout = (template: InvoiceTemplate | null) => {
-    if (!template) return null;
-    switch (template.styles.layout) {
-      case 'classic':
-        return (
-          <div className="space-y-8">
-            <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold">{displayInvoice.invoiceTitle}</h1>
-                <p className="text-gray-600">Invoice #{displayInvoice.invoiceNumber}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-gray-600">Issued: {formattedIssueDate}</p>
-                <p className="text-gray-600">Due: {formattedDueDate}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <h2 className="font-semibold">From</h2>
-                <p>{businessDetails.business_name}</p>
-                <p>{businessDetails.address}</p>
-                <p>{businessDetails.email}</p>
-              </div>
-              <div className="space-y-2">
-                <h2 className="font-semibold">To</h2>
-                <p>{displayInvoice.name}</p>
-                <p>{displayInvoice.details}</p>
-                <p>{displayInvoice.email}</p>
-              </div>
-            </div>
-            <div className="border-t border-gray-200 pt-8">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2">Description</th>
-                    <th className="text-center py-2">Quantity</th>
-                    <th className="text-right py-2">Unit Price</th>
-                    <th className="text-right py-2">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayInvoice.items.map((item) => (
-                    <tr key={item.id} className="border-b border-gray-100">
-                      <td className="py-2">{item.description}</td>
-                      <td className="text-center py-2">{item.quantity}</td>
-                      <td className="text-right py-2">${item.unitPrice.toFixed(2)}</td>
-                      <td className="text-right py-2">${item.totalPrice.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      case 'modern':
-        return (
-          <div className="space-y-12">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-4xl font-bold mb-2">{displayInvoice.invoiceTitle}</h1>
-                <div className="flex gap-4 text-gray-600">
-                  <p>#{displayInvoice.invoiceNumber}</p>
-                  <p>•</p>
-                  <p>Issued: {formattedIssueDate}</p>
-                  <p>•</p>
-                  <p>Due: {formattedDueDate}</p>
-                </div>
-              </div>
-              {businessDetails.logo_url && (
-                <img src={businessDetails.logo_url} alt="Logo" className="h-16" />
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-12">
-              <div>
-                <h2 className="text-lg font-semibold mb-4">From</h2>
-                <div className="space-y-2">
-                  <p className="font-medium">{businessDetails.business_name}</p>
-                  <p className="text-gray-600">{businessDetails.address}</p>
-                  <p className="text-gray-600">{businessDetails.email}</p>
-                </div>
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold mb-4">To</h2>
-                <div className="space-y-2">
-                  <p className="font-medium">{displayInvoice.name}</p>
-                  <p className="text-gray-600">{displayInvoice.details}</p>
-                  <p className="text-gray-600">{displayInvoice.email}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-6">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3">Description</th>
-                    <th className="text-center py-3">Quantity</th>
-                    <th className="text-right py-3">Unit Price</th>
-                    <th className="text-right py-3">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayInvoice.items.map((item) => (
-                    <tr key={item.id} className="border-b border-gray-100">
-                      <td className="py-3">{item.description}</td>
-                      <td className="text-center py-3">{item.quantity}</td>
-                      <td className="text-right py-3">${item.unitPrice.toFixed(2)}</td>
-                      <td className="text-right py-3">${item.totalPrice.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      case 'minimal':
-        return (
-          <div className="space-y-16">
-            <div className="text-center">
-              <h1 className="text-4xl font-light mb-2">{displayInvoice.invoiceTitle}</h1>
-              <p className="text-gray-600">#{displayInvoice.invoiceNumber}</p>
-            </div>
-            <div className="grid grid-cols-2 gap-16">
-              <div>
-                <h2 className="text-sm font-medium mb-4">FROM</h2>
-                <div className="space-y-1">
-                  <p>{businessDetails.business_name}</p>
-                  <p className="text-gray-600">{businessDetails.address}</p>
-                  <p className="text-gray-600">{businessDetails.email}</p>
-                </div>
-              </div>
-              <div>
-                <h2 className="text-sm font-medium mb-4">TO</h2>
-                <div className="space-y-1">
-                  <p>{displayInvoice.name}</p>
-                  <p className="text-gray-600">{displayInvoice.details}</p>
-                  <p className="text-gray-600">{displayInvoice.email}</p>
-                </div>
-              </div>
-            </div>
-            <div>
-              <div className="border-t border-gray-200 pt-8">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-4">Description</th>
-                      <th className="text-center py-4">Quantity</th>
-                      <th className="text-right py-4">Unit Price</th>
-                      <th className="text-right py-4">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {displayInvoice.items.map((item) => (
-                      <tr key={item.id} className="border-b border-gray-100">
-                        <td className="py-4">{item.description}</td>
-                        <td className="text-center py-4">{item.quantity}</td>
-                        <td className="text-right py-4">${item.unitPrice.toFixed(2)}</td>
-                        <td className="text-right py-4">${item.totalPrice.toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        );
-      case 'default':
-        return (
-          <div className="space-y-8">
-            <div className="flex justify-between items-center mb-8">
-              <div className="flex items-center space-x-4">
-                {businessDetails.logo_url && (
-                  <img
-                    src={businessDetails.logo_url}
-                    alt="Business logo"
-                    className="h-14 w-14 object-contain"
-                  />
-                )}
-                <div>
-                  <h1 className="text-2xl font-bold text-invoice-lightText dark:text-invoice-darkText">
-                    {displayInvoice.invoiceTitle || "Invoice"}
-                  </h1>
-                  <p className="text-sm text-gray-600">
-                    Issued: {formattedIssueDate}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-600">
-                  Invoice# {displayInvoice.invoiceNumber || "00000"}
-                </p>
-              </div>
-            </div>
-            <div className="flex justify-between">
-              <div className="w-1/2">
-                <div className="mb-6">
-                  <p className="text-sm text-gray-600 mb-1">Issued</p>
-                  <p className="text-sm">{formattedIssueDate}</p>
-                </div>
-                <div className="mb-6">
-                  <p className="text-sm text-gray-600 mb-1">From</p>
-                  <p className="text-sm">{businessDetails.business_name}</p>
-                  <p className="text-sm">{businessDetails.email || "N/A"}</p>
-                  <p className="text-sm">
-                    {businessDetails.address && `${businessDetails.address}, `}
-                    {businessDetails.city && `${businessDetails.city}, `}
-                    {businessDetails.postal_code}
-                  </p>
-                </div>
-              </div>
-              <div className="w-1/2 text-right">
-                <div className="mb-6">
-                  <p className="text-sm text-gray-600 mb-1">Due</p>
-                  <p className="text-sm">{formattedDueDate}</p>
-                </div>
-                <div className="mb-6">
-                  <p className="text-sm text-gray-600 mb-1">Invoice For</p>
-                  <p className="text-sm">{displayInvoice.name || "N/A"}</p>
-                  <p className="text-sm">{displayInvoice.email || "N/A"}</p>
-                  <p className="text-sm">{displayInvoice.details || "N/A"}</p>
-                </div>
-              </div>
-            </div>
-            <div className="mb-8">
-              <div className="grid grid-cols-12 text-sm text-gray-600 border-b border-gray-200 pb-2 mb-4">
-                <div className="col-span-6">DESCRIPTION</div>
-                <div className="col-span-2 text-center">QUANTITY</div>
-                <div className="col-span-2 text-right">UNIT PRICE</div>
-                <div className="col-span-2 text-right">AMOUNT</div>
-              </div>
-              {displayInvoice.items && displayInvoice.items.length > 0 ? (
-                displayInvoice.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="grid grid-cols-12 text-sm py-3 border-b border-gray-200"
-                  >
-                    <div className="col-span-6">
-                      <p>{item.description}</p>
-                      {item.additionalInfo && (
-                        <p className="text-xs text-gray-500">
-                          {item.additionalInfo}
-                        </p>
-                      )}
-                    </div>
-                    <div className="col-span-2 text-center">
-                      {item.quantity}
-                    </div>
-                    <div className="col-span-2 text-right">
-                      ${item.unitPrice.toFixed(2)}
-                    </div>
-                    <div className="col-span-2 text-right">
-                      ${item.totalPrice.toFixed(2)}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-gray-500 italic">
-                  No items added to this invoice yet
-                </div>
-              )}
-            </div>
-            <div className="flex justify-end mb-8">
-              <div className="w-1/3">
-                <div className="flex justify-between text-sm py-2">
-                  <span>Subtotal</span>
-                  <span>${calculatedInvoice.subtotal.toFixed(2)}</span>
-                </div>
-                {Array.isArray(calculatedInvoice.discounts) &&
-                  calculatedInvoice.discounts.length > 0 &&
-                  calculatedInvoice.discounts.map((discount, index) => (
-                    <div
-                      key={`discount-${discount.id || index}`}
-                      className="flex justify-between text-sm py-2"
-                    >
-                      <span>Discount ({discount.rate.toFixed(0)}%)</span>
-                      <span>-${discount.amount.toFixed(2)}</span>
-                    </div>
-                  ))}
-                {Array.isArray(calculatedInvoice.taxes) &&
-                  calculatedInvoice.taxes.length > 0 ? (
-                  calculatedInvoice.taxes.map((tax, index) => (
-                    <div
-                      key={`tax-${tax.id || index}`}
-                      className="flex justify-between text-sm py-2"
-                    >
-                      <span>Tax ({tax.rate ? tax.rate.toFixed(0) : 0}%)</span>
-                      <span>
-                        ${tax.amount ? tax.amount.toFixed(2) : "0.00"}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-sm text-gray-500"></div>
-                )}
-                <div className="flex justify-between font-bold text-sm border-t border-gray-300 pt-2 mt-2">
-                  <span>Total</span>
-                  <span>${calculatedInvoice.total.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-            {displayInvoice.showPaymentMethods !== false && (
-              <div className="border-t border-gray-200 pt-4 mb-8">
-                <h2 className="text-sm font-semibold text-gray-600 mb-2">
-                  PAYMENT INFORMATION
-                </h2>
-                {displayInvoice.paymentMethods?.some(
-                  (pm) => pm.type === "bank" && pm.isEnabled
-                ) &&
-                  paymentDetails.bankTransferDetails && (
-                    <div>
-                      <p className="text-sm font-medium mb-1">Bank Transfer</p>
-                      <p className="text-sm whitespace-pre-line">
-                        {paymentDetails.bankTransferDetails}
-                      </p>
-                    </div>
-                  )}
-                {displayInvoice.paymentMethods?.some(
-                  (pm) =>
-                    ["stripe", "online", "razorpay"].includes(pm.type?.toLowerCase()) &&
-                    pm.isEnabled
-                ) && (
-                    <div className="mt-3">
-                      <p className="text-sm font-medium mb-1">Online Payment</p>
-                      {paymentDetails?.paymentLink ? (
-                        <div>
-                          <p className="text-sm mb-1">
-                            Payment can be made securely via credit card or online banking.
-                          </p>
-                          <a
-                            href={
-                              paymentDetails.paymentLink.startsWith("http")
-                                ? paymentDetails.paymentLink
-                                : `https://${paymentDetails.paymentLink}`
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:underline break-all"
-                          >
-                            {paymentDetails.paymentLink}
-                          </a>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-500">
-                          No payment link provided. Please update your payment settings.
-                        </p>
-                      )}
-                    </div>
-                  )}
-                {!displayInvoice.paymentMethods?.some((pm) => pm.isEnabled) && (
-                  <p className="text-sm text-gray-500">
-                    No payment method specified
-                  </p>
-                )}
-              </div>
-            )}
-            <div className="text-center text-gray-600 text-sm mt-12">
-              {displayInvoice.notes || ""}
-            </div>
-          </div>
-        );
-      case 'billy':
-        return (
-          <div className={`p-8 rounded-lg`}>
-            <div className="max-w-xl mx-auto flex flex-col items-center">
-              <h1 className="text-xl font-semibold mb-2 text-center text-gray-900">
-                Invoice from {businessDetails.business_name || 'Your Company'}
-              </h1>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-900">" {displayInvoice.items[0]?.description} "</span>
-              </div>
-              <div className="text-center text-sm text-gray-500 mb-2">Total amount</div>
-              <div className="text-center text-3xl font-bold text-gray-900 mb-6">
-                ${calculatedInvoice.total.toFixed(2)}
-              </div>
-              <div className="w-full bg-white rounded-lg p-6 mb-6 border border-gray-200 shadow">
-                {/* Vertical info section */}
-                <div className="flex flex-col gap-2 mb-6">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500 font-medium">Status</span>
-                    <span className="px-2 py-1 rounded bg-blue-600 text-white text-xs font-bold">
-                      {displayInvoice.status?.toUpperCase() || 'DRAFT'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500 font-medium">Due</span>
-                    <span className="text-gray-900">{formattedDueDate || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500 font-medium">Name</span>
-                    <span className="text-gray-900">{displayInvoice.name || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500 font-medium">Email</span>
-                    <span className="text-gray-900">{displayInvoice.email || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500 font-medium">Details</span>
-                    <span className="text-gray-900">{displayInvoice.details || 'N/A'}</span>
-                  </div>
-                </div>
-                {/* Items Table */}
-                <div className="grid grid-cols-4 text-gray-500 border-t border-gray-200 pt-4 font-medium">
-                  <div>Description</div>
-                  <div className="text-center">Quantity</div>
-                  <div className="text-right">Unit price</div>
-                  <div className="text-right">Total price</div>
-                </div>
+  const formatRecurrenceInfo = (invoice: Invoice) => {
+    if (!invoice.is_recurring) return null;
 
-                {displayInvoice.items && displayInvoice.items.length > 0 ? (
-                  displayInvoice.items.map((item) => (
-                    <div key={item.id} className="grid grid-cols-4 py-2 text-sm text-gray-800 border-b border-gray-100">
-                      <div>{item.description}</div>
-                      <div className="text-center">{item.quantity}</div>
-                      <div className="text-right">${item.unitPrice.toFixed(2)}</div>
-                      <div className="text-right">${item.totalPrice.toFixed(2)}</div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4 text-gray-400">No items</div>
-                )}
-                <div className="grid grid-cols-4 pt-4 text-sm">
-                  <div className="col-span-2"></div>
-                  <div className="text-right text-gray-500">SubTotal</div>
-                  <div className="text-right font-semibold">${calculatedInvoice.subtotal.toFixed(2)}</div>
-                </div>
+    const frequencyMap = {
+      weekly: 'week',
+      monthly: 'month',
+      custom: 'day'
+    };
 
-                <div className="grid grid-cols-4 text-sm">
-                  <div className="col-span-2"></div>
-                  <div className="text-right text-gray-500">Total</div>
-                  <div className="text-right font-semibold">${calculatedInvoice.total.toFixed(2)}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
+    const frequency = frequencyMap[invoice.recurrence_frequency];
+    const interval = invoice.recurrence_interval;
+    const startDate = formatDateSafe(invoice.recurrence_start_date);
+    const endDate = invoice.recurrence_end_date
+      ? formatDateSafe(invoice.recurrence_end_date)
+      : 'No end date';
+
+    return (
+      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mt-2">
+        <RefreshCw className="w-4 h-4" />
+        <span>
+          Repeats every {interval} {frequency}
+          {interval > 1 ? 's' : ''} from {startDate} to {endDate}
+        </span>
+      </div>
+    );
   };
 
   return (
@@ -1081,219 +677,22 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
           {isPdfView && (
             <div
               ref={pdfRef}
-              className="p-8 bg-white text-black max-w-3xl w-full mx-auto"
+              className={`p-8 bg-white dark:bg-invoice-darkBg text-black dark:text-invoice-darkText max-w-3xl w-full mx-auto ${selectedTemplate ? selectedTemplate.styles.font : ""} ${selectedTemplate ? selectedTemplate.styles.background : ""}`}
               style={{
                 minHeight: "720px",
                 width: "832px",
                 paddingBottom: "60px",
               }}
             >
-              <div className="flex flex-col mb-12">
-                <div className="mb-8 flex justify-between items-center">
-                  <div className="flex items-center space-x-4 ">
-                    {businessDetails.logo_url && (
-                      <img
-                        src={businessDetails.logo_url}
-                        alt="Business logo"
-                        className="h-14 w-14 mt-6 object-contain"
-                      />
-                    )}
-                    <div>
-                      <h1 className="text-2xl font-bold text-invoice-lightText">
-                        {invoice.invoiceTitle || "Invoice"}
-                      </h1>
-                      <p className="text-sm text-gray-600">
-                        Issued: {formattedIssueDate}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-600">
-                      Invoice# {invoice.invoiceNumber || "00000"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex justify-between">
-                  <div className="w-1/2">
-                    <div className="mb-6">
-                      <p className="text-sm text-gray-600 mb-1">Issued</p>
-                      <p className="text-sm">{formattedIssueDate}</p>
-                    </div>
-                    <div className="mb-6">
-                      <p className="text-sm text-gray-600 mb-1">From</p>
-                      <p className="text-sm">{businessDetails.contact_name}</p>
-                      <p className="text-sm">{businessDetails.email || "N/A"}</p>
-                      <p className="text-sm">
-                        {businessDetails.address &&
-                          `${businessDetails.address}, `}
-                        {businessDetails.city && `${businessDetails.city}, `}
-                        {businessDetails.postal_code}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="w-1/2 text-right">
-                    <div className="mb-6">
-                      <p className="text-sm text-gray-600 mb-1">Due</p>
-                      <p className="text-sm">{formattedDueDate}</p>
-                    </div>
-                    <div className="mb-6">
-                      <p className="text-sm text-gray-600 mb-1">Invoice For</p>
-                      <p className="text-sm">{invoice.name || "N/A"}</p>
-                      <p className="text-sm">{invoice.email || "N/A"}</p>
-                      <p className="text-sm">{invoice.details || "N/A"}</p>
-
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="mb-6">
-                <div className="grid grid-cols-12 text-sm text-gray-600 border-b border-gray-200 pb-2 mb-4">
-                  <div className="col-span-6">DESCRIPTION</div>
-                  <div className="col-span-2 text-center">QUANTITY</div>
-                  <div className="col-span-2 text-right">UNIT PRICE</div>
-                  <div className="col-span-2 text-right">AMOUNT</div>
-                </div>
-                {invoice.items &&
-                  invoice.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="grid grid-cols-12 text-sm py-3 border-b border-gray-200"
-                    >
-                      <div className="col-span-6">
-                        <p>{item.description}</p>
-                        {item.additionalInfo && (
-                          <p className="text-xs text-gray-500">
-                            {item.additionalInfo}
-                          </p>
-                        )}
-                      </div>
-                      <div className="col-span-2 text-center">
-                        {item.quantity}
-                      </div>
-                      <div className="col-span-2 text-right">
-                        ${item.unitPrice.toFixed(2)}
-                      </div>
-                      <div className="col-span-2 text-right">
-                        ${item.totalPrice.toFixed(2)}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-              <div className="flex justify-end mb-6">
-                <div className="w-1/3">
-                  <div className="flex justify-between text-sm py-2">
-                    <span>Subtotal</span>
-                    <span>${calculatedInvoice.subtotal.toFixed(2)}</span>
-                  </div>
-                  {Array.isArray(calculatedInvoice.discounts) &&
-                    calculatedInvoice.discounts.length > 0 &&
-                    calculatedInvoice.discounts.map((discount, index) => (
-                      <div
-                        key={`discount-${discount.id || index}`}
-                        className="flex justify-between text-sm py-2"
-                      >
-                        <span>Discount ({discount.rate.toFixed(0)}%)</span>
-                        <span>${discount.amount.toFixed(2)}</span>
-                      </div>
-                    ))}
-                  {Array.isArray(calculatedInvoice.taxes) && calculatedInvoice.taxes.length > 0 ? (
-                    calculatedInvoice.taxes.map((tax, index) => (
-                      <div
-                        key={`tax-${tax.id || index}`}
-                        className="flex justify-between text-sm py-2"
-                      >
-                        <span>Tax ({tax.rate ? tax.rate.toFixed(0) : 0}%)</span>
-                        <span>
-                          ${tax.amount ? tax.amount.toFixed(2) : "0.00"}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-sm text-gray-500"></div>
-                  )}
-                  <div className="flex justify-between font-bold text-sm border-t border-gray-300 pt-3 mb-12">
-                    <span>Total</span>
-                    <span>${calculatedInvoice.total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-              {(invoice.showPaymentMethods !== false || calculatedInvoice.showPaymentMethods !== false) && (
-                <div className="border-t border-gray-200 pt-4 mb-8">
-                  <h2 className="text-sm font-semibold text-gray-600 mb-2">PAYMENT INFORMATION</h2>
-
-                  {/* Bank Transfer */}
-                  {(invoice.paymentMethods || calculatedInvoice.paymentMethods)?.some(
-                    (pm) => pm.type === "bank" && pm.isEnabled
-                  ) && paymentDetails.bankTransferDetails && (
-                      <div>
-                        <p className="text-sm font-medium mb-1">Bank Transfer</p>
-                        <p className="text-sm whitespace-pre-line">
-                          {paymentDetails.bankTransferDetails}
-                        </p>
-                      </div>
-                    )}
-
-                  {/* Online Payment */}
-                  {(invoice.paymentMethods || calculatedInvoice.paymentMethods)?.some(
-                    (pm) =>
-                      ["stripe", "online", "razorpay"].includes(pm.type?.toLowerCase()) &&
-                      pm.isEnabled
-                  ) && (
-                      <div className="mt-3">
-                        <p className="text-sm font-medium mb-1">Online Payment</p>
-                        {paymentDetails?.paymentLink ? (
-                          <div>
-                            <p className="text-sm mb-1">
-                              Payment can be made securely via credit card or online banking.
-                            </p>
-                            <a
-                              href={
-                                paymentDetails.paymentLink.startsWith("http")
-                                  ? paymentDetails.paymentLink
-                                  : `https://${paymentDetails.paymentLink}`
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-blue-600 hover:underline break-all"
-                            >
-                              {paymentDetails.paymentLink}
-                            </a>
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-500">
-                            No payment link provided. Please update your payment settings.
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-
-                  {/* No Payment Method */}
-                  {![
-                    ...(invoice.paymentMethods || []),
-                    ...(calculatedInvoice.paymentMethods || []),
-                  ].some((pm) => pm.isEnabled) && (
-                      <p className="text-sm text-gray-500">No payment method specified</p>
-                    )}
-                </div>
+              {selectedTemplate && (
+                <InvoiceLayout
+                  layout={selectedTemplate.styles.layout}
+                  businessDetails={businessDetails}
+                  displayInvoice={displayInvoice}
+                  calculatedInvoice={calculatedInvoice}
+                  paymentDetails={paymentDetails}
+                />
               )}
-
-              <div className="text-center text-gray-600 text-sm mt-12">
-                {invoice.notes || ""}
-              </div>
-              <div className=" bottom-8 mt-32 left-0 right-0 flex items-center justify-center text-gray-400 text-xs">
-                {userSubscription.tier !== "pro" && (
-                  <div className="flex  items-center">
-                    <span>Made with</span>
-                    <div className="mx-1 font-medium text-blue-500" >
-                      <Link to="https://invoicelly.me" target="_blank" rel="noopener noreferrer">invoicelly</Link>
-                    </div>
-                    <div className="bg-primary h-4 w-4 rounded flex items-center justify-center">
-                      <div className="bg-gray-800 dark:bg-gray-200 h-2 w-2 rounded-r-full"></div>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           )}
           {!isPdfView && (
@@ -1308,15 +707,26 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
                       ? selectedTemplate.styles.accent
                       : "text-invoice-lightText dark:text-invoice-darkText"
                       }`}
-                  ></h1>
+                  >
+                    {/* {displayInvoice.invoiceTitle} */}
+                    {formatRecurrenceInfo(displayInvoice)}
+                  </h1>
                 </div>
               </div>
-              {renderInvoiceLayout(selectedTemplate)}
+              {selectedTemplate && (
+                <InvoiceLayout
+                  layout={selectedTemplate.styles.layout}
+                  businessDetails={businessDetails}
+                  displayInvoice={displayInvoice}
+                  calculatedInvoice={calculatedInvoice}
+                  paymentDetails={paymentDetails}
+                />
+              )}
             </div>
           )}
 
           {/* Bottom Control Panel - Centered */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-invoice-darkBg border-t border-gray-200 dark:border-gray-800">
             <div className="max-w-3xl mx-auto px-32 mr-64 py-3 flex items-center justify-end">
               {/* Controls Section */}
               <div className="flex items-center gap-3">
@@ -1390,146 +800,18 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
           </div>
         </div>
       </div>
-      {showEmailModal && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 m-4 animate-modal-slide-up">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Send Invoice
-              </h2>
-              <Button
-                onClick={() => setShowEmailModal(false)}
-                variant="ghost"
-                className="h-9 w-9 p-0 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </Button>
-            </div>
-
-            {userSubscription.tier === "pro" ? (
-              <>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Recipients
-                    </label>
-                    <div className="min-h-[42px] flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 focus-within:border-blue-500 dark:focus-within:border-blue-400">
-                      {emailFormData.to.map((email, index) => (
-                        <div
-                          key={`to-${index}`}
-                          className="inline-flex items-center bg-white dark:bg-gray-800 rounded-md px-2 py-1 text-sm border border-gray-200 dark:border-gray-700"
-                        >
-                          <span className="mr-1">{email}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveEmail(index, "to")}
-                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                      <input
-                        type="text"
-                        onKeyDown={(e) => handleAddEmail(e, "to")}
-                        placeholder="Add email address..."
-                        className="flex-1 min-w-[120px] bg-transparent outline-none text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      CC
-                    </label>
-                    <div className="min-h-[42px] flex flex-wrap gap-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 focus-within:border-yellow-400 dark:focus-within:border-yellow-400">
-                      {emailFormData.cc.map((email, index) => (
-                        <div
-                          key={`cc-${index}`}
-                          className="inline-flex items-center bg-white dark:bg-gray-800 rounded-md px-2 py-1 text-sm border border-gray-200 dark:border-gray-700"
-                        >
-                          <span className="mr-1">{email}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveEmail(index, "cc")}
-                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                      <input
-                        type="text"
-                        onKeyDown={(e) => handleAddEmail(e, "cc")}
-                        placeholder="Add CC..."
-                        className="flex-1 min-w-[120px] bg-transparent outline-none text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Message
-                    </label>
-                    <textarea
-                      value={emailFormData.message}
-                      onChange={handleMessageChange}
-                      rows={4}
-                      className="w-full p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-yellow-400 dark:focus:border-yellow-400 focus:outline-none text-sm resize-none"
-                      placeholder="Add a message to your invoice email..."
-                    ></textarea>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex justify-end">
-                  <Button
-                    onClick={handleSendEmail}
-                    disabled={sendingEmail || emailFormData.to.length === 0}
-                    className="disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                  >
-                    {sendingEmail ? (
-                      <>
-                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        <span>Sending...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Mail size={16} />
-                        <span>Send Invoice</span>
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-center text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-400 p-4 rounded-lg">
-                  <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                  <span>This feature is exclusive to Pro users.</span>
-                </div>
-                <Button
-                  onClick={goToSubscription}
-                  className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-200"
-                >
-                  Upgrade to Pro
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <EmailModal
+        open={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        onSend={handleSendEmail}
+        emailFormData={emailFormData}
+        onAddEmail={handleAddEmail}
+        onRemoveEmail={handleRemoveEmail}
+        onMessageChange={handleMessageChange}
+        sending={sendingEmail}
+        userSubscription={userSubscription}
+        goToSubscription={goToSubscription}
+      />
       <TemplateSelectionModal
         isOpen={isTemplateModalOpen}
         onClose={() => setIsTemplateModalOpen(false)}

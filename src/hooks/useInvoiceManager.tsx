@@ -40,7 +40,6 @@ export function useInvoiceManager() {
   };
 
   // Function to save an invoice to Supabase
-  // Function to save an invoice to Supabase
   const saveInvoice = async (invoiceData: Invoice) => {
     if (!session?.user?.id) {
       toast({
@@ -95,6 +94,15 @@ export function useInvoiceManager() {
         // Make sure complex objects are properly converted to JSONB
         items: invoiceData.items || [],
         payment_methods: invoiceData.paymentMethods || [],
+        // Recurring fields
+        is_recurring: invoiceData.is_recurring || false,
+        recurrence_frequency: invoiceData.is_recurring ? invoiceData.recurrence_frequency || null : null,
+        recurrence_interval: invoiceData.is_recurring ? invoiceData.recurrence_interval || 1 : 1,
+        recurrence_start_date: invoiceData.is_recurring ? invoiceData.recurrence_start_date || null : null,
+        recurrence_end_date: invoiceData.is_recurring ? invoiceData.recurrence_end_date || null : null,
+        next_recurrence_date: invoiceData.is_recurring
+          ? (invoiceData.next_recurrence_date || invoiceData.recurrence_start_date || null)
+          : null,
       };
 
       // Insert invoice into Supabase

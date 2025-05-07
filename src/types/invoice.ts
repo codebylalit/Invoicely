@@ -46,6 +46,13 @@ export interface Invoice {
   notes: string;
   showPaymentMethods?: boolean;
   paymentMethods: PaymentMethod[];
+  is_recurring?: boolean;
+  recurrence_frequency?: 'weekly' | 'monthly' | 'custom';
+  recurrence_interval?: number;
+  recurrence_start_date?: string;
+  recurrence_end_date?: string;
+  parent_invoice_id?: string;
+  next_recurrence_date?: string;
 }
 
 export interface AIGeneratedInvoice {

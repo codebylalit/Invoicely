@@ -109,7 +109,7 @@ const DashboardSidebar = () => {
   return (
     <aside className="w-64 h-screen fixed left-0 top-0 bg-background dark:bg-invoice-darkBg border-r border-border dark:border-gray-700 flex flex-col">
       {/* Logo */}
-      <div className="p-6">
+      <div className="p-6 flex-shrink-0">
         <Link to="/app" className="flex items-center gap-2">
           <div className="bg-primary h-8 w-8 rounded-md flex items-center justify-center">
             <div className="bg-gray-800 h-4 w-5 rounded-r-full"></div>
@@ -140,62 +140,59 @@ const DashboardSidebar = () => {
         })}
       </nav>
 
-      {/* Upgrade Button */}
-      <div className="px-2 mt-auto">
-        {userProfile.tier === "pro" ? (
-          <div className="w-full flex flex-col items-center py-2">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary mb-1">
-              <svg className="w-4 h-4 mr-1 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              Pro Plan Active
-            </span>
-            {/* <Button
-              className="w-full py-1 bg-primary text-white rounded-md cursor-default mt-1 font-semibold"
-              disabled
-            >
-              You are Pro
-            </Button> */}
+      {/* Bottom section with upgrade button and user profile */}
+      <div className="flex-shrink-0 border-t border-border dark:border-gray-700">
+        {/* Upgrade Button */}
+        <div className="px-2 py-4">
+          {userProfile.tier === "pro" ? (
+            <div className="w-full flex flex-col items-center">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary mb-1">
+                <svg className="w-4 h-4 mr-1 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Pro Plan Active
+              </span>
+              <Button
+                variant="outline"
+                className="w-full py-1 text-gray-600 dark:text-gray-300 rounded-md font-semibold"
+                onClick={goToSubscription}
+              >
+                Manage Subscription
+              </Button>
+            </div>
+          ) : (
             <Button
-              variant="outline"
-              className="w-full py-1 mt-2 text-gray-600 dark:text-gray-300 rounded-md font-semibold"
+              className="w-full py-1 bg-primary rounded-md transition-colors font-semibold"
               onClick={goToSubscription}
             >
-              Manage Subscription
+              Upgrade to Pro
             </Button>
-          </div>
-        ) : (
-          <Button
-            className="w-full py-1 bg-primary rounded-md transition-colors font-semibold"
-            onClick={goToSubscription}
-          >
-            Upgrade to Pro
-          </Button>
-        )}
-      </div>
-
-      {/* User profile */}
-      <div className="p-4 flex items-center justify-between border-t border-transparent pt-4">
-        <div className="flex items-center gap-2">
-          <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
-            {userProfile.logo_url ? (
-              <img
-                src={userProfile.logo_url}
-                alt="User avatar"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span className="text-gray-400 text-lg font-bold">{userProfile.name?.charAt(0) || "U"}</span>
-            )}
-          </div>
-          <div className="flex flex-col">
-            <span className="text-base font-semibold text-gray-800 dark:text-gray-100">{userProfile.name || "Hello there!"}</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">{userProfile.email}</span>
-          </div>
+          )}
         </div>
-        <Button onClick={handleSignOut} variant="ghost" size="icon" className="text-gray-400 hover:text-primary rounded-full">
-          <LogOut className="h-5 w-5" />
-        </Button>
+
+        {/* User profile */}
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
+              {userProfile.logo_url ? (
+                <img
+                  src={userProfile.logo_url}
+                  alt="User avatar"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-gray-400 text-lg font-bold">{userProfile.name?.charAt(0) || "U"}</span>
+              )}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-base font-semibold text-gray-800 dark:text-gray-100 truncate">{userProfile.name || "Hello there!"}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-normal truncate">{userProfile.email}</span>
+            </div>
+          </div>
+          <Button onClick={handleSignOut} variant="ghost" size="icon" className="text-gray-400 hover:text-primary rounded-full flex-shrink-0">
+            <LogOut className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
     </aside>
   );

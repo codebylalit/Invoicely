@@ -6,6 +6,9 @@ import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { Banknote } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { RecurringInvoiceSettings } from "./RecurringInvoiceSettings";
+import { CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface Invoice {
   status: string;
@@ -25,6 +28,7 @@ interface Invoice {
   taxes: TaxItem[];
   discounts: DiscountItem[];
   showPaymentMethods?: boolean;
+  is_recurring: boolean;
 }
 
 interface InvoiceItem {
@@ -226,8 +230,12 @@ export const InvoiceForm = ({
     paymentLink: "",
   });
   const [showPaymentInInvoice, setShowPaymentInInvoice] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<'weekly' | 'monthly' | 'custom'>('monthly');
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1);
+  const [recurrenceStartDate, setRecurrenceStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
 
-  // Create current invoice object based on form state
   const generateCurrentInvoice = useCallback(() => {
     return {
       status: "draft",
@@ -258,6 +266,11 @@ export const InvoiceForm = ({
       taxes,
       discounts,
       showPaymentMethods: showPaymentInInvoice,
+      is_recurring: isRecurring,
+      recurrence_frequency: isRecurring ? recurrenceFrequency : undefined,
+      recurrence_interval: isRecurring ? recurrenceInterval : undefined,
+      recurrence_start_date: isRecurring ? recurrenceStartDate : undefined,
+      recurrence_end_date: isRecurring ? recurrenceEndDate || undefined : undefined,
     };
   }, [
     dueDate,
@@ -276,6 +289,11 @@ export const InvoiceForm = ({
     taxes,
     discounts,
     showPaymentInInvoice,
+    isRecurring,
+    recurrenceFrequency,
+    recurrenceInterval,
+    recurrenceStartDate,
+    recurrenceEndDate,
   ]);
 
   useEffect(() => {
@@ -878,6 +896,22 @@ export const InvoiceForm = ({
             </div>
           </div>
         </div>
+      </div>
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+        <h2 className="text-lg font-semibold mb-4">Recurring Invoice Settings</h2>
+        <RecurringInvoiceSettings
+          isRecurring={isRecurring}
+          onRecurringChange={setIsRecurring}
+          frequency={recurrenceFrequency}
+          onFrequencyChange={setRecurrenceFrequency}
+          interval={recurrenceInterval}
+          onIntervalChange={setRecurrenceInterval}
+          startDate={recurrenceStartDate}
+          onStartDateChange={setRecurrenceStartDate}
+          endDate={recurrenceEndDate}
+          onEndDateChange={setRecurrenceEndDate}
+          isProUser={userSubscription.tier === "pro"}
+        />
       </div>
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
         <h2 className="text-lg font-semibold mb-4">Notes</h2>
