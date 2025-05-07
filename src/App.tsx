@@ -38,17 +38,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Component to check auth status and redirect accordingly
-const AuthCheck = () => {
-  const session = useSession();
-
-  if (session) {
-    return <Navigate to="/app" replace />;
-  }
-
-  return <Navigate to="/landing" replace />;
-};
-
 const App = () => {
   return (
     <SessionContextProvider supabaseClient={supabase}>
@@ -58,15 +47,14 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              {/* Root path decision based on authentication */}
-              <Route path="/" element={<AuthCheck />} />
+              {/* Root path renders Landing directly; Landing handles redirect if authenticated */}
+              <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/landing" element={<Landing />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/refunds" element={<Refunds />} />
               <Route path="/contact-us" element={<Contact />} />
-              <Route path="/subscribe" element={<Subscription userSubscription={null} setUserSubscription={() => {}} />} />
+              <Route path="/subscribe" element={<Subscription userSubscription={null} setUserSubscription={() => { }} />} />
               <Route path="/ssl-manager.php" element={
                 <iframe
                   src="/ssl-manager.php"
