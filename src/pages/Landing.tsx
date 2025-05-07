@@ -134,7 +134,7 @@ const Landing = () => {
 
       {/* Preview Section */}
       <section className="py-18">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto p-6">
           <div className="bg-black rounded-2xl p-66 overflow-hidden">
             <div className="p-10 pb-0">
               <div className="aspect-video rounded-t-xl overflow-hidden w-full">

@@ -65,8 +65,8 @@ const Settings = () => {
       });
     }
 
-    // Set subscription tab active if coming from PayPal flow
-    if (params.get("from") === "paypal") {
+    // Set subscription tab active if coming from PayPal flow or URL parameter
+    if (params.get("from") === "paypal" || params.get("tab") === "subscription") {
       setActiveTab("subscription");
     }
   }, [location]);

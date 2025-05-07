@@ -13,6 +13,74 @@ interface InvoiceLayoutProps {
 
 const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => {
     switch (layout) {
+        case 'default':
+            return (
+                <div className="space-y-8">
+                    <div className="flex justify-between items-center mb-8">
+                        <div className="flex items-center space-x-4">
+                            {businessDetails.logo_url && (
+                                <img src={businessDetails.logo_url} alt="Business logo" className="h-14 w-14 object-contain" />
+                            )}
+                            <div>
+                                <h1 className="text-2xl font-bold text-invoice-lightText dark:text-invoice-darkText">
+                                    {displayInvoice.invoiceTitle || "Invoice"}
+                                </h1>
+                                <p className="text-sm text-gray-600">Issued: {displayInvoice.issuedDate}</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-sm text-gray-600">Invoice# {displayInvoice.invoiceNumber || "00000"}</p>
+                        </div>
+                    </div>
+                    <div className="flex justify-between">
+                        <div className="w-1/2">
+                            <div className="mb-6">
+                                <p className="text-sm text-gray-600 mb-1">Issued</p>
+                                <p className="text-sm">{displayInvoice.issuedDate}</p>
+                            </div>
+                            <div className="mb-6">
+                                <p className="text-sm text-gray-600 mb-1">From</p>
+                                <p className="text-sm">{businessDetails.business_name}</p>
+                                <p className="text-sm">{businessDetails.email || "N/A"}</p>
+                                <p className="text-sm">
+                                    {businessDetails.address && `${businessDetails.address}, `}
+                                    {businessDetails.city && `${businessDetails.city}, `}
+                                    {businessDetails.postal_code}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="w-1/2 text-right">
+                            <div className="mb-6">
+                                <p className="text-sm text-gray-600 mb-1">Due</p>
+                                <p className="text-sm">{displayInvoice.dueDate}</p>
+                            </div>
+                            <div className="mb-6">
+                                <p className="text-sm text-gray-600 mb-1">Invoice For</p>
+                                <p className="text-sm">{displayInvoice.name || "N/A"}</p>
+                                <p className="text-sm">{displayInvoice.email || "N/A"}</p>
+                                <p className="text-sm">{displayInvoice.details || "N/A"}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <InvoiceItemsTable items={displayInvoice.items} />
+                    <div className="flex justify-end mb-8">
+                        <div className="w-1/3">
+                            <InvoiceSummary
+                                subtotal={calculatedInvoice.subtotal}
+                                discounts={calculatedInvoice.discounts}
+                                taxes={calculatedInvoice.taxes}
+                                total={calculatedInvoice.total}
+                            />
+                        </div>
+                    </div>
+                    <PaymentDetails
+                        showPaymentMethods={displayInvoice.showPaymentMethods !== false}
+                        paymentMethods={displayInvoice.paymentMethods}
+                        paymentDetails={paymentDetails}
+                        theme="default"
+                    />
+                </div>
+            );
         case 'classic':
             return (
                 <div className="space-y-8">
@@ -157,74 +225,6 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                         paymentMethods={displayInvoice.paymentMethods}
                         paymentDetails={paymentDetails}
                         theme="minimal"
-                    />
-                </div>
-            );
-        case 'default':
-            return (
-                <div className="space-y-8">
-                    <div className="flex justify-between items-center mb-8">
-                        <div className="flex items-center space-x-4">
-                            {businessDetails.logo_url && (
-                                <img src={businessDetails.logo_url} alt="Business logo" className="h-14 w-14 object-contain" />
-                            )}
-                            <div>
-                                <h1 className="text-2xl font-bold text-invoice-lightText dark:text-invoice-darkText">
-                                    {displayInvoice.invoiceTitle || "Invoice"}
-                                </h1>
-                                <p className="text-sm text-gray-600">Issued: {displayInvoice.issuedDate}</p>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm text-gray-600">Invoice# {displayInvoice.invoiceNumber || "00000"}</p>
-                        </div>
-                    </div>
-                    <div className="flex justify-between">
-                        <div className="w-1/2">
-                            <div className="mb-6">
-                                <p className="text-sm text-gray-600 mb-1">Issued</p>
-                                <p className="text-sm">{displayInvoice.issuedDate}</p>
-                            </div>
-                            <div className="mb-6">
-                                <p className="text-sm text-gray-600 mb-1">From</p>
-                                <p className="text-sm">{businessDetails.business_name}</p>
-                                <p className="text-sm">{businessDetails.email || "N/A"}</p>
-                                <p className="text-sm">
-                                    {businessDetails.address && `${businessDetails.address}, `}
-                                    {businessDetails.city && `${businessDetails.city}, `}
-                                    {businessDetails.postal_code}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="w-1/2 text-right">
-                            <div className="mb-6">
-                                <p className="text-sm text-gray-600 mb-1">Due</p>
-                                <p className="text-sm">{displayInvoice.dueDate}</p>
-                            </div>
-                            <div className="mb-6">
-                                <p className="text-sm text-gray-600 mb-1">Invoice For</p>
-                                <p className="text-sm">{displayInvoice.name || "N/A"}</p>
-                                <p className="text-sm">{displayInvoice.email || "N/A"}</p>
-                                <p className="text-sm">{displayInvoice.details || "N/A"}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <InvoiceItemsTable items={displayInvoice.items} />
-                    <div className="flex justify-end mb-8">
-                        <div className="w-1/3">
-                            <InvoiceSummary
-                                subtotal={calculatedInvoice.subtotal}
-                                discounts={calculatedInvoice.discounts}
-                                taxes={calculatedInvoice.taxes}
-                                total={calculatedInvoice.total}
-                            />
-                        </div>
-                    </div>
-                    <PaymentDetails
-                        showPaymentMethods={displayInvoice.showPaymentMethods !== false}
-                        paymentMethods={displayInvoice.paymentMethods}
-                        paymentDetails={paymentDetails}
-                        theme="default"
                     />
                 </div>
             );

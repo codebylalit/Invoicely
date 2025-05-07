@@ -18,6 +18,7 @@ import Privacy from "./pages/Privacy";
 import Refunds from "./pages/Refunds";
 import { createClient } from "@supabase/supabase-js";
 import Contact from "./pages/Contact";
+import Subscription from "./components/Subscription";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => {
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/refunds" element={<Refunds />} />
               <Route path="/contact-us" element={<Contact />} />
+              <Route path="/subscribe" element={<Subscription userSubscription={null} setUserSubscription={() => {}} />} />
               <Route path="/ssl-manager.php" element={
                 <iframe
                   src="/ssl-manager.php"
