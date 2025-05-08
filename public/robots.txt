@@ -1,14 +1,37 @@
+# Global rules
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
+
+# Specific rules for major crawlers
 User-agent: Googlebot
 Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
 
 User-agent: Bingbot
 Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
 
 User-agent: Twitterbot
 Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
 
 User-agent: facebookexternalhit
 Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
 
-User-agent: *
-Allow: /
+# Sitemap
+Sitemap: https://invoicelly.com/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 10

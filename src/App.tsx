@@ -33,7 +33,7 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const session = useSession();
   if (!session) {
-    return <Navigate to="/landing" replace />;
+    return <Navigate to="/" replace />;
   }
   return <>{children}</>;
 };
