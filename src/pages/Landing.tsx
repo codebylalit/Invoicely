@@ -85,10 +85,17 @@ const Landing = () => {
         className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b border-[#F6F5F1] transition-all duration-300 ${isHeaderVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
           }`}
       >
-        <div className="max-w-5xl mx-auto px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-[#2D2D2D] text-2xl tracking-tight">Invoicelly</span>
-          </div>
+        <div className="max-w-5xl mx-auto px-8 py-4 flex items-center justify-between">
+          {/* Logo */}
+          <span className="font-bold text-[#2D2D2D] text-2xl tracking-tight">Invoicelly</span>
+          {/* Navigation */}
+          <nav className="flex gap-6">
+            <Link to="/about" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">About</Link>
+            <Link to="/faq" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">FAQ</Link>
+            <Link to="/blog" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">Blog</Link>
+            <Link to="/contact-us" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">Contact</Link>
+          </nav>
+          {/* Sign In Button */}
           <Button
             onClick={() => navigate('/auth')}
             size="sm"
@@ -246,6 +253,27 @@ const Landing = () => {
                 </Button>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Learn More Section */}
+      <section className="py-12 bg-white border-t">
+        <div className="max-w-4xl mx-auto px-8 text-center">
+          <h2 className="text-2xl font-bold mb-6 text-[#2D2D2D]">Learn More</h2>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link to="/about">
+              <Button className="bg-[#FFB800] text-[#2D2D2D] hover:bg-[#FFB800]/90 px-6 py-3 rounded-lg font-semibold">About Us</Button>
+            </Link>
+            <Link to="/faq">
+              <Button className="bg-[#FFB800] text-[#2D2D2D] hover:bg-[#FFB800]/90 px-6 py-3 rounded-lg font-semibold">FAQ</Button>
+            </Link>
+            <Link to="/blog">
+              <Button className="bg-[#FFB800] text-[#2D2D2D] hover:bg-[#FFB800]/90 px-6 py-3 rounded-lg font-semibold">Blog</Button>
+            </Link>
+            <Link to="/contact-us">
+              <Button className="bg-[#FFB800] text-[#2D2D2D] hover:bg-[#FFB800]/90 px-6 py-3 rounded-lg font-semibold">Contact</Button>
+            </Link>
           </div>
         </div>
       </section>

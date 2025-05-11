@@ -62,6 +62,16 @@ const Header = () => {
         )}
         <ThemeToggle />
       </div>
+
+      <div className="flex items-center gap-2">
+        <span className="font-bold text-[#2D2D2D] text-2xl tracking-tight">Invoicelly</span>
+        <nav className="ml-8 space-x-4">
+          <Link to="/about" className="text-[#2D2D2D] hover:text-[#FFB800]">About</Link>
+          <Link to="/faq" className="text-[#2D2D2D] hover:text-[#FFB800]">FAQ</Link>
+          <Link to="/blog" className="text-[#2D2D2D] hover:text-[#FFB800]">Blog</Link>
+          <Link to="/contact-us" className="text-[#2D2D2D] hover:text-[#FFB800]">Contact</Link>
+        </nav>
+      </div>
     </header>
   );
 };

@@ -19,6 +19,9 @@ import Refunds from "./pages/Refunds";
 import { createClient } from "@supabase/supabase-js";
 import Contact from "./pages/Contact";
 import Subscription from "./components/Subscription";
+import About from "./pages/About";
+import FAQ from "./pages/FAQ";
+import Blog from "./pages/Blog";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +64,9 @@ const App = () => {
                   style={{ width: '100%', height: '100vh', border: 'none' }}
                 />
               } />
+              <Route path="/about" element={<About />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/blog" element={<Blog />} />
 
               {/* Dashboard layout with nested content */}
               < Route
