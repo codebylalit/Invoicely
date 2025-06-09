@@ -94,16 +94,16 @@ const Landing = () => {
           {/* Logo */}
           <span className="font-bold text-[#2D2D2D] text-2xl tracking-tight">Invoicelly</span>
           
-          {/* Right side container: Desktop Nav / Mobile Hamburger and Sign In Button */}
-          <div className="flex items-center gap-6">
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex gap-6">
-              <Link to="/about" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">About</Link>
-              <Link to="/faq" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">FAQ</Link>
-              <Link to="/blog" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">Blog</Link>
-              <Link to="/contact-us" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">Contact</Link>
-            </nav>
+          {/* Desktop Navigation - Centered */}
+          <nav className="hidden md:flex gap-6 mx-auto">
+            <Link to="/about" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">About</Link>
+            <Link to="/faq" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">FAQ</Link>
+            <Link to="/blog" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">Blog</Link>
+            <Link to="/contact-us" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">Contact</Link>
+          </nav>
 
+          {/* Buttons Container (Mobile Hamburger + Desktop Sign In) */}
+          <div className="flex items-center gap-6">
             {/* Mobile Menu Button */}
             <Button
               onClick={toggleMobileMenu}
