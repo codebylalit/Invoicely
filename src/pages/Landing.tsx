@@ -115,14 +115,14 @@ const Landing = () => {
             </Button>
 
             {/* Sign In Button */}
-            {/* <Button
+            <Button
               onClick={() => navigate('/auth')}
               size="sm"
               variant="ghost"
-              className="text-[#2D2D2D] border hover:text-[#2D2D2D]/80 hover:bg-[#F6F5F1]/50"
+              className="hidden md:flex text-[#2D2D2D] border hover:text-[#2D2D2D]/80 hover:bg-[#F6F5F1]/50"
             >
               Sign In
-            </Button> */}
+            </Button>
           </div>
         </div>
       </div>
@@ -346,7 +346,7 @@ const Landing = () => {
       </section>
 
       {/* Learn More Section */}
-      <section className="py-12 bg-white border-t">
+      {/* <section className="py-12 bg-white border-t">
         <div className="max-w-4xl mx-auto px-8 text-center">
           <h2 className="text-2xl font-bold mb-6 text-[#2D2D2D]">Learn More</h2>
           <div className="flex flex-wrap justify-center gap-4">
@@ -364,7 +364,7 @@ const Landing = () => {
             </Link>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <footer className="py-8 bg-[#F6F5F1] border-t">
         <div className="max-w-5xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center">
