@@ -95,7 +95,7 @@ const Landing = () => {
           <span className="font-bold text-[#2D2D2D] text-2xl tracking-tight">Invoicelly</span>
           
           {/* Desktop Navigation - Centered */}
-          <nav className="hidden md:flex gap-6 mx-auto">
+          <nav className="hidden md:flex flex-grow justify-center gap-6">
             <Link to="/about" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">About</Link>
             <Link to="/faq" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">FAQ</Link>
             <Link to="/blog" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">Blog</Link>
