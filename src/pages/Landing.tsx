@@ -3,7 +3,7 @@ import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckIcon, FileText, ZapIcon, CreditCard, Clock, Send, User } from "lucide-react";
+import { CheckIcon, FileText, ZapIcon, CreditCard, Clock, Send, User, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import { PricingTier } from "@/types/subscription";
@@ -44,6 +44,7 @@ const Landing = () => {
   const navigate = useNavigate();
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -79,6 +80,10 @@ const Landing = () => {
     }
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-[#F6F5F1]">
       <div
@@ -88,24 +93,107 @@ const Landing = () => {
         <div className="max-w-5xl mx-auto px-8 py-4 flex items-center justify-between">
           {/* Logo */}
           <span className="font-bold text-[#2D2D2D] text-2xl tracking-tight">Invoicelly</span>
-          {/* Navigation */}
-          <nav className="flex gap-6">
-            <Link to="/about" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">About</Link>
-            <Link to="/faq" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">FAQ</Link>
-            <Link to="/blog" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">Blog</Link>
-            <Link to="/contact-us" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">Contact</Link>
-          </nav>
-          {/* Sign In Button */}
-          <Button
-            onClick={() => navigate('/auth')}
-            size="sm"
-            variant="ghost"
-            className="text-[#2D2D2D] border hover:text-[#2D2D2D]/80 hover:bg-[#F6F5F1]/50"
-          >
-            Sign In
-          </Button>
+          
+          {/* Right side container: Desktop Nav / Mobile Hamburger and Sign In Button */}
+          <div className="flex items-center gap-6">
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex gap-6">
+              <Link to="/about" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">About</Link>
+              <Link to="/faq" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">FAQ</Link>
+              <Link to="/blog" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">Blog</Link>
+              <Link to="/contact-us" className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors">Contact</Link>
+            </nav>
+
+            {/* Mobile Menu Button */}
+            <Button
+              onClick={toggleMobileMenu}
+              size="sm"
+              variant="ghost"
+              className="md:hidden text-[#2D2D2D] border hover:text-[#2D2D2D]/80 hover:bg-[#F6F5F1]/50"
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </Button>
+
+            {/* Sign In Button */}
+            {/* <Button
+              onClick={() => navigate('/auth')}
+              size="sm"
+              variant="ghost"
+              className="text-[#2D2D2D] border hover:text-[#2D2D2D]/80 hover:bg-[#F6F5F1]/50"
+            >
+              Sign In
+            </Button> */}
+          </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      <div
+        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
+          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="p-6 flex flex-col h-full">
+          <div className="flex justify-end mb-6">
+            <button
+              onClick={toggleMobileMenu}
+              className="p-2 text-[#2D2D2D] hover:text-[#FFB800] transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
+          <nav className="flex flex-col gap-4 flex-grow">
+            <Link
+              to="/about"
+              className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors py-2"
+              onClick={toggleMobileMenu}
+            >
+              About
+            </Link>
+            <Link
+              to="/faq"
+              className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors py-2"
+              onClick={toggleMobileMenu}
+            >
+              FAQ
+            </Link>
+            <Link
+              to="/blog"
+              className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors py-2"
+              onClick={toggleMobileMenu}
+            >
+              Blog
+            </Link>
+            <Link
+              to="/contact-us"
+              className="text-[#2D2D2D] hover:text-[#FFB800] font-medium transition-colors py-2"
+              onClick={toggleMobileMenu}
+            >
+              Contact
+            </Link>
+          </nav>
+          {/* Sign In Button inside mobile menu */}
+          <div className="mt-auto pt-6 border-t border-gray-200">
+            <Button
+              onClick={() => {
+                navigate('/auth');
+                toggleMobileMenu(); // Close menu after navigation
+              }}
+              className="w-full bg-[#FFB800] border hover:bg-[#FFB800]/90 text-[#2D2D2D] font-medium px-6 py-6 rounded-xl shadow-lg transform transition-transform hover:scale-105 hover:rotate-1"
+            >
+              Sign In
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Overlay for mobile menu */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={toggleMobileMenu}
+        />
+      )}
 
       {/* Hero Section */}
       <section className="pt-48 pb-16 relative overflow-hidden">
