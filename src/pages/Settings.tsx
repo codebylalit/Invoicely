@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import Subscription from "@/components/Subscription";
+import ConditionalAd from "@/components/ConditionalAd";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Sun, Moon } from "lucide-react";
 
@@ -739,6 +740,11 @@ SWIFT/BIC: BANK1234XXX"
             </div>
           </div>
         )}
+      </div>
+
+      {/* Conditional Ad - Only shown for free users */}
+      <div className="mt-8">
+        <ConditionalAd adSlot="1234567894" />
       </div>
     </div>
   );

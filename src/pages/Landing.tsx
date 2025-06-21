@@ -34,6 +34,7 @@ const pricingTiers: PricingTier[] = [
       { name: "Recurring invoices", free: false, pro: true },
       { name: "Send invoices directly via email", free: false, pro: true },
       { name: "Priority support (24hr)", free: false, pro: true },
+      { name: "Ad-free experience", free: false, pro: true },
     ]
   }
 ];

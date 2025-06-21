@@ -2,6 +2,7 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import DashboardHeader from "@/components/DashboardHeader";
 import InvoiceStats from "@/components/InvoiceStats";
 import CreateInvoiceButton from "@/components/CreateInvoiceButton";
+import ConditionalAd from "@/components/ConditionalAd";
 import { FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,11 @@ const Dashboard = () => {
         </div>
 
         <InvoiceStats updateTrigger={0} />
+
+        {/* Conditional Ad - Only shown for free users */}
+        <div className="mt-8">
+          <ConditionalAd adSlot="1234567891" />
+        </div>
 
         <div className="text-center text-muted-foreground">
           <p>Time to get paid?</p>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
-import { useSession } from "@supabase/auth-helpers-react";
+import ConditionalAd from "@/components/ConditionalAd";
 
 interface Client {
   id: string;
@@ -351,6 +351,11 @@ const Clients = () => {
         </Card>
       )}
 
+      {/* Conditional Ad - Only shown for free users */}
+      <div className="mb-6">
+        <ConditionalAd adSlot="1234567893" />
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
@@ -550,7 +555,7 @@ const Clients = () => {
             </div>
             <DialogFooter>
               <Button
-                type="Button"
+                type="button"
                 variant="outline"
                 onClick={() => setFormOpen(false)}
               >
@@ -587,7 +592,7 @@ const Clients = () => {
           </div>
           <DialogFooter>
             <Button
-              type="Button"
+              type="button"
               variant="outline"
               onClick={() => setUpgradeDialogOpen(false)}
             >
