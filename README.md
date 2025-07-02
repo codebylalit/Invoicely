@@ -1,73 +1,36 @@
-# Welcome to your Lovable project
+# Invoicely
 
-## Project info
+Invoicely is a modern, full-stack invoicing platform designed to streamline the process of creating, managing, and sending invoices for businesses and freelancers. The application offers a seamless user experience with real-time data synchronization, secure authentication, and integrated payment solutions.
 
-**URL**: https://lovable.dev/projects/f108806c-9470-4a0b-aeef-9ceccdd8764e
+## Features
 
-## How can I edit this code?
+- Create, edit, and manage invoices with ease
+- Real-time data synchronization for up-to-date information
+- Secure user authentication and account management
+- Integrated payment gateways (e.g., Razorpay) for fast and secure transactions
+- Professional PDF invoice generation
+- Recurring invoice scheduling and client management
+- Modern, responsive UI built with React, shadcn-ui, and Tailwind CSS
 
-There are several ways of editing your application.
+## How It Works
 
-**Use Lovable**
+1. **User Authentication:** Users can securely sign up and log in to manage their invoices and clients.
+2. **Invoice Management:** Create new invoices, add line items, apply taxes/discounts, and generate professional PDFs for download or email.
+3. **Payment Integration:** Accept payments directly through integrated gateways, with real-time status updates.
+4. **Recurring Invoices:** Schedule and automate recurring invoices for regular clients.
+5. **Dashboard:** Access a comprehensive dashboard to track invoice status, payments, and client information.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f108806c-9470-4a0b-aeef-9ceccdd8764e) and start prompting.
+## Technologies Used
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend:** React (TypeScript), shadcn-ui, Tailwind CSS
+- **Backend & Database:** Supabase (authentication, database, serverless functions)
+- **Payments:** Razorpay integration
+- **PDF Generation:** jsPDF
 
-**Use your preferred IDE**
+## Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+To get started with Invoicely, clone the repository and follow the setup instructions in the project documentation. For deployment and environment configuration, refer to the official documentation and ensure all sensitive information is managed securely.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+---
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" Button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" Button (green Button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/f108806c-9470-4a0b-aeef-9ceccdd8764e) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+*This project is for demonstration and educational purposes. All sensitive credentials and configuration details are kept private and are not included in this repository.* 
