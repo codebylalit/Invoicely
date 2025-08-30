@@ -36,11 +36,20 @@ const Auth = () => {
     setLoading(true);
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
         if (error) throw error;
         navigate("/app");
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: "https://www.invoicely.me/auth/callback",
+          },
+        });
         if (error) throw error;
         toast({
           title: "Success!",
@@ -67,7 +76,9 @@ const Auth = () => {
             <div className="bg-primary h-8 w-8 rounded-md flex items-center justify-center">
               <div className="bg-gray-800 h-4 w-5 rounded-r-full"></div>
             </div>
-            <span className="text-2xl font-bold text-[#2D2D2D]">invoicelly</span>
+            <span className="text-2xl font-bold text-[#2D2D2D]">
+              invoicelly
+            </span>
           </div>
           <h1 className="text-3xl font-bold text-[#2D2D2D] mb-2">
             {isLogin ? "Sign in to invoicelly" : "Get started with invoicelly"}
@@ -85,7 +96,11 @@ const Auth = () => {
             // onClick={handleGoogleSignIn} // Uncomment and implement if you add Google OAuth
             disabled
           >
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />
+            <img
+              src="https://www.svgrepo.com/show/475656/google-color.svg"
+              alt="Google"
+              className="h-5 w-5"
+            />
             Continue with Google
           </Button>
 
@@ -101,7 +116,10 @@ const Auth = () => {
             <CardContent className="p-2">
               <form onSubmit={handleAuth} className="space-y-4">
                 <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium text-[#2D2D2D]">
+                  <label
+                    htmlFor="email"
+                    className="text-sm font-medium text-[#2D2D2D]"
+                  >
                     Email
                   </label>
                   <Input
@@ -115,7 +133,10 @@ const Auth = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="password" className="text-sm font-medium text-[#2D2D2D]">
+                  <label
+                    htmlFor="password"
+                    className="text-sm font-medium text-[#2D2D2D]"
+                  >
                     Password
                   </label>
                   <Input
@@ -140,9 +161,15 @@ const Auth = () => {
 
           {/* Terms and toggle */}
           <p className="text-xs text-[#6B6B6B] mt-6 text-center">
-            Signing up for invoicelly means that you agree with our{' '}
-            <Link to="/terms" className="underline hover:text-[#FFB800]">Terms of Use</Link> and{' '}
-            <Link to="/privacy" className="underline hover:text-[#FFB800]">Privacy Policy</Link>.
+            Signing up for invoicelly means that you agree with our{" "}
+            <Link to="/terms" className="underline hover:text-[#FFB800]">
+              Terms of Use
+            </Link>{" "}
+            and{" "}
+            <Link to="/privacy" className="underline hover:text-[#FFB800]">
+              Privacy Policy
+            </Link>
+            .
           </p>
           <div className="mt-6 text-center">
             <Button
@@ -151,7 +178,9 @@ const Auth = () => {
               className="text-sm text-[#4CAF50] hover:underline bg-transparent p-0 h-auto"
               variant="ghost"
             >
-              {isLogin ? "Need an account? Sign up" : "Have an account? Sign in"}
+              {isLogin
+                ? "Need an account? Sign up"
+                : "Have an account? Sign in"}
             </Button>
           </div>
         </div>
@@ -186,12 +215,8 @@ const Auth = () => {
               />
             </div>
           </div>
-
         </div>
-
-
       </div>
-
     </div>
   );
 };
