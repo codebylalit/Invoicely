@@ -67,6 +67,27 @@ const Auth = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'https://www.invoicely.me/auth/callback',
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Left Side */}
@@ -93,8 +114,8 @@ const Auth = () => {
           <Button
             className="w-full flex items-center justify-center gap-2 bg-[#222] hover:bg-[#111] text-white mb-4"
             type="button"
-            // onClick={handleGoogleSignIn} // Uncomment and implement if you add Google OAuth
-            disabled
+            onClick={handleGoogleSignIn}
+            disabled={loading}
           >
             <img
               src="https://www.svgrepo.com/show/475656/google-color.svg"
@@ -105,14 +126,14 @@ const Auth = () => {
           </Button>
 
           {/* Divider */}
-          <div className="flex items-center my-4">
+          {/* <div className="flex items-center my-4">
             <div className="flex-1 h-px bg-[#E0E0E0]" />
             <span className="mx-3 text-[#B0B0B0] text-xs font-medium">OR</span>
             <div className="flex-1 h-px bg-[#E0E0E0]" />
-          </div>
+          </div> */}
 
           {/* Email Form */}
-          <Card className="p-2 border">
+          {/* <Card className="p-2 border">
             <CardContent className="p-2">
               <form onSubmit={handleAuth} className="space-y-4">
                 <div className="space-y-2">
@@ -157,7 +178,7 @@ const Auth = () => {
                 </Button>
               </form>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Terms and toggle */}
           <p className="text-xs text-[#6B6B6B] mt-6 text-center">
