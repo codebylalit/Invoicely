@@ -26,9 +26,9 @@ import Blog from "./pages/Blog";
 const queryClient = new QueryClient();
 
 // Initialize Supabase client
-const supabaseUrl = "https://fwlxdzskqmbxcswxyogw.supabase.co";
+const supabaseUrl = "https://mrmjkdxerrpwrrmmymmv.supabase.co";
 const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3bHhkenNrcW1ieGNzd3h5b2d3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUzMDYyMTYsImV4cCI6MjA2MDg4MjIxNn0.F1--kySVanPE5mLDKCr20zjE2T9q7cTezurFHqYpsX8";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ybWprZHhlcnJwd3JybW15bW12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1OTMwNDAsImV4cCI6MjA5NzE2OTA0MH0.G0nuJd44Ib6rBKgBSgpPn_6SSUBY0lRBYY3muGj6GTw";
 
 const supabase = createClient(supabaseUrl, supabaseKey)
 
