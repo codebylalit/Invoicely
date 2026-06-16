@@ -276,11 +276,6 @@ const Invoices = () => {
 
       <InvoiceStats updateTrigger={statsUpdateTrigger} />
 
-      {/* Conditional Ad - Only shown for free users */}
-      <div className="mb-6">
-        <ConditionalAd adSlot="1234567892" />
-      </div>
-
       {loading ? (
         <div className="flex justify-center p-8">
           <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
@@ -403,6 +398,11 @@ const Invoices = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Conditional Ad - Only shown for free users, placed at bottom */}
+      <div className="mt-6">
+        <ConditionalAd adSlot="1234567892" />
+      </div>
     </div>
   );
 };

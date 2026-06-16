@@ -24,13 +24,13 @@ const Dashboard = () => {
 
         <InvoiceStats updateTrigger={0} />
 
-        {/* Conditional Ad - Only shown for free users */}
-        <div className="mt-8">
-          <ConditionalAd adSlot="1234567891" />
-        </div>
-
         <div className="text-center text-muted-foreground">
           <p>Time to get paid?</p>
+        </div>
+
+        {/* Conditional Ad - Only shown for free users, placed at bottom */}
+        <div>
+          <ConditionalAd adSlot="1234567891" />
         </div>
       </div>
     </div>

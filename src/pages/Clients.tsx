@@ -351,11 +351,6 @@ const Clients = () => {
         </Card>
       )}
 
-      {/* Conditional Ad - Only shown for free users */}
-      <div className="mb-6">
-        <ConditionalAd adSlot="1234567893" />
-      </div>
-
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
@@ -602,6 +597,11 @@ const Clients = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Conditional Ad - Only shown for free users, placed at bottom */}
+      <div className="mt-6">
+        <ConditionalAd adSlot="1234567893" />
+      </div>
     </div>
   );
 };
