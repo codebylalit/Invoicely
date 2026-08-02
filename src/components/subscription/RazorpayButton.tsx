@@ -70,8 +70,8 @@ const RazorpayButton = ({
 
             const options = {
                 key: data.keyId,
-                amount: amount * 100,
-                currency: "USD",
+                amount: data.amount ?? amount * 100, // use the exact amount from Razorpay order
+                currency: data.currency ?? "INR",   // use currency from order (INR)
                 name: "Invoicelly",
                 description: `${plan} Plan Subscription`,
                 order_id: data.orderId,

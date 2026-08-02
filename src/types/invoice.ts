@@ -29,7 +29,7 @@ export interface PaymentMethod {
 }
 
 export interface Invoice {
-  status: "draft" | "pending" | "paid";
+  status: "draft" | "pending" | "paid" | "overdue" | "partial" | "cancelled" | "Paid" | "Pending" | "Overdue" | "Partial" | "Cancelled" | "Draft";
   invoiceNumber: string;
   invoiceTitle: string;
   issuedDate: string;

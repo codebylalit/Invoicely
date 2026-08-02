@@ -2,6 +2,28 @@ import React from 'react';
 import InvoiceItemsTable from './InvoiceItemsTable';
 import InvoiceSummary from './InvoiceSummary';
 import PaymentDetails from './PaymentDetails';
+import {
+    MinimalWhiteTemplate,
+    ModernSaasTemplate,
+    StripeInspiredTemplate,
+    AppleMinimalTemplate,
+    CorporateBlueTemplate,
+    ElegantDarkTemplate,
+    LuxuryBlackTemplate,
+    ModernPurpleTemplate,
+    CreativeAgencyTemplate,
+    FreelancerTemplate,
+    StartupTemplate,
+    FinanceTemplate,
+    HealthcareTemplate,
+    ConstructionTemplate,
+    RetailTemplate,
+    RestaurantTemplate,
+    ConsultingTemplate,
+    GreenEcoTemplate,
+    ProfessionalGrayTemplate,
+    InternationalBusinessTemplate
+} from './InvoicePremiumTemplates';
 
 interface InvoiceLayoutProps {
     layout: string;
@@ -722,8 +744,48 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                     />
                 </div>
             );
+        case 'minimal-white':
+            return <MinimalWhiteTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'modern-saas':
+            return <ModernSaasTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'stripe-inspired':
+            return <StripeInspiredTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'apple-minimal':
+            return <AppleMinimalTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'corporate-blue':
+            return <CorporateBlueTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'elegant-dark':
+            return <ElegantDarkTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'luxury-black':
+            return <LuxuryBlackTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'modern-purple':
+            return <ModernPurpleTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'creative-agency':
+            return <CreativeAgencyTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'freelancer':
+            return <FreelancerTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'startup':
+            return <StartupTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'finance-pro':
+            return <FinanceTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'healthcare':
+            return <HealthcareTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'construction':
+            return <ConstructionTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'retail':
+            return <RetailTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'restaurant':
+            return <RestaurantTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'consulting':
+            return <ConsultingTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'green-eco':
+            return <GreenEcoTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'professional-gray':
+            return <ProfessionalGrayTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
+        case 'international-business':
+            return <InternationalBusinessTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
         default:
-            return null;
+            return <MinimalWhiteTemplate businessDetails={businessDetails} displayInvoice={displayInvoice} calculatedInvoice={calculatedInvoice} paymentDetails={paymentDetails} />;
     }
 };
 

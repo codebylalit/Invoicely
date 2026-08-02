@@ -1,48 +1,45 @@
-// This file shows how to implement the View functionality for invoices
-
-// First, let's modify the Invoices.tsx component to add the view functionality
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import CreateInvoiceButton from "@/components/CreateInvoiceButton";
 import ConditionalAd from "@/components/ConditionalAd";
 import { Button } from "@/components/ui/button";
-import { Eye, Download, Trash, Check, AlertCircle, Clock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Eye,
+  Trash2,
+  Check,
+  AlertCircle,
+  Clock,
+  FileText,
+  Search,
+  ChevronDown,
+  Ban,
+  CircleDollarSign,
+  RefreshCw,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import InvoiceStats from "@/components/InvoiceStats";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import InvoicePreview from "@/components/InvoicePreview";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
-interface Invoice {
-  status: string;
-  dueDate: string;
-  name: string;
-  email: string;
-  details: string;
-  items: InvoiceItem[];
-  subtotal: number;
-  total: number;
-  fromCompany: string;
-  invoiceNumber: string;
-  invoiceTitle: string;
-  issuedDate: string;
-  notes: string;
-  paymentMethods: PaymentMethod[];
-  taxes: TaxItem[];
-  discounts: DiscountItem[];
-  showPaymentMethods?: boolean; // Add this line
-  is_recurring: boolean;
-}
-
-
+// ─── Types ────────────────────────────────────────────────────────────────────
 interface InvoiceItem {
   id: string;
   description: string;
@@ -51,58 +48,126 @@ interface InvoiceItem {
   totalPrice: number;
 }
 
-
-interface TaxItem {
-  id: string;
-  name: string;
-  rate: number;
-  amount: number;
-}
-
-interface DiscountItem {
-  id: string;
-  name: string;
-  rate: number;
-  amount: number;
-}
-
 interface PaymentMethod {
   type: string;
   isEnabled: boolean;
   instructions?: string;
   connectURL?: string;
 }
-// Format the invoice data from Supabase to match the format expected by InvoicePreview
+
+// ─── Status config ─────────────────────────────────────────────────────────────
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; bg: string; text: string; dot: string; icon: React.ReactNode }
+> = {
+  paid: {
+    label: "Paid",
+    bg: "bg-emerald-50 dark:bg-emerald-950/30",
+    text: "text-emerald-700 dark:text-emerald-400",
+    dot: "bg-emerald-500",
+    icon: <Check className="h-3.5 w-3.5" />,
+  },
+  pending: {
+    label: "Pending",
+    bg: "bg-amber-50 dark:bg-amber-950/30",
+    text: "text-amber-700 dark:text-amber-400",
+    dot: "bg-amber-500",
+    icon: <Clock className="h-3.5 w-3.5" />,
+  },
+  overdue: {
+    label: "Overdue",
+    bg: "bg-red-50 dark:bg-red-950/30",
+    text: "text-red-700 dark:text-red-400",
+    dot: "bg-red-500",
+    icon: <AlertCircle className="h-3.5 w-3.5" />,
+  },
+  partial: {
+    label: "Partial",
+    bg: "bg-blue-50 dark:bg-blue-950/30",
+    text: "text-blue-700 dark:text-blue-400",
+    dot: "bg-blue-500",
+    icon: <CircleDollarSign className="h-3.5 w-3.5" />,
+  },
+  cancelled: {
+    label: "Cancelled",
+    bg: "bg-gray-100 dark:bg-gray-800",
+    text: "text-gray-600 dark:text-gray-400",
+    dot: "bg-gray-400",
+    icon: <Ban className="h-3.5 w-3.5" />,
+  },
+  draft: {
+    label: "Draft",
+    bg: "bg-gray-100 dark:bg-gray-800",
+    text: "text-gray-600 dark:text-gray-400",
+    dot: "bg-gray-400",
+    icon: <FileText className="h-3.5 w-3.5" />,
+  },
+};
+
+const ALL_STATUSES = ["All", "Paid", "Pending", "Overdue", "Partial", "Cancelled", "Draft"];
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const key = status?.toLowerCase() || "draft";
+  const cfg = STATUS_CONFIG[key] || STATUS_CONFIG.draft;
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${cfg.bg} ${cfg.text}`}
+    >
+      {cfg.icon}
+      {cfg.label}
+    </span>
+  );
+};
+
+const fmtCurrency = (amount: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 2,
+  }).format(amount);
+
+const fmtDate = (d?: string) => {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 const formatInvoiceForPreview = (invoice: any) => {
-  // Parse the paymentMethods string if it exists, or provide a default empty array
-  let parsedPaymentMethods = [];
+  let parsedPaymentMethods: PaymentMethod[] = [];
   try {
-    if (invoice.paymentMethods && typeof invoice.paymentMethods === 'string') {
-      parsedPaymentMethods = JSON.parse(invoice.paymentMethods);
+    if (invoice.payment_methods) {
+      parsedPaymentMethods =
+        typeof invoice.payment_methods === "string"
+          ? JSON.parse(invoice.payment_methods)
+          : invoice.payment_methods;
     }
-  } catch (error) {
-    console.error("Error parsing payment methods:", error);
+  } catch {
+    // ignore
   }
 
   return {
     invoiceNumber: invoice.invoice_number,
-    issuedDate: invoice.created_at,
+    issuedDate: invoice.issued_date || invoice.created_at,
     dueDate: invoice.due_date,
     name: invoice.client_name,
     details: invoice.details,
     email: invoice.client_email,
     subtotal: invoice.subtotal || 0,
     total: invoice.total || 0,
-    invoiceTitle: "Invoice",
+    invoiceTitle: invoice.invoice_title || "Invoice",
     items: invoice.items || [],
     discounts: invoice.discounts || [],
     taxes: invoice.taxes || [],
     notes: invoice.notes || "",
-    paymentMethods: parsedPaymentMethods.length ? parsedPaymentMethods : [
-      { type: "bank", isEnabled: false, instructions: "" },
-      { type: "stripe", isEnabled: false, connectURL: "" },
-    ],
-    // Recurring fields (map snake_case to camelCase)
+    paymentMethods: parsedPaymentMethods.length
+      ? parsedPaymentMethods
+      : [
+          { type: "bank", isEnabled: false, instructions: "" },
+          { type: "stripe", isEnabled: false, connectURL: "" },
+        ],
     is_recurring: invoice.is_recurring,
     recurrence_frequency: invoice.recurrence_frequency,
     recurrence_interval: invoice.recurrence_interval,
@@ -113,41 +178,17 @@ const formatInvoiceForPreview = (invoice: any) => {
   };
 };
 
-const getStatusColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "paid":
-      return "bg-green-500";
-    case "pending":
-      return "bg-yellow-500";
-    case "overdue":
-      return "bg-red-500";
-    default:
-      return "bg-gray-400"; // draft or other status
-  }
-};
-
-const getStatusIcon = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "paid":
-      return <Check className="mr-2 h-4 w-4" />;
-    case "pending":
-      return <Clock className="mr-2 h-4 w-4" />;
-    case "overdue":
-      return <AlertCircle className="mr-2 h-4 w-4" />;
-    default:
-      return null;
-  }
-};
-
+// ─── Main Component ─────────────────────────────────────────────────────────
 const Invoices = () => {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [invoices, setInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [viewingInvoice, setViewingInvoice] = useState<any>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const supabase = useSupabaseClient();
   const { toast } = useToast();
-
-  // Event bus for stats updates
   const [statsUpdateTrigger, setStatsUpdateTrigger] = useState(0);
 
   const fetchInvoices = async () => {
@@ -157,7 +198,6 @@ const Invoices = () => {
         .from("invoices")
         .select("*")
         .order("created_at", { ascending: false });
-
       if (error) throw error;
       setInvoices(data || []);
     } catch (error: any) {
@@ -175,235 +215,338 @@ const Invoices = () => {
     fetchInvoices();
   }, []);
 
-  const updateInvoiceStatus = async (id: string, status: string) => {
-    try {
-      const { error } = await supabase
-        .from("invoices")
-        .update({ status })
-        .match({ id });
+  // ─── Filtered list ────────────────────────────────────────────────────────
+  const filtered = useMemo(() => {
+    return invoices.filter((inv) => {
+      const matchesSearch =
+        !searchQuery ||
+        inv.client_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        inv.invoice_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        inv.client_email?.toLowerCase().includes(searchQuery.toLowerCase());
 
+      const matchesStatus =
+        statusFilter === "All" ||
+        inv.status?.toLowerCase() === statusFilter.toLowerCase();
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [invoices, searchQuery, statusFilter]);
+
+  // ─── Status counts for filter tabs ───────────────────────────────────────
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = { All: invoices.length };
+    invoices.forEach((inv) => {
+      const s = inv.status?.toLowerCase();
+      if (s) {
+        const key = s.charAt(0).toUpperCase() + s.slice(1);
+        counts[key] = (counts[key] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [invoices]);
+
+  const updateStatus = async (id: string, status: string) => {
+    try {
+      const { error } = await supabase.from("invoices").update({ status }).match({ id });
       if (error) throw error;
-
-      // Update local state
-      setInvoices(
-        invoices.map((inv) => (inv.id === id ? { ...inv, status } : inv))
-      );
-
-      // Trigger stats update
-      setStatsUpdateTrigger((prev) => prev + 1);
-
-      toast({
-        title: "Status updated",
-        description: `Invoice status changed to ${status}`,
-      });
+      setInvoices((prev) => prev.map((inv) => (inv.id === id ? { ...inv, status } : inv)));
+      setStatsUpdateTrigger((p) => p + 1);
+      toast({ title: "Status updated", description: `Marked as ${status}` });
     } catch (error: any) {
-      toast({
-        title: "Error updating status",
-        description: error.message || "Failed to update status",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
-  const deleteInvoice = async (id: string) => {
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      const { error } = await supabase.from("invoices").delete().match({ id });
-
+      const { error } = await supabase.from("invoices").delete().match({ id: deleteTarget });
       if (error) throw error;
-
-      // Update local state
-      setInvoices(invoices.filter((inv) => inv.id !== id));
-
-      // Trigger stats update
-      setStatsUpdateTrigger((prev) => prev + 1);
-
-      toast({
-        title: "Invoice deleted",
-        description: "The invoice has been successfully deleted",
-      });
+      setInvoices((prev) => prev.filter((inv) => inv.id !== deleteTarget));
+      setStatsUpdateTrigger((p) => p + 1);
+      toast({ title: "Invoice deleted" });
     } catch (error: any) {
-      toast({
-        title: "Error deleting invoice",
-        description: error.message || "Failed to delete invoice",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
-  // Function to handle viewing an invoice
-  const handleViewInvoice = async (invoice: Invoice) => {
-    try {
-      // Optional: Fetch more detailed invoice data if needed
-      // For example, fetch invoice items, taxes, etc.
-      /*
-      const { data: invoiceItems, error: itemsError } = await supabase
-        .from("invoice_items")
-        .select("*")
-        .eq("invoice_id", invoice.id);
-        
-      if (itemsError) throw itemsError;
-      */
-
-      // Format the invoice for the preview component
-      const formattedInvoice = formatInvoiceForPreview(invoice);
-
-      // Set the invoice to be viewed
-      setViewingInvoice(formattedInvoice);
-
-      // Open the preview dialog
-      setIsPreviewOpen(true);
-    } catch (error: any) {
-      toast({
-        title: "Error loading invoice details",
-        description: error.message || "Failed to load invoice details",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString();
+  const handleView = (invoice: any) => {
+    setViewingInvoice(formatInvoiceForPreview(invoice));
+    setIsPreviewOpen(true);
   };
 
   return (
-    <div className="ml-64">
-      <div className="flex items-start justify-between mb-6">
-
-        <h1 className="text-3xl font-bold">Invoices</h1>
-        <CreateInvoiceButton />
-      </div>
-
-      <InvoiceStats updateTrigger={statsUpdateTrigger} />
-
-      {loading ? (
-        <div className="flex justify-center p-8">
-          <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
-        </div>
-      ) : invoices.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <h3 className="text-xl font-medium mb-2">No invoices yet</h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
-            Create your first invoice to get started
+    <div className="space-y-6 pb-4">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Invoices</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {invoices.length} total invoice{invoices.length !== 1 ? "s" : ""}
           </p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchInvoices}
+            disabled={loading}
+            aria-label="Refresh invoices"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
           <CreateInvoiceButton />
         </div>
-      ) : (
-        <div className="grid gap-4">
-          {invoices.map((inv) => (
-            <Card key={inv.id} className="overflow-hidden">
-              <CardHeader className="bg-gray-50 dark:bg-gray-800 flex flex-row items-center justify-between p-4">
-                <div>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    #{inv.invoice_number || "Draft"}
-                    {inv.is_recurring && (
-                      <Badge className="bg-blue-500 text-white ml-2">
-                        Recurring Active
-                      </Badge>
-                    )}
-                  </CardTitle>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {inv.client_name || "No client name"}
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-xl font-bold">
-                    ${(inv.total || 0).toFixed(2)}
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className={`${getStatusColor(
-                          inv.status
-                        )} text-white border-none ml-2`}
-                      >
-                        {getStatusIcon(inv.status)}
-                        {inv.status}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => updateInvoiceStatus(inv.id, "Paid")}
-                        className="flex items-center"
-                      >
-                        <Check className="h-4 w-4 mr-2 text-green-500" />
-                        <span>Paid</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => updateInvoiceStatus(inv.id, "Pending")}
-                        className="flex items-center"
-                      >
-                        <Clock className="h-4 w-4 mr-2 text-yellow-500" />
-                        <span>Pending</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => updateInvoiceStatus(inv.id, "Overdue")}
-                        className="flex items-center"
-                      >
-                        <AlertCircle className="h-4 w-4 mr-2 text-red-500" />
-                        <span>Overdue</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-500 dark:text-gray-400">
-                        Created
-                      </p>
-                      <p>{formatDate(inv.created_at)}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500 dark:text-gray-400">
-                        Due Date
-                      </p>
-                      <p>{formatDate(inv.due_date)}</p>
-                    </div>
-                  </div>
+      </div>
 
-                  <div className="flex gap-2 mt-4 md:mt-0">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleViewInvoice(inv)}
-                    >
-                      <Download className="h-4 w-4 mr-1" /> Download
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-red-500 hover:text-red-700"
-                      onClick={() => deleteInvoice(inv.id)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+      {/* ── Search + Filters ────────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        {/* Search */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by client name, invoice #, or email…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      </div>
+
+      {/* ── Status Filter Tabs ───────────────────────────────────────────────── */}
+      <div className="flex gap-2 flex-wrap">
+        {ALL_STATUSES.map((s) => {
+          const count = statusCounts[s] || 0;
+          if (s !== "All" && count === 0) return null;
+          return (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 border ${
+                statusFilter === s
+                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                  : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground"
+              }`}
+            >
+              {s}
+              {count > 0 && (
+                <span
+                  className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                    statusFilter === s
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Content ─────────────────────────────────────────────────────────── */}
+      {loading ? (
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-24 bg-muted rounded-xl animate-pulse" />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center rounded-xl border border-dashed border-border bg-muted/30">
+          <FileText className="h-12 w-12 text-muted-foreground/40 mb-3" />
+          <h3 className="text-lg font-semibold text-foreground mb-1">
+            {invoices.length === 0 ? "No invoices yet" : "No results found"}
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4 max-w-xs">
+            {invoices.length === 0
+              ? "Create your first invoice to start getting paid faster."
+              : "Try adjusting your search or filter to find what you're looking for."}
+          </p>
+          {invoices.length === 0 && <CreateInvoiceButton />}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((inv) => (
+            <InvoiceCard
+              key={inv.id}
+              invoice={inv}
+              onView={() => handleView(inv)}
+              onUpdateStatus={updateStatus}
+              onDelete={() => setDeleteTarget(inv.id)}
+            />
           ))}
         </div>
       )}
 
-      {/* Invoice Preview Dialog */}
+      {/* ── Invoice Preview Dialog ──────────────────────────────────────────── */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl w-full p-0 overflow-hidden">
           {viewingInvoice && (
-            <InvoicePreview invoice={viewingInvoice} />
+            <div className="max-h-[90vh] overflow-y-auto p-6">
+              <InvoicePreview invoice={viewingInvoice} />
+            </div>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Conditional Ad - Only shown for free users, placed at bottom */}
-      <div className="mt-6">
-        <ConditionalAd adSlot="1234567892" />
-      </div>
+      {/* ── Delete Confirmation ─────────────────────────────────────────────── */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Invoice?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The invoice will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <ConditionalAd adSlot="1234567892" />
     </div>
+  );
+};
+
+// ─── Invoice Card ─────────────────────────────────────────────────────────────
+const InvoiceCard = ({
+  invoice: inv,
+  onView,
+  onUpdateStatus,
+  onDelete,
+}: {
+  invoice: any;
+  onView: () => void;
+  onUpdateStatus: (id: string, status: string) => void;
+  onDelete: () => void;
+}) => {
+  const total = Number(inv.total) || 0;
+
+  const fmtCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 2,
+    }).format(amount);
+
+  const fmtDate = (d?: string) => {
+    if (!d) return "—";
+    return new Date(d).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  return (
+    <Card className="border-border/60 hover:shadow-md hover:border-border transition-all duration-200 group overflow-hidden">
+      <CardContent className="p-0">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 sm:p-5">
+          {/* Left: Invoice icon */}
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <FileText className="h-4 w-4 text-primary" />
+          </div>
+
+          {/* Middle: Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <span className="font-semibold text-foreground text-sm">
+                {inv.client_name || "Unnamed Client"}
+              </span>
+              {inv.is_recurring && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400">
+                  <RefreshCw className="h-2.5 w-2.5" />
+                  Recurring
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
+              <span>#{inv.invoice_number || "Draft"}</span>
+              <span>Issued {fmtDate(inv.issued_date || inv.created_at)}</span>
+              <span>Due {fmtDate(inv.due_date)}</span>
+            </div>
+          </div>
+
+          {/* Right: Amount + Status + Actions */}
+          <div className="flex items-center gap-3 sm:flex-shrink-0 justify-between sm:justify-end w-full sm:w-auto">
+            <div className="text-right">
+              <p className="text-base font-bold text-foreground tabular-nums">
+                {fmtCurrency(total)}
+              </p>
+            </div>
+
+            <StatusBadge status={inv.status} />
+
+            {/* Actions Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label="Invoice actions"
+                  className="h-8 w-8 p-0 flex-shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem onClick={onView} className="flex items-center gap-2">
+                  <Eye className="h-4 w-4" /> View & Download
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => onUpdateStatus(inv.id, "Paid")}
+                  className="flex items-center gap-2 text-emerald-600"
+                >
+                  <Check className="h-4 w-4" /> Mark as Paid
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onUpdateStatus(inv.id, "Pending")}
+                  className="flex items-center gap-2 text-amber-600"
+                >
+                  <Clock className="h-4 w-4" /> Mark as Pending
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onUpdateStatus(inv.id, "Overdue")}
+                  className="flex items-center gap-2 text-red-600"
+                >
+                  <AlertCircle className="h-4 w-4" /> Mark as Overdue
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onUpdateStatus(inv.id, "Partial")}
+                  className="flex items-center gap-2 text-blue-600"
+                >
+                  <CircleDollarSign className="h-4 w-4" /> Mark as Partial
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onUpdateStatus(inv.id, "Cancelled")}
+                  className="flex items-center gap-2 text-gray-500"
+                >
+                  <Ban className="h-4 w-4" /> Mark as Cancelled
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={onDelete}
+                  className="flex items-center gap-2 text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

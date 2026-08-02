@@ -727,7 +727,7 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
 
           {/* Bottom Control Panel - Centered */}
           <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-invoice-darkBg border-t border-gray-200 dark:border-gray-800">
-            <div className="max-w-3xl mx-auto px-32 mr-64 py-3 flex items-center justify-end">
+            <div className="max-w-3xl mx-auto px-4 sm:px-8 py-3 flex items-center justify-between sm:justify-end">
               {/* Controls Section */}
               <div className="flex items-center gap-3">
                 {/* View Toggle */}

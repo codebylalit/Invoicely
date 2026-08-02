@@ -1,33 +1,54 @@
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import Subscription from "@/components/Subscription";
 import ConditionalAd from "@/components/ConditionalAd";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Loader2, Building2, CreditCard, Star, Palette, Sliders } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+// ─── Currency options ────────────────────────────────────────────────────────
+const CURRENCIES = [
+  { code: "INR", label: "₹ Indian Rupee (INR)", symbol: "₹" },
+  { code: "USD", label: "$ US Dollar (USD)", symbol: "$" },
+  { code: "EUR", label: "€ Euro (EUR)", symbol: "€" },
+  { code: "GBP", label: "£ British Pound (GBP)", symbol: "£" },
+  { code: "AED", label: "د.إ UAE Dirham (AED)", symbol: "د.إ" },
+  { code: "SGD", label: "S$ Singapore Dollar (SGD)", symbol: "S$" },
+  { code: "CAD", label: "C$ Canadian Dollar (CAD)", symbol: "C$" },
+  { code: "AUD", label: "A$ Australian Dollar (AUD)", symbol: "A$" },
+];
+
+const TABS = [
+  { id: "business", label: "Business", icon: Building2 },
+  { id: "payment", label: "Payment", icon: CreditCard },
+  { id: "preferences", label: "Preferences", icon: Sliders },
+  { id: "subscription", label: "Subscription", icon: Star },
+  { id: "theme", label: "Theme", icon: Palette },
+];
 
 const Settings = () => {
   const supabase = useSupabaseClient();
   const session = useSession();
   const [activeTab, setActiveTab] = useState("business");
   const [loading, setLoading] = useState(false);
-  const [connecting, setConnecting] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-
-  // User subscription state
+  // ── State ──────────────────────────────────────────────────────────────────
   const [userSubscription, setUserSubscription] = useState({
-    tier: "free", // free, growing, advanced
-    paymentMethod: null, // stripe, null
+    tier: "free",
+    paymentMethod: null as string | null,
     bankTransferDetails: "",
-    paymentLink: "", // Added paymentLink to state
-
+    paymentLink: "",
   });
 
-  // Business details form state
   const [businessDetails, setBusinessDetails] = useState({
     contact_name: "",
     business_name: "",
@@ -39,50 +60,49 @@ const Settings = () => {
     country: "",
     phone_number: "",
     vat_number: "",
-    logo_url: null,
+    logo_url: null as string | null,
   });
 
-  // Fetch user data on component mount
+  const [preferences, setPreferences] = useState({
+    currency: "INR",
+    invoice_prefix: "INV",
+    invoice_start_number: "1001",
+    default_tax_name: "GST",
+    default_tax_rate: "18",
+    default_due_days: "30",
+    default_notes: "",
+  });
+
+  // ── Effects ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (session?.user?.id) {
       fetchBusinessDetails();
       fetchUserSubscription();
+      fetchPreferences();
     }
   }, [session]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    if (params.get("token")) {
-      if (window.opener) {
-        window.opener.postMessage(
-          { type: "PAYPAL_PAYMENT_COMPLETE", orderId: params.get("token") },
-          window.location.origin
-        );
-        setTimeout(() => window.close(), 500);
-      }
-      toast({
-        title: "Payment Complete!",
-        description: "Thank you for your payment. Your subscription will be updated shortly.",
-      });
+    if (params.get("token") && window.opener) {
+      window.opener.postMessage(
+        { type: "PAYPAL_PAYMENT_COMPLETE", orderId: params.get("token") },
+        window.location.origin
+      );
+      setTimeout(() => window.close(), 500);
+      toast({ title: "Payment Complete!", description: "Your subscription will be updated shortly." });
     }
-
-    // Set subscription tab active if coming from PayPal flow or URL parameter
     if (params.get("from") === "paypal" || params.get("tab") === "subscription") {
       setActiveTab("subscription");
     }
   }, [location]);
 
-  // Theme settings
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-
     if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
       setIsDarkMode(true);
       document.documentElement.classList.add("dark");
-    } else {
-      setIsDarkMode(false);
-      document.documentElement.classList.remove("dark");
     }
   }, []);
 
@@ -90,664 +110,593 @@ const Settings = () => {
     if (isDarkMode) {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
-      setIsDarkMode(false);
     } else {
       document.documentElement.classList.add("dark");
       localStorage.setItem("theme", "dark");
-      setIsDarkMode(true);
     }
+    setIsDarkMode(!isDarkMode);
   };
 
-  // Fetch business details from Supabase
+  // ── Fetch functions ──────────────────────────────────────────────────────────
   const fetchBusinessDetails = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from("business_details")
         .select("*")
-        .eq("user_id", session.user.id)
+        .eq("user_id", session!.user.id)
         .single();
-
-      if (error && error.code !== "PGRST116") {
-        throw error;
-      }
-
-      if (data) {
-        setBusinessDetails(data);
-      }
-    } catch (error) {
-      console.error("Error fetching business details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load business details.",
-        variant: "destructive",
-      });
+      if (error && error.code !== "PGRST116") throw error;
+      if (data) setBusinessDetails(data);
+    } catch (err) {
+      console.error("Error fetching business details:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch user subscription from Supabase
   const fetchUserSubscription = async () => {
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from("profiles")
         .select("tier, payment_method, bank_transfer_details, payment_link")
-        .eq("user_id", session.user.id)
+        .eq("user_id", session!.user.id)
         .single();
-
-      if (error && error.code !== "PGRST116") {
-        throw error;
-      }
-
+      if (error && error.code !== "PGRST116") throw error;
       setUserSubscription({
         tier: data?.tier || "free",
         paymentMethod: data?.payment_method || null,
         bankTransferDetails: data?.bank_transfer_details || "",
-        paymentLink: data?.payment_link || "", // Added payment_link to state
-
+        paymentLink: data?.payment_link || "",
       });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load payment details.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching subscription:", err);
     }
   };
 
-  // Handle input changes for business details form
-  const handleBusinessInputChange = (e) => {
-    const { name, value } = e.target;
-    setBusinessDetails((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  // Handle bank transfer details change
-  const handleBankDetailsChange = (e) => {
-    setUserSubscription((prev) => ({
-      ...prev,
-      bankTransferDetails: e.target.value,
-    }));
-  };
-
-  // Handle file upload for logo
-  const handleLogoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
+  const fetchPreferences = async () => {
     try {
-      // Create a unique file name
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${session.user.id}-${Math.random()
-        .toString(36)
-        .substring(2)}.${fileExt}`;
-      const filePath = `business_logos/${fileName}`;
-
-      // Upload file to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from("logos")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL for the file
-      const { data } = supabase.storage.from("logos").getPublicUrl(filePath);
-
-      setBusinessDetails((prev) => ({
-        ...prev,
-        logo_url: data.publicUrl,
-      }));
-
-      toast({
-        title: "Success",
-        description: "Logo uploaded successfully",
-      });
-    } catch (error) {
-      console.error("Error uploading logo:", error);
-      toast({
-        title: "Error",
-        description: "Failed to upload logo.",
-        variant: "destructive",
-      });
+      // Preferences stored in profiles table as JSON metadata or fallback to defaults
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", session!.user.id)
+        .single();
+      if (data) {
+        // Try to read preferences if stored (graceful fallback if columns don't exist yet)
+        setPreferences({
+          currency: (data as any).default_currency || "INR",
+          invoice_prefix: (data as any).invoice_prefix || "INV",
+          invoice_start_number: (data as any).invoice_start_number || "1001",
+          default_tax_name: (data as any).default_tax_name || "GST",
+          default_tax_rate: (data as any).default_tax_rate || "18",
+          default_due_days: (data as any).default_due_days || "30",
+          default_notes: (data as any).default_notes || "",
+        });
+      }
+    } catch {
+      // silently use defaults
     }
   };
 
-  // Save business details to Supabase
+  // ── Save functions ─────────────────────────────────────────────────────────
   const saveBusinessDetails = async () => {
     try {
       setLoading(true);
-
-      const updatedDetails = {
-        ...businessDetails,
-        user_id: session.user.id,
-        updated_at: new Date(),
-      };
-
-      // Check if record exists
-      const { data: existingData } = await supabase
+      const payload = { ...businessDetails, user_id: session!.user.id, updated_at: new Date() };
+      const { data: existing } = await supabase
         .from("business_details")
         .select("id")
-        .eq("user_id", session.user.id)
+        .eq("user_id", session!.user.id)
         .single();
 
-      let result;
-
-      if (existingData) {
-        // Update existing record
-        result = await supabase
-          .from("business_details")
-          .update(updatedDetails)
-          .eq("user_id", session.user.id);
-      } else {
-        // Insert new record
-        result = await supabase
-          .from("business_details")
-          .insert([updatedDetails]);
-      }
-
-      if (result.error) throw result.error;
-
-      toast({
-        title: "Success",
-        description: "Business details saved successfully",
-      });
-    } catch (error) {
-      console.error("Error saving business details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save business details.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  // Handle payment link change
-  const handlePaymentLinkChange = (e) => {
-    setUserSubscription((prev) => ({
-      ...prev,
-      paymentLink: e.target.value,
-    }));
-  };
-
-  // Save payment link to Supabase
-  const savePaymentLink = async () => {
-    try {
-      setLoading(true);
-
-      // Update the profiles table with the payment link
-      const { error } = await supabase.from("profiles").upsert(
-        {
-          user_id: session.user.id,
-          payment_link: userSubscription.paymentLink,
-          updated_at: new Date(),
-        },
-        {
-          onConflict: "user_id",
-        }
-      );
+      const { error } = existing
+        ? await supabase.from("business_details").update(payload).eq("user_id", session!.user.id)
+        : await supabase.from("business_details").insert([payload]);
 
       if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Payment link saved successfully",
-      });
-    } catch (error) {
-      console.error("Error saving payment link:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save payment link.",
-        variant: "destructive",
-      });
+      toast({ title: "Saved!", description: "Business details updated successfully." });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
-
-  // Save bank transfer details
   const savePaymentDetails = async () => {
     try {
       setLoading(true);
-
-      const paymentData = {
-        bank_transfer_details: userSubscription.bankTransferDetails,
-        payment_method: userSubscription.paymentMethod,
-        updated_at: new Date(),
-      };
-
-      // Update the profiles table
       const { error } = await supabase.from("profiles").upsert(
         {
-          user_id: session.user.id,
-          ...paymentData,
+          user_id: session!.user.id,
+          bank_transfer_details: userSubscription.bankTransferDetails,
+          payment_link: userSubscription.paymentLink,
+          updated_at: new Date(),
         },
-        {
-          onConflict: "user_id",
-        }
+        { onConflict: "user_id" }
       );
-
       if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Payment details saved successfully",
-      });
-    } catch (error) {
-      console.error("Error saving payment details:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save payment details.",
-        variant: "destructive",
-      });
+      toast({ title: "Saved!", description: "Payment details updated successfully." });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
+  const savePreferences = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.from("profiles").upsert(
+        {
+          user_id: session!.user.id,
+          default_currency: preferences.currency,
+          invoice_prefix: preferences.invoice_prefix,
+          invoice_start_number: preferences.invoice_start_number,
+          default_tax_name: preferences.default_tax_name,
+          default_tax_rate: preferences.default_tax_rate,
+          default_due_days: preferences.default_due_days,
+          default_notes: preferences.default_notes,
+          updated_at: new Date(),
+        },
+        { onConflict: "user_id" }
+      );
+      if (error) throw error;
+      toast({ title: "Saved!", description: "Preferences updated successfully." });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${session!.user.id}-${Math.random().toString(36).substring(2)}.${ext}`;
+      const filePath = `business_logos/${fileName}`;
+      const { error: uploadError } = await supabase.storage.from("logos").upload(filePath, file);
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from("logos").getPublicUrl(filePath);
+      setBusinessDetails((prev) => ({ ...prev, logo_url: data.publicUrl }));
+      toast({ title: "Logo uploaded", description: "Your logo has been uploaded successfully." });
+    } catch (err: any) {
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    }
+  };
+
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
-    <div className="ml-64 no-scrollbar">
-      <h1 className="text-3xl font-bold text-invoice-lightText dark:text-invoice-darkText mb-6">Settings</h1>
-      <div className="space-y-6">
-        {/* Tabs */}
-        <div className="flex space-x-2 border-b border-gray-200 dark:border-gray-700 mb-8">
-          {['business', 'payment', 'subscription', 'theme'].map(tab => (
+    <div className="space-y-6 pb-4">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Settings</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Manage your account, business profile, and preferences.
+        </p>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="flex gap-1 border-b border-border overflow-x-auto pb-px scrollbar-none">
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          return (
             <button
-              key={tab}
-              className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 ${activeTab === tab
-                ? 'border-primary text-primary'
-                : 'border-transparent text-gray-500 hover:text-primary'
-                } bg-transparent`}
-              onClick={() => setActiveTab(tab)}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`
+                flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-150 whitespace-nowrap flex-shrink-0
+                ${
+                  activeTab === tab.id
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                }
+              `}
+              aria-current={activeTab === tab.id ? "page" : undefined}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1).replace('Details', ' Details')}
+              <Icon className="h-4 w-4" />
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
             </button>
-          ))}
-        </div>
+          );
+        })}
+      </div>
 
-        {/* Business Details Form */}
-        {activeTab === "business" && (
-          <div className="dark:bg-invoice-darkBg rounded-lg p-6 border border-gray-200 shadow dark:border-gray-800">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Business Details</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  These details will appear on all your invoices
-                </p>
-              </div>
-              <Button
-                onClick={saveBusinessDetails}
-                disabled={loading}
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Saving...
-                  </span>
-                ) : (
-                  "Save changes"
-                )}
-              </Button>
+      {/* ── Business Details ────────────────────────────────────────────────── */}
+      {activeTab === "business" && (
+        <Card className="border-border/60">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
+            <div>
+              <CardTitle>Business Details</CardTitle>
+              <CardDescription className="mt-1">
+                These details will appear on all your invoices.
+              </CardDescription>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
-                  Contact name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="contact_name"
-                  value={businessDetails.contact_name}
-                  onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
-                  placeholder="John Doe"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
-                  Company / Business name
-                </label>
-                <input
-                  type="text"
-                  name="business_name"
-                  value={businessDetails.business_name}
-                  onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={businessDetails.email}
-                  onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
-                  Phone number
-                </label>
-                <input
-                  type="tel"
-                  name="phone_number"
-                  value={businessDetails.phone_number}
-                  onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  name="address"
-                  value={businessDetails.address}
-                  onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
-                  City
-                </label>
-                <input
-                  type="text"
-                  name="city"
-                  value={businessDetails.city}
-                  onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
-                  Postal Code
-                </label>
-                <input
-                  type="text"
-                  name="postal_code"
-                  value={businessDetails.postal_code}
-                  onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
-                  Country
-                </label>
-                <input
-                  type="text"
-                  name="country"
-                  value={businessDetails.country}
-                  onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
-                  Region/State
-                </label>
-                <input
-                  type="text"
-                  name="region_state"
-                  value={businessDetails.region_state}
-                  onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
-                  VAT Number
-                </label>
-                <input
-                  type="text"
-                  name="vat_number"
-                  value={businessDetails.vat_number}
-                  onChange={handleBusinessInputChange}
-                  className="w-full px-3 py-2 outline-none border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-1 focus:ring-primary/50 focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText">
-                  Upload your logo
-                </label>
-                <div className="flex items-center gap-4">
-                  {businessDetails.logo_url && (
-                    <div className="flex-shrink-0">
-                      <img
-                        src={businessDetails.logo_url}
-                        alt="Business logo"
-                        className="h-12 w-12 object-contain rounded-md border border-gray-200 dark:border-gray-700"
-                      />
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-invoice-lightText dark:text-invoice-darkText hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                      <span>Upload</span>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                      />
-                    </label>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      Preferred image size: 512x512 • Format: .png, .svg, .jpg
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Payment Details */}
-        {activeTab === "payment" && (
-          <div className="dark:bg-invoice-darkBg rounded-lg p-8 border border-gray-200 shadow dark:border-gray-800">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-2xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Payment Details</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Set up your preferred payment methods for receiving payments
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Bank Transfer */}
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center mb-6">
-                  <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-3 rounded-lg mr-4">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6 text-white"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                      <path
-                        fillRule="evenodd"
-                        d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-invoice-lightText dark:text-invoice-darkText">Bank Transfer</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Direct bank transfers from your clients</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText mb-2">
-                      Bank Details
-                    </label>
-                    <textarea
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 min-h-[120px] bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors resize-none"
-                      placeholder="Bank Name: Your Bank
-Account Name: Your Name
-Account Number: 123456789
-IBAN: XX00 1234 5678 9012 3456 78
-SWIFT/BIC: BANK1234XXX"
-                      value={userSubscription.bankTransferDetails}
-                      onChange={handleBankDetailsChange}
-                    ></textarea>
-                  </div>
-
-                  <Button
-                    onClick={savePaymentDetails}
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-medium py-2.5"
-                  >
-                    {loading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        Saving...
-                      </span>
-                    ) : (
-                      "Save Bank Details"
-                    )}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Online Payment Link */}
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center mb-6">
-                  <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 p-3 rounded-lg mr-4">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6 text-white"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-                      <path
-                        fillRule="evenodd"
-                        d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-invoice-lightText dark:text-invoice-darkText">Online Payment</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Receive payments through online payment links</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-invoice-lightText dark:text-invoice-darkText mb-2">
-                      Payment Link
-                    </label>
-                    <input
-                      type="url"
-                      placeholder="https://your-payment-link.com"
-                      value={userSubscription.paymentLink || ""}
-                      onChange={handlePaymentLinkChange}
-                      className="w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-invoice-darkBg text-invoice-lightText dark:text-invoice-darkText focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+            <Button onClick={saveBusinessDetails} disabled={loading} className="flex-shrink-0 self-start sm:self-auto">
+              {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…</> : "Save Changes"}
+            </Button>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <FieldGroup label="Contact Name" required>
+              <Input
+                name="contact_name"
+                value={businessDetails.contact_name}
+                onChange={(e) => setBusinessDetails((p) => ({ ...p, contact_name: e.target.value }))}
+                placeholder="John Doe"
+              />
+            </FieldGroup>
+            <FieldGroup label="Business / Company Name">
+              <Input
+                name="business_name"
+                value={businessDetails.business_name}
+                onChange={(e) => setBusinessDetails((p) => ({ ...p, business_name: e.target.value }))}
+                placeholder="Acme Pvt Ltd"
+              />
+            </FieldGroup>
+            <FieldGroup label="Email Address">
+              <Input
+                type="email"
+                name="email"
+                value={businessDetails.email}
+                onChange={(e) => setBusinessDetails((p) => ({ ...p, email: e.target.value }))}
+                placeholder="hello@yourcompany.com"
+              />
+            </FieldGroup>
+            <FieldGroup label="Phone Number">
+              <Input
+                type="tel"
+                name="phone_number"
+                value={businessDetails.phone_number}
+                onChange={(e) => setBusinessDetails((p) => ({ ...p, phone_number: e.target.value }))}
+                placeholder="+91 98765 43210"
+              />
+            </FieldGroup>
+            <FieldGroup label="Street Address" className="md:col-span-2">
+              <Input
+                name="address"
+                value={businessDetails.address}
+                onChange={(e) => setBusinessDetails((p) => ({ ...p, address: e.target.value }))}
+                placeholder="123 Main Street"
+              />
+            </FieldGroup>
+            <FieldGroup label="City">
+              <Input
+                name="city"
+                value={businessDetails.city}
+                onChange={(e) => setBusinessDetails((p) => ({ ...p, city: e.target.value }))}
+                placeholder="Mumbai"
+              />
+            </FieldGroup>
+            <FieldGroup label="Postal Code">
+              <Input
+                name="postal_code"
+                value={businessDetails.postal_code}
+                onChange={(e) => setBusinessDetails((p) => ({ ...p, postal_code: e.target.value }))}
+                placeholder="400001"
+              />
+            </FieldGroup>
+            <FieldGroup label="Region / State">
+              <Input
+                name="region_state"
+                value={businessDetails.region_state}
+                onChange={(e) => setBusinessDetails((p) => ({ ...p, region_state: e.target.value }))}
+                placeholder="Maharashtra"
+              />
+            </FieldGroup>
+            <FieldGroup label="Country">
+              <Input
+                name="country"
+                value={businessDetails.country}
+                onChange={(e) => setBusinessDetails((p) => ({ ...p, country: e.target.value }))}
+                placeholder="India"
+              />
+            </FieldGroup>
+            <FieldGroup label="VAT / GST Number">
+              <Input
+                name="vat_number"
+                value={businessDetails.vat_number}
+                onChange={(e) => setBusinessDetails((p) => ({ ...p, vat_number: e.target.value }))}
+                placeholder="27AAPFU0939F1ZV"
+              />
+            </FieldGroup>
+            {/* Logo Upload */}
+            <div className="md:col-span-2 space-y-1.5">
+              <Label>Business Logo</Label>
+              <div className="flex items-center gap-4">
+                {businessDetails.logo_url && (
+                  <div className="h-14 w-14 rounded-xl border border-border overflow-hidden flex-shrink-0">
+                    <img
+                      src={businessDetails.logo_url}
+                      alt="Business logo"
+                      className="h-full w-full object-contain"
                     />
-                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      Add your preferred online payment link (e.g., Razorpay, Stripe Payment Link, UPI, etc.)
-                    </p>
                   </div>
-
-                  <Button
-                    onClick={savePaymentLink}
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-medium py-2.5"
+                )}
+                <div>
+                  <label
+                    htmlFor="logo-upload"
+                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors"
                   >
-                    {loading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        Saving...
-                      </span>
-                    ) : (
-                      "Save Payment Link"
-                    )}
-                  </Button>
+                    {businessDetails.logo_url ? "Change Logo" : "Upload Logo"}
+                    <input
+                      id="logo-upload"
+                      type="file"
+                      className="sr-only"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                    />
+                  </label>
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    PNG, SVG or JPG · Recommended: 512×512px
+                  </p>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Subscription */}
-        {activeTab === "subscription" && (
-          <Subscription
-            userSubscription={userSubscription}
-            setUserSubscription={setUserSubscription}
-          />
-        )}
+      {/* ── Payment Details ─────────────────────────────────────────────────── */}
+      {activeTab === "payment" && (
+        <div className="space-y-4">
+          <Card className="border-border/60">
+            <CardHeader>
+              <CardTitle>Bank Transfer</CardTitle>
+              <CardDescription>
+                Add your bank account details for clients who prefer bank transfers.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="bank-details">Bank Account Details</Label>
+                <Textarea
+                  id="bank-details"
+                  className="min-h-[140px] resize-none font-mono text-sm"
+                  placeholder={`Bank Name: HDFC Bank\nAccount Name: Your Company\nAccount Number: 1234567890\nIFSC Code: HDFC0001234\nIBAN: —\nSWIFT/BIC: —`}
+                  value={userSubscription.bankTransferDetails}
+                  onChange={(e) =>
+                    setUserSubscription((p) => ({ ...p, bankTransferDetails: e.target.value }))
+                  }
+                />
+              </div>
+              <Button onClick={savePaymentDetails} disabled={loading}>
+                {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…</> : "Save Bank Details"}
+              </Button>
+            </CardContent>
+          </Card>
 
-        {/* Theme Settings */}
-        {activeTab === "theme" && (
-          <div className="dark:bg-invoice-darkBg rounded-lg p-6 border border-gray-200 shadow  dark:border-gray-800">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-invoice-lightText dark:text-invoice-darkText">Theme Settings</h2>
+          <Card className="border-border/60">
+            <CardHeader>
+              <CardTitle>Online Payment Link</CardTitle>
+              <CardDescription>
+                Add a payment link (Razorpay, Stripe, UPI, PayPal, etc.) that will appear on your invoices.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="payment-link">Payment Link URL</Label>
+                <Input
+                  id="payment-link"
+                  type="url"
+                  placeholder="https://razorpay.me/@yourname"
+                  value={userSubscription.paymentLink}
+                  onChange={(e) =>
+                    setUserSubscription((p) => ({ ...p, paymentLink: e.target.value }))
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  Accepts any URL — Razorpay, Stripe Payment Links, UPI intent links, etc.
+                </p>
+              </div>
+              <Button onClick={savePaymentDetails} disabled={loading}>
+                {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…</> : "Save Payment Link"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* ── Preferences ─────────────────────────────────────────────────────── */}
+      {activeTab === "preferences" && (
+        <Card className="border-border/60">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
+            <div>
+              <CardTitle>Invoice Preferences</CardTitle>
+              <CardDescription>
+                Set your defaults for currency, numbering, taxes, and payment terms.
+              </CardDescription>
             </div>
+            <Button onClick={savePreferences} disabled={loading} className="flex-shrink-0 self-start sm:self-auto">
+              {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…</> : "Save Preferences"}
+            </Button>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Currency */}
+            <FieldGroup label="Default Currency">
+              <Select
+                value={preferences.currency}
+                onValueChange={(v) => setPreferences((p) => ({ ...p, currency: v }))}
+              >
+                <SelectTrigger id="currency-select">
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CURRENCIES.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Will be used on all new invoices.
+              </p>
+            </FieldGroup>
 
-            <div className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div>
-                  <h3 className="text-base font-medium text-invoice-lightText dark:text-invoice-darkText">Dark Mode</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Switch between light and dark mode</p>
-                </div>
-                <Button
-                  onClick={toggleTheme}
-                  className="flex items-center justify-center p-2 rounded-full bg-white dark:bg-gray-700 text-invoice-lightText dark:text-invoice-darkText hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                  aria-label="Toggle theme"
+            {/* Invoice Prefix */}
+            <FieldGroup label="Invoice Number Prefix">
+              <Input
+                value={preferences.invoice_prefix}
+                onChange={(e) => setPreferences((p) => ({ ...p, invoice_prefix: e.target.value }))}
+                placeholder="INV"
+                maxLength={10}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Example: <span className="font-mono font-medium">{preferences.invoice_prefix}-2026-1001</span>
+              </p>
+            </FieldGroup>
+
+            {/* Starting Number */}
+            <FieldGroup label="Starting Invoice Number">
+              <Input
+                type="number"
+                value={preferences.invoice_start_number}
+                onChange={(e) =>
+                  setPreferences((p) => ({ ...p, invoice_start_number: e.target.value }))
+                }
+                placeholder="1001"
+                min="1"
+              />
+            </FieldGroup>
+
+            {/* Default Due Days */}
+            <FieldGroup label="Default Payment Terms (Days)">
+              <Input
+                type="number"
+                value={preferences.default_due_days}
+                onChange={(e) => setPreferences((p) => ({ ...p, default_due_days: e.target.value }))}
+                placeholder="30"
+                min="0"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                E.g., 30 means payment due 30 days from invoice date.
+              </p>
+            </FieldGroup>
+
+            {/* Default Tax Name */}
+            <FieldGroup label="Default Tax Label">
+              <Input
+                value={preferences.default_tax_name}
+                onChange={(e) => setPreferences((p) => ({ ...p, default_tax_name: e.target.value }))}
+                placeholder="GST"
+              />
+            </FieldGroup>
+
+            {/* Default Tax Rate */}
+            <FieldGroup label="Default Tax Rate (%)">
+              <Input
+                type="number"
+                value={preferences.default_tax_rate}
+                onChange={(e) => setPreferences((p) => ({ ...p, default_tax_rate: e.target.value }))}
+                placeholder="18"
+                min="0"
+                max="100"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Quick presets:{" "}
+                {["5", "12", "18", "28"].map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setPreferences((p) => ({ ...p, default_tax_rate: r }))}
+                    className="mr-2 text-primary hover:underline font-medium"
+                  >
+                    {r}%
+                  </button>
+                ))}
+              </p>
+            </FieldGroup>
+
+            {/* Default Notes */}
+            <FieldGroup label="Default Invoice Notes" className="md:col-span-2">
+              <Textarea
+                value={preferences.default_notes}
+                onChange={(e) => setPreferences((p) => ({ ...p, default_notes: e.target.value }))}
+                placeholder="Thank you for your business! Payment due within 30 days."
+                rows={3}
+                className="resize-none"
+              />
+            </FieldGroup>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Subscription ────────────────────────────────────────────────────── */}
+      {activeTab === "subscription" && (
+        <Subscription
+          userSubscription={userSubscription}
+          setUserSubscription={setUserSubscription}
+        />
+      )}
+
+      {/* ── Theme ────────────────────────────────────────────────────────────── */}
+      {activeTab === "theme" && (
+        <Card className="border-border/60">
+          <CardHeader>
+            <CardTitle>Appearance</CardTitle>
+            <CardDescription>Customize the look and feel of Invoicelly.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/30">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Dark Mode</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Switch between light and dark interface.
+                </p>
+              </div>
+              <button
+                onClick={toggleTheme}
+                aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+                className={`
+                  relative inline-flex h-7 w-13 items-center rounded-full transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+                  ${isDarkMode ? "bg-primary" : "bg-muted-foreground/30"}
+                `}
+                style={{ width: "52px" }}
+              >
+                <span
+                  className={`
+                    inline-flex h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-300 items-center justify-center
+                    ${isDarkMode ? "translate-x-7" : "translate-x-1"}
+                  `}
                 >
                   {isDarkMode ? (
-                    <Sun className="h-5 w-5" />
+                    <Moon className="h-3 w-3 text-primary" />
                   ) : (
-                    <Moon className="h-5 w-5" />
+                    <Sun className="h-3 w-3 text-amber-500" />
                   )}
-                </Button>
-              </div>
+                </span>
+              </button>
             </div>
-          </div>
-        )}
-      </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Conditional Ad - Only shown for free users */}
-      <div className="mt-8">
-        <ConditionalAd adSlot="1234567894" />
-      </div>
+      <ConditionalAd adSlot="1234567894" />
     </div>
   );
 };
+
+// ─── Field Group Helper ────────────────────────────────────────────────────────
+const FieldGroup = ({
+  label,
+  required,
+  children,
+  className = "",
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <div className={`space-y-1.5 ${className}`}>
+    <Label>
+      {label}
+      {required && <span className="text-destructive ml-1">*</span>}
+    </Label>
+    {children}
+  </div>
+);
 
 export default Settings;

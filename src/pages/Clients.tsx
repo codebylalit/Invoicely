@@ -1,18 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Trash,
-  Edit,
+  Trash2,
+  Edit2,
   Plus,
   Phone,
   Mail,
-  Building,
+  Building2,
   MapPin,
   AlertTriangle,
+  Users,
+  Search,
+  FileText,
+  ChevronRight,
+  UserPlus,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -24,9 +29,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import ConditionalAd from "@/components/ConditionalAd";
 
+// ─── Types ─────────────────────────────────────────────────────────────────────
 interface Client {
   id: string;
   name: string;
@@ -36,81 +53,60 @@ interface Client {
   company?: string;
   created_at?: string;
   invoice_count?: number;
+  total_revenue?: number;
+  pending_revenue?: number;
 }
 
-const FREE_TIER_LIMIT = 5; // Maximum clients for free tier users
+const FREE_TIER_LIMIT = 5;
 
+const fmtCurrency = (v: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(v);
+
+// ─── Main Component ─────────────────────────────────────────────────────────
 const Clients = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentClient, setCurrentClient] = useState<Client | null>(null);
-  const [limitReached, setLimitReached] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
   const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
-  // Form states
+  // Form state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [company, setCompany] = useState("");
+
   const session = useSession();
   const supabase = useSupabaseClient();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [userSubscription, setUserSubscription] = useState({
-    tier: "free", // Default to free
-  });
-
-  const fetchUserSubscription = async () => {
-    try {
-      if (!session?.user?.id) return;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("tier")
-        .eq("user_id", session.user.id)
-        .single();
-
-      if (error && error.code !== "PGRST116") {
-        // Only show error if it's NOT "no rows found"
-        throw error;
-      }
-
-      if (data) {
-        setUserSubscription({
-          tier: data.tier || "free",
-        });
-      } else {
-        // No data: new user, set to default
-        setUserSubscription({
-          tier: "free",
-        });
-      }
-    } catch (error) {
-      // Only show toast for real errors, not for new users
-      if (error.code !== "PGRST116") {
-        toast({
-          title: "Error",
-          description: "Failed to load subscription details",
-          variant: "destructive",
-        });
-      }
-    }
-  };
+  const [userTier, setUserTier] = useState("free");
 
   useEffect(() => {
     if (session?.user?.id) {
-      fetchUserSubscription();
+      supabase
+        .from("profiles")
+        .select("tier")
+        .eq("user_id", session.user.id)
+        .single()
+        .then(({ data }) => setUserTier(data?.tier || "free"));
     }
   }, [session]);
 
   const fetchClients = async () => {
     setLoading(true);
     try {
-      // First get all clients
+      // ── Optimized: single query to get clients + invoice aggregates ──────
       const { data: clientsData, error: clientsError } = await supabase
         .from("clients")
         .select("*")
@@ -118,34 +114,31 @@ const Clients = () => {
 
       if (clientsError) throw clientsError;
 
-      // Then count invoices for each client
-      const clientsWithCounts = await Promise.all(
-        (clientsData || []).map(async (client) => {
-          const { count, error: countError } = await supabase
-            .from("invoices")
-            .select("*", { count: "exact", head: true })
-            .eq("client_name", client.name);
+      // Fetch all invoices once (not N queries)
+      const { data: invoicesData } = await supabase
+        .from("invoices")
+        .select("client_name, total, status");
 
-          if (countError) throw countError;
+      // Build aggregation map
+      const invoiceMap: Record<string, { count: number; total: number; pending: number }> = {};
+      (invoicesData || []).forEach((inv) => {
+        const cn = inv.client_name || "";
+        if (!invoiceMap[cn]) invoiceMap[cn] = { count: 0, total: 0, pending: 0 };
+        invoiceMap[cn].count++;
+        const t = Number(inv.total) || 0;
+        const s = inv.status?.toLowerCase();
+        if (s === "paid") invoiceMap[cn].total += t;
+        else if (s === "pending" || s === "overdue") invoiceMap[cn].pending += t;
+      });
 
-          return {
-            ...client,
-            invoice_count: count || 0,
-          };
-        })
-      );
+      const enriched = (clientsData || []).map((c) => ({
+        ...c,
+        invoice_count: invoiceMap[c.name]?.count || 0,
+        total_revenue: invoiceMap[c.name]?.total || 0,
+        pending_revenue: invoiceMap[c.name]?.pending || 0,
+      }));
 
-      setClients(clientsWithCounts);
-
-      // Check if free tier limit is reached
-      if (
-        userSubscription.tier === "free" &&
-        clientsWithCounts.length >= FREE_TIER_LIMIT
-      ) {
-        setLimitReached(true);
-      } else {
-        setLimitReached(false);
-      }
+      setClients(enriched);
     } catch (error: any) {
       toast({
         title: "Error loading clients",
@@ -159,25 +152,30 @@ const Clients = () => {
 
   useEffect(() => {
     fetchClients();
-  }, [userSubscription]);
+  }, [userTier]);
+
+  const filtered = useMemo(
+    () =>
+      clients.filter(
+        (c) =>
+          !searchQuery ||
+          c.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.email?.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    [clients, searchQuery]
+  );
 
   const resetForm = () => {
-    setName("");
-    setEmail("");
-    setPhone("");
-    setAddress("");
-    setCompany("");
-    setCurrentClient(null);
-    setIsEditing(false);
+    setName(""); setEmail(""); setPhone(""); setAddress(""); setCompany("");
+    setCurrentClient(null); setIsEditing(false);
   };
 
   const openAddDialog = () => {
-    // Check if free user has reached client limit
-    if (userSubscription.tier === "free" && clients.length >= FREE_TIER_LIMIT) {
+    if (userTier === "free" && clients.length >= FREE_TIER_LIMIT) {
       setUpgradeDialogOpen(true);
       return;
     }
-
     resetForm();
     setFormOpen(true);
   };
@@ -193,73 +191,32 @@ const Clients = () => {
     setFormOpen(true);
   };
 
-  const goToSubscription = () => {
-    navigate("/app/settings?tab=subscription");
-    setUpgradeDialogOpen(false);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Double check limit for free users trying to add clients
-    if (
-      !isEditing &&
-      userSubscription.tier === "free" &&
-      clients.length >= FREE_TIER_LIMIT
-    ) {
+    if (!isEditing && userTier === "free" && clients.length >= FREE_TIER_LIMIT) {
       setUpgradeDialogOpen(true);
       return;
     }
 
     const clientData = {
-      name,
-      email: email || null,
-      phone: phone || null,
-      address: address || null,
-      company: company || null,
-      user_id: session.user.id,
+      name, email: email || null, phone: phone || null,
+      address: address || null, company: company || null,
+      user_id: session!.user.id,
     };
 
     try {
       if (isEditing && currentClient) {
-        // Update existing client
-        const { error } = await supabase
-          .from("clients")
-          .update(clientData)
-          .eq("id", currentClient.id);
-
+        const { error } = await supabase.from("clients").update(clientData).eq("id", currentClient.id);
         if (error) throw error;
-
-        // Also update any invoices that reference this client if the name has changed
         if (name !== currentClient.name) {
-          const { error: invoiceUpdateError } = await supabase
-            .from("invoices")
-            .update({ client_name: name })
-            .eq("client_name", currentClient.name);
-
-          if (invoiceUpdateError) throw invoiceUpdateError;
+          await supabase.from("invoices").update({ client_name: name }).eq("client_name", currentClient.name);
         }
-
-        toast({
-          title: "Client updated",
-          description: `${name} has been updated successfully`,
-        });
+        toast({ title: "Client updated", description: `${name} has been updated successfully` });
       } else {
-        // Add new client
-        const { data, error } = await supabase
-          .from("clients")
-          .insert([clientData])
-          .select();
-
+        const { error } = await supabase.from("clients").insert([clientData]);
         if (error) throw error;
-
-        toast({
-          title: "Client added",
-          description: `${name} has been added successfully`,
-        });
+        toast({ title: "Client added", description: `${name} has been added successfully` });
       }
-
-      // Refresh client list
       await fetchClients();
       setFormOpen(false);
       resetForm();
@@ -272,338 +229,364 @@ const Clients = () => {
     }
   };
 
-  const handleDeleteClient = async (client: Client) => {
-    // Check if client has invoices
-    const { count, error: countError } = await supabase
-      .from("invoices")
-      .select("*", { count: "exact", head: true })
-      .eq("client_name", client.name);
-
-    if (countError) {
-      toast({
-        title: "Error checking invoices",
-        description:
-          countError.message || "Failed to check for related invoices",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (count && count > 0) {
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    if ((deleteTarget.invoice_count || 0) > 0) {
       toast({
         title: "Cannot delete client",
-        description: `${client.name} has ${count} invoices. Please delete those invoices first.`,
+        description: `${deleteTarget.name} has ${deleteTarget.invoice_count} invoices. Delete those invoices first.`,
         variant: "destructive",
       });
+      setDeleteTarget(null);
       return;
     }
-
     try {
-      const { error } = await supabase
-        .from("clients")
-        .delete()
-        .eq("id", client.id);
-
+      const { error } = await supabase.from("clients").delete().eq("id", deleteTarget.id);
       if (error) throw error;
-
-      setClients(clients.filter((c) => c.id !== client.id));
-
-      toast({
-        title: "Client deleted",
-        description: `${client.name} has been deleted successfully`,
-      });
+      setClients((prev) => prev.filter((c) => c.id !== deleteTarget.id));
+      if (selectedClient?.id === deleteTarget.id) setSelectedClient(null);
+      toast({ title: "Client deleted", description: `${deleteTarget.name} has been deleted` });
     } catch (error: any) {
-      toast({
-        title: "Error deleting client",
-        description: error.message || "Failed to delete client",
-        variant: "destructive",
-      });
+      toast({ title: "Error deleting client", description: error.message, variant: "destructive" });
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
+  const limitReached = userTier === "free" && clients.length >= FREE_TIER_LIMIT;
+
   return (
-    <div className="ml-64">
-      <div className="flex items-start justify-between mb-6">
-        <h1 className="text-3xl font-bold">Clients</h1>
-        <Button onClick={openAddDialog}>
-          <Plus className="h-4 w-4 mr-2" /> Add Client
+    <div className="space-y-6 pb-4">
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Clients</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {clients.length} client{clients.length !== 1 ? "s" : ""}
+            {userTier === "free" ? ` · Free plan: ${clients.length}/${FREE_TIER_LIMIT}` : ""}
+          </p>
+        </div>
+        <Button onClick={openAddDialog} disabled={limitReached} className="flex-shrink-0">
+          <UserPlus className="h-4 w-4 mr-2" />
+          Add Client
         </Button>
       </div>
 
-      {/* Subscription Tier Banner */}
-      {userSubscription.tier === "free" && (
-        <Card className="mb-6 bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-800">
-          <CardContent className="p-4 flex justify-between items-center">
-            <div>
-              <h3 className="font-medium">
-                {limitReached
-                  ? "You've reached the 5 client limit on the free plan"
-                  : `Free plan: ${clients.length}/${FREE_TIER_LIMIT} clients`}
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Upgrade to Pro for unlimited clients
-              </p>
-            </div>
-            <Button onClick={goToSubscription} variant="default">
-              Upgrade to Pro
-            </Button>
-          </CardContent>
-        </Card>
+      {/* ── Free Tier Banner ─────────────────────────────────────────────────── */}
+      {limitReached && (
+        <div className="flex items-center gap-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+              Free plan limit reached ({FREE_TIER_LIMIT} clients)
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+              Upgrade to Pro for unlimited clients and advanced features.
+            </p>
+          </div>
+          <Button size="sm" onClick={() => navigate("/app/settings?tab=subscription")}>
+            Upgrade to Pro
+          </Button>
+        </div>
       )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              Total Clients
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {clients.length}
-              {userSubscription.tier === "free" && (
-                <span className="text-sm font-normal text-gray-500 ml-2">
-                  of {FREE_TIER_LIMIT}
-                </span>
-              )}
-            </div>
+      {/* ── Summary Cards ──────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <Card className="border-border/60">
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">Total Clients</p>
+            <p className="text-2xl font-bold text-foreground tabular-nums">{clients.length}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              With Invoices
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+        <Card className="border-border/60">
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">With Invoices</p>
+            <p className="text-2xl font-bold text-foreground tabular-nums">
               {clients.filter((c) => (c.invoice_count || 0) > 0).length}
-            </div>
+            </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              No Invoices
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {clients.filter((c) => (c.invoice_count || 0) === 0).length}
-            </div>
+        <Card className="border-border/60 col-span-2 sm:col-span-1">
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">Total Revenue</p>
+            <p className="text-2xl font-bold text-foreground tabular-nums">
+              {fmtCurrency(clients.reduce((s, c) => s + (c.total_revenue || 0), 0))}
+            </p>
           </CardContent>
         </Card>
       </div>
 
+      {/* ── Search ────────────────────────────────────────────────────────────── */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search clients by name, company or email…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {/* ── Client List ───────────────────────────────────────────────────────── */}
       {loading ? (
-        <div className="flex justify-center p-8">
-          <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-20 bg-muted rounded-xl animate-pulse" />
+          ))}
         </div>
-      ) : clients.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <h3 className="text-xl font-medium mb-2">No clients yet</h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
-            Add your first client to get started
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center rounded-xl border border-dashed border-border bg-muted/30">
+          <Users className="h-12 w-12 text-muted-foreground/40 mb-3" />
+          <h3 className="text-lg font-semibold text-foreground mb-1">
+            {clients.length === 0 ? "No clients yet" : "No results found"}
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4 max-w-xs">
+            {clients.length === 0
+              ? "Add your first client to start creating invoices."
+              : "Try adjusting your search query."}
           </p>
-          <Button onClick={openAddDialog}>
-            <Plus className="h-4 w-4 mr-2" /> Add Client
-          </Button>
+          {clients.length === 0 && (
+            <Button onClick={openAddDialog}>
+              <Plus className="h-4 w-4 mr-2" /> Add Client
+            </Button>
+          )}
         </div>
       ) : (
-        <div className="grid gap-4">
-          {clients.map((client) => (
-            <Card key={client.id} className="overflow-hidden">
-              <CardHeader className="bg-gray-50 dark:bg-gray-800 flex flex-row items-center justify-between p-4">
-                <div>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    {client.name}
-                    {(client.invoice_count || 0) > 0 && (
-                      <Badge className="bg-blue-500">
-                        {client.invoice_count}{" "}
-                        {client.invoice_count === 1 ? "Invoice" : "Invoices"}
-                      </Badge>
-                    )}
-                  </CardTitle>
-                  {client.company && (
-                    <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                      <Building className="h-3 w-3 mr-1" /> {client.company}
-                    </div>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => openEditDialog(client)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-red-500 hover:text-red-700"
-                    onClick={() => handleDeleteClient(client)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-                  {client.email && (
-                    <div className="flex items-center">
-                      <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                      <span>{client.email}</span>
-                    </div>
-                  )}
-                  {client.phone && (
-                    <div className="flex items-center">
-                      <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                      <span>{client.phone}</span>
-                    </div>
-                  )}
-                  {client.address && (
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                      <span>{client.address}</span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+        <div className="space-y-3">
+          {filtered.map((client) => (
+            <ClientCard
+              key={client.id}
+              client={client}
+              onEdit={() => openEditDialog(client)}
+              onDelete={() => setDeleteTarget(client)}
+              onSelect={() => setSelectedClient(client === selectedClient ? null : client)}
+              isSelected={selectedClient?.id === client.id}
+            />
           ))}
         </div>
       )}
 
-      {/* Add/Edit Client Dialog */}
-      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+      {/* ── Add / Edit Dialog ─────────────────────────────────────────────────── */}
+      <Dialog open={formOpen} onOpenChange={(o) => { setFormOpen(o); if (!o) resetForm(); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {isEditing ? "Edit Client" : "Add New Client"}
-            </DialogTitle>
+            <DialogTitle>{isEditing ? "Edit Client" : "Add New Client"}</DialogTitle>
             <DialogDescription>
               {isEditing
-                ? "Update the client information. This will also update any invoices associated with this client."
-                : "Add a new client to your system."}
+                ? "Update client details. Linked invoices will also be updated."
+                : "Fill in the details for your new client."}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium" htmlFor="name">
-                Name*
-              </label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Client name"
-                required
-              />
+          <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="client-name">Full Name <span className="text-destructive">*</span></Label>
+              <Input id="client-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" required />
             </div>
-            <div>
-              <label className="text-sm font-medium" htmlFor="email">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email address"
-              />
+            <div className="space-y-1.5">
+              <Label htmlFor="client-email">Email</Label>
+              <Input id="client-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@example.com" />
             </div>
-            <div>
-              <label className="text-sm font-medium" htmlFor="phone">
-                Phone
-              </label>
-              <Input
-                id="phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Phone number"
-              />
+            <div className="space-y-1.5">
+              <Label htmlFor="client-phone">Phone</Label>
+              <Input id="client-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" />
             </div>
-            <div>
-              <label className="text-sm font-medium" htmlFor="company">
-                Company
-              </label>
-              <Input
-                id="company"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                placeholder="Company name"
-              />
+            <div className="space-y-1.5">
+              <Label htmlFor="client-company">Company</Label>
+              <Input id="client-company" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Acme Pvt Ltd" />
             </div>
-            <div>
-              <label className="text-sm font-medium" htmlFor="address">
-                Address
-              </label>
-              <Textarea
-                id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Full address"
-                rows={3}
-              />
+            <div className="space-y-1.5">
+              <Label htmlFor="client-address">Address</Label>
+              <Textarea id="client-address" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="123 Main Street, Mumbai, 400001" rows={3} />
             </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setFormOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">
-                {isEditing ? "Save Changes" : "Add Client"}
-              </Button>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>Cancel</Button>
+              <Button type="submit">{isEditing ? "Save Changes" : "Add Client"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Upgrade Dialog */}
+      {/* ── Upgrade Dialog ─────────────────────────────────────────────────────── */}
       <Dialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Upgrade to Pro</DialogTitle>
-            <DialogDescription>
-              You've reached the limit of {FREE_TIER_LIMIT} clients on the free
-              plan. Upgrade to Pro for unlimited clients and additional
-              features.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center justify-center p-4">
-            <AlertTriangle className="h-16 w-16 text-yellow-500" />
+        <DialogContent className="sm:max-w-md text-center">
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="h-16 w-16 rounded-full bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center">
+              <AlertTriangle className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-foreground">Free Plan Limit Reached</h3>
+              <p className="text-sm text-muted-foreground mt-1.5 max-w-xs mx-auto">
+                You can manage up to {FREE_TIER_LIMIT} clients on the free plan. Upgrade to Pro for unlimited clients.
+              </p>
+            </div>
+            <div className="flex gap-3 w-full">
+              <Button variant="outline" className="flex-1" onClick={() => setUpgradeDialogOpen(false)}>Cancel</Button>
+              <Button
+                className="flex-1"
+                onClick={() => { navigate("/app/settings?tab=subscription"); setUpgradeDialogOpen(false); }}
+              >
+                Upgrade to Pro
+              </Button>
+            </div>
           </div>
-          <div className="text-center mb-4">
-            <h3 className="font-bold text-lg">Free Plan Limit Reached</h3>
-            <p className="text-gray-500">
-              You can manage up to {FREE_TIER_LIMIT} clients on the free plan.
-              Delete existing clients or upgrade to Pro for unlimited clients.
-            </p>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setUpgradeDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={goToSubscription}>Upgrade to Pro</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Conditional Ad - Only shown for free users, placed at bottom */}
-      <div className="mt-6">
-        <ConditionalAd adSlot="1234567893" />
-      </div>
+      {/* ── Delete Confirmation ────────────────────────────────────────────────── */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {deleteTarget?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {(deleteTarget?.invoice_count || 0) > 0
+                ? `This client has ${deleteTarget?.invoice_count} invoices. Please delete those first.`
+                : "This action cannot be undone. The client will be permanently deleted."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            {(deleteTarget?.invoice_count || 0) === 0 && (
+              <AlertDialogAction
+                onClick={confirmDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <ConditionalAd adSlot="1234567893" />
     </div>
   );
 };
+
+// ─── Client Card ──────────────────────────────────────────────────────────────
+const ClientCard = ({
+  client,
+  onEdit,
+  onDelete,
+  onSelect,
+  isSelected,
+}: {
+  client: Client;
+  onEdit: () => void;
+  onDelete: () => void;
+  onSelect: () => void;
+  isSelected: boolean;
+}) => (
+  <Card
+    className={`border-border/60 hover:shadow-md transition-all duration-200 cursor-pointer ${
+      isSelected ? "border-primary/50 shadow-sm" : ""
+    }`}
+  >
+    <CardContent className="p-0">
+      {/* Main row */}
+      <div
+        className="flex items-center gap-4 p-4 sm:p-5"
+        onClick={onSelect}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === "Enter" && onSelect()}
+      >
+        {/* Avatar initials */}
+        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-sm">
+          {client.name?.charAt(0)?.toUpperCase() || "?"}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-foreground text-sm">{client.name}</span>
+            {(client.invoice_count || 0) > 0 && (
+              <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+                <FileText className="h-2.5 w-2.5 mr-1" />
+                {client.invoice_count} invoice{client.invoice_count !== 1 ? "s" : ""}
+              </Badge>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-muted-foreground">
+            {client.company && (
+              <span className="flex items-center gap-1">
+                <Building2 className="h-3 w-3" /> {client.company}
+              </span>
+            )}
+            {client.email && (
+              <span className="flex items-center gap-1">
+                <Mail className="h-3 w-3" /> {client.email}
+              </span>
+            )}
+            {client.phone && (
+              <span className="flex items-center gap-1">
+                <Phone className="h-3 w-3" /> {client.phone}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Right side: revenue + actions */}
+        <div className="flex items-center gap-3 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+          <div className="text-right hidden sm:block">
+            <p className="text-sm font-semibold text-foreground tabular-nums">
+              {fmtCurrency(client.total_revenue || 0)}
+            </p>
+            <p className="text-xs text-muted-foreground">earned</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onEdit}
+            aria-label={`Edit ${client.name}`}
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          >
+            <Edit2 className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onDelete}
+            aria-label={`Delete ${client.name}`}
+            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+          <ChevronRight
+            className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isSelected ? "rotate-90" : ""}`}
+          />
+        </div>
+      </div>
+
+      {/* Expanded detail panel */}
+      {isSelected && (
+        <div className="border-t border-border/60 bg-muted/30 p-4 sm:p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-3 rounded-lg bg-background border border-border/60 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Total Invoices</p>
+              <p className="text-xl font-bold text-foreground tabular-nums">{client.invoice_count || 0}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-background border border-border/60 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Total Earned</p>
+              <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                {fmtCurrency(client.total_revenue || 0)}
+              </p>
+            </div>
+            <div className="p-3 rounded-lg bg-background border border-border/60 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Outstanding</p>
+              <p className="text-xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+                {fmtCurrency(client.pending_revenue || 0)}
+              </p>
+            </div>
+          </div>
+          {client.address && (
+            <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <span>{client.address}</span>
+            </div>
+          )}
+        </div>
+      )}
+    </CardContent>
+  </Card>
+);
 
 export default Clients;
