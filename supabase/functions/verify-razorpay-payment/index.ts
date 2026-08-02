@@ -86,7 +86,7 @@ serve(async (req) => {
     // Update the razorpay_orders table
     const { data: orderRow, error: orderFetchErr } = await supabase
       .from("razorpay_orders")
-      .select("plan")
+      .select("plan, amount")
       .eq("order_id", orderId)
       .single();
 
@@ -95,6 +95,7 @@ serve(async (req) => {
     }
 
     const plan = orderRow?.plan ?? "pro";
+    const amount = Number(orderRow?.amount) || 499;
 
     // Mark order as paid
     await supabase
@@ -102,9 +103,13 @@ serve(async (req) => {
       .update({ status: "paid", payment_id: paymentId })
       .eq("order_id", orderId);
 
-    // Set subscription end date (1 year from now)
+    // Dynamic subscription duration: 365 days for Yearly (₹4,999), 30 days for Monthly (₹499)
     const subscriptionEnd = new Date();
-    subscriptionEnd.setFullYear(subscriptionEnd.getFullYear() + 1);
+    if (amount >= 1000) {
+      subscriptionEnd.setDate(subscriptionEnd.getDate() + 365);
+    } else {
+      subscriptionEnd.setDate(subscriptionEnd.getDate() + 30);
+    }
 
     // Update user's profile / subscribers table
     const { error: profileErr } = await supabase

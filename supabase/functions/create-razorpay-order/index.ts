@@ -16,7 +16,7 @@ serve(async (req) => {
 
   try {
     // ── 2. Parse body ─────────────────────────────────────────────────────
-    const { plan, userId, amount } = await req.json();
+    const { plan, userId, amount, billingCycle } = await req.json();
 
     if (!plan || !userId || !amount) {
       return new Response(
@@ -52,6 +52,7 @@ serve(async (req) => {
         notes: {
           userId: userId,
           plan: plan,
+          billingCycle: billingCycle || (amount > 1000 ? "yearly" : "monthly"),
         },
       }),
     });

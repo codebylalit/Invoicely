@@ -57,7 +57,7 @@ interface Client {
   pending_revenue?: number;
 }
 
-const FREE_TIER_LIMIT = 5;
+const FREE_TIER_LIMIT = 3;
 
 const fmtCurrency = (v: number) =>
   new Intl.NumberFormat("en-IN", {

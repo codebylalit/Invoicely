@@ -9,7 +9,19 @@ interface TemplateProps {
   displayInvoice: any;
   calculatedInvoice: any;
   paymentDetails: any;
+  isPro?: boolean;
 }
+
+const PoweredByFooter = ({ isPro }: { isPro?: boolean }) => {
+  if (isPro) return null;
+  return (
+    <div className="py-2.5 px-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 text-center text-[11px] text-gray-400 font-sans flex items-center justify-center gap-1">
+      <span>Powered by</span>
+      <strong className="text-gray-700 dark:text-gray-300">Invoicely</strong>
+      <span>· Create free professional invoices for your business</span>
+    </div>
+  );
+};
 
 // ─── Shared Helpers ───────────────────────────────────────────────────────────
 const StatusBadge = ({ status, variant = 'default' }: { status?: string; variant?: string }) => {
@@ -122,6 +134,7 @@ export const MinimalWhiteTemplate: React.FC<TemplateProps> = ({ businessDetails,
       <span>{businessDetails.business_name}</span>
       <span>Thank you for your business</span>
     </div>
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 

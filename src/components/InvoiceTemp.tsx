@@ -345,7 +345,7 @@ export const TemplateSelectionModal: React.FC<TemplateSelectionModalProps> = ({
         <div className="flex-1 overflow-auto p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {invoiceTemplates.map((template) => {
-              const isPremium = template.id > 3;
+              const isPremium = template.id >= 3;
               const isDisabled = isPremium && userSubscription.tier !== "pro";
               const isSelected = selectedTemplate?.id === template.id;
 

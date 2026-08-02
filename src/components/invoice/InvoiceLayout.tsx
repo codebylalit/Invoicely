@@ -31,9 +31,10 @@ interface InvoiceLayoutProps {
     displayInvoice: any;
     calculatedInvoice: any;
     paymentDetails: any;
+    isPro?: boolean;
 }
 
-const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => {
+const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, displayInvoice, calculatedInvoice, paymentDetails, isPro }) => {
     switch (layout) {
         case 'default':
             return (

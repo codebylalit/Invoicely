@@ -720,6 +720,7 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
                   displayInvoice={displayInvoice}
                   calculatedInvoice={calculatedInvoice}
                   paymentDetails={paymentDetails}
+                  isPro={userSubscription.tier === "pro"}
                 />
               )}
             </div>

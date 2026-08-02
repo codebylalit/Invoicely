@@ -209,133 +209,103 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
   };
 
   return (
-    <div className="dark:bg-invoice-darkBg border border-gray-200 shadow rounded-lg p-6">
-      <h2 className="text-lg font-medium mb-6 text-invoice-lightText dark:text-invoice-darkText">Simple pricing, no hidden fees</h2>
+    <div className="dark:bg-invoice-darkBg border border-gray-200 dark:border-gray-800 shadow-sm rounded-xl p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-invoice-lightText dark:text-invoice-darkText">Simple, Transparent Pricing</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Choose the plan that fits your business needs</p>
+        </div>
+        {/* Monthly / Yearly Toggle */}
+        <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-lg flex items-center self-start sm:self-auto">
+          <button
+            onClick={() => setBillingCycle("monthly")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+              billingCycle === "monthly"
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-500 hover:text-gray-900 dark:text-gray-400"
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBillingCycle("yearly")}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all flex items-center gap-1 ${
+              billingCycle === "yearly"
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                : "text-gray-500 hover:text-gray-900 dark:text-gray-400"
+            }`}
+          >
+            Yearly
+            <span className="bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded text-[10px] font-bold">Save 20%</span>
+          </button>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Free Plan */}
-        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden flex flex-col justify-between">
           <div className="p-6">
-            <h3 className="text-lg font-medium text-invoice-lightText dark:text-invoice-darkText">Free</h3>
-            <div className="mt-2">
-              <span className="text-2xl font-bold text-invoice-lightText dark:text-invoice-darkText">$0</span>
+            <h3 className="text-lg font-bold text-invoice-lightText dark:text-invoice-darkText">Free Starter</h3>
+            <div className="mt-2 flex items-baseline gap-1">
+              <span className="text-3xl font-black text-invoice-lightText dark:text-invoice-darkText">₹0</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">/ forever</span>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Perfect for getting started</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Perfect for getting started with basic invoices</p>
 
             <Button
-              disabled={userSubscription.tier !== "free"}
-              className="mt-4 w-full py-2 px-4 rounded-md text-center">
+              disabled={userSubscription.tier === "free"}
+              className="mt-6 w-full py-2.5 rounded-lg text-center font-semibold">
               {userSubscription.tier === "free" ? "Current Plan" : "Downgrade to Free"}
             </Button>
           </div>
-          <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-            <ul className="space-y-2">
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
+          <div className="px-6 py-5 bg-gray-50/50 dark:bg-gray-800/40 border-t border-gray-200 dark:border-gray-700 space-y-2.5">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Included in Free:</p>
+            {[
+              "Up to 5 invoices per month",
+              "3 Core Standard Templates",
+              "Store up to 3 clients",
+              "Basic email & bank transfer details",
+              "Powered by Invoicely footer badge",
+              "3 trial AI prompt generations",
+            ].map((feat, i) => (
+              <div key={i} className="flex items-center text-xs text-gray-700 dark:text-gray-300">
+                <svg className="h-4 w-4 mr-2 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                Basic invoice creation
-              </li>
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Store up to 10 clients
-              </li>
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                3 templates
-              </li>
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                PDF export with watermark
-              </li>
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Logo branding
-              </li>
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Basic email support (72hr)
-              </li>
-            </ul>
+                {feat}
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Pro Plan */}
-        <div className="border border-yellow-400 dark:border-yellow-400 rounded-lg overflow-hidden">
+        <div className="border-2 border-amber-500 dark:border-amber-400 rounded-xl overflow-hidden flex flex-col justify-between shadow-md relative">
+          <div className="absolute top-3 right-3 bg-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
+            Recommended
+          </div>
           <div className="p-6">
-            <h3 className="text-lg font-medium text-invoice-lightText dark:text-invoice-darkText">Pro</h3>
-            <div className="mt-2">
-              <span className="text-2xl font-bold text-invoice-lightText dark:text-invoice-darkText">$99</span>
-              <span className="text-gray-500 dark:text-gray-400 ml-1">one-time</span>
+            <h3 className="text-lg font-bold text-invoice-lightText dark:text-invoice-darkText flex items-center gap-1.5">
+              Pro Growth ⚡
+            </h3>
+            <div className="mt-2 flex items-baseline gap-1">
+              <span className="text-3xl font-black text-invoice-lightText dark:text-invoice-darkText">
+                {billingCycle === "monthly" ? "₹499" : "₹4,999"}
+              </span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {billingCycle === "monthly" ? "/ month" : "/ year"}
+              </span>
+              <span className="text-xs text-gray-400 ml-2">($9 USD)</span>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">For growing businesses</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">For freelancers, agencies & growing businesses</p>
 
             {userSubscription.tier === "pro" ? (
-              <div className="space-y-2">
-                <Button className="mt-4 w-full py-2 px-4 rounded-md text-center cursor-not-allowed">
-                  Current Plan
+              <div className="space-y-2 mt-6">
+                <Button className="w-full py-2.5 rounded-lg text-center font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-default">
+                  ✓ Pro Active
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full py-2 px-4 rounded-md text-center"
+                  className="w-full py-2 text-xs rounded-lg text-center"
                   onClick={handleCancelSubscription}
                   disabled={cancelling}
                 >
@@ -343,131 +313,36 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </Button>
               </div>
             ) : (
-              <RazorpayButton
-                plan="pro"
-                amount={99}
-                onSuccess={handleSubscriptionSuccess}
-                disabled={upgrading}
-                className="mt-4 w-full"
-              />
+              <div className="mt-6">
+                <RazorpayButton
+                  plan="pro"
+                  amount={billingCycle === "monthly" ? 499 : 4999}
+                  onSuccess={handleSubscriptionSuccess}
+                  disabled={upgrading}
+                  className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg shadow-sm"
+                />
+              </div>
             )}
           </div>
 
-          <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-            <ul className="space-y-2">
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
+          <div className="px-6 py-5 bg-amber-50/50 dark:bg-amber-950/20 border-t border-amber-200 dark:border-amber-900/40 space-y-2.5">
+            <p className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-2">Everything in Free, plus:</p>
+            {[
+              "Unlimited Invoices & Unlimited Clients",
+              "All 20 Premium Invoice Templates",
+              "100% White-Label (Remove Invoicely branding)",
+              "Live Client Payment Link (/pay/:id) + Confetti 🎉",
+              "Unlimited AI Natural Language Prompt Generator",
+              "GST & Multi-Currency auto-tax calculations",
+              "Collection Autopilot & Automated Email Reminders",
+            ].map((feat, i) => (
+              <div key={i} className="flex items-center text-xs font-medium text-gray-800 dark:text-gray-200">
+                <svg className="h-4 w-4 mr-2 text-amber-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                AI-powered invoice generation
-              </li>
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Unlimited clients in portal
-              </li>
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                10+ premium templates
-              </li>
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Watermark-free exports
-              </li>
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Recurring invoices
-              </li>
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Send invoices directly via email
-              </li>
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Priority support (24hr)
-              </li>
-              <li className="flex items-center text-sm text-invoice-lightText dark:text-invoice-darkText">
-                <svg
-                  className="h-4 w-4 mr-2 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Ad-free experience
-              </li>
-            </ul>
+                {feat}
+              </div>
+            ))}
           </div>
         </div>
       </div>
