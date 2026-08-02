@@ -17,6 +17,7 @@ import {
   Ban,
   CircleDollarSign,
   RefreshCw,
+  Link as LinkIcon,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -502,6 +503,19 @@ const InvoiceCard = ({
               <DropdownMenuContent align="end" className="w-44">
                 <DropdownMenuItem onClick={onView} className="flex items-center gap-2">
                   <Eye className="h-4 w-4" /> View & Download
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const payUrl = `${window.location.origin}/pay/${inv.id}`;
+                    navigator.clipboard.writeText(payUrl);
+                    toast({
+                      title: "Live Payment Link Copied! 🔗",
+                      description: "Share this link with your client to receive payment online.",
+                    });
+                  }}
+                  className="flex items-center gap-2 text-amber-600 font-medium"
+                >
+                  <LinkIcon className="h-4 w-4" /> Copy Client Pay Link
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

@@ -22,6 +22,7 @@ import Subscription from "./components/Subscription";
 import About from "./pages/About";
 import FAQ from "./pages/FAQ";
 import Blog from "./pages/Blog";
+import PublicInvoicePay from "./pages/PublicInvoicePay";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,7 @@ const App = () => {
               <Route path="/about" element={<About />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/blog" element={<Blog />} />
+              <Route path="/pay/:id" element={<PublicInvoicePay />} />
 
               {/* Dashboard layout with nested content */}
               < Route
