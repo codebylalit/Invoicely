@@ -81,93 +81,167 @@ const generateInvoiceNumber = () => {
 };
 
 // Add the mockAiProcess function that was missing
+// Advanced natural language parser for invoice generation
 const mockAiProcess = (prompt: string): Invoice => {
-  // Mock AI processing for invoice generation
   const currentDate = new Date();
   const dueDate = new Date();
-  dueDate.setDate(currentDate.getDate() + 0); // Default to 30 days
+  let dueDays = 30; // Default 30 days payment terms
 
   let clientName = "";
   let clientEmail = "";
-  let amount = 0;
-  let description = prompt;
+  let clientDetails = "";
+  let invoiceTitle = "Invoice";
+  let notes = "";
 
-  // Extract email address - more flexible pattern
-  const emailMatch = prompt.match(/(?:\(|\[)?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?:\)|\])?/);
+  // 1. Extract email address
+  const emailMatch = prompt.match(/(?:mailto:|\(|\[)?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(?:\)|\])?/i);
   if (emailMatch) {
     clientEmail = emailMatch[1].trim();
-    // Remove the email part from the prompt for further processing
-    description = prompt.replace(emailMatch[0], "").trim();
   }
 
-  // Extract amount - more flexible pattern
-  const amountMatch = prompt.match(/(?:USD|$|€|£)?\s*(\d+(?:\.\d{1,2})?)/i);
-  if (amountMatch) {
-    amount = parseFloat(amountMatch[1]);
-    // Remove the amount part from the description
-    description = description.replace(amountMatch[0], "").trim();
+  // 2. Extract due date / terms
+  const dueDaysMatch = prompt.match(/(?:due|payable|payment|net)\s*(?:in|within|after)?\s*(\d+)\s*(?:days|day|d)?/i);
+  if (dueDaysMatch) {
+    dueDays = parseInt(dueDaysMatch[1], 10);
+  } else if (/due\s+tomorrow/i.test(prompt)) {
+    dueDays = 1;
+  } else if (/due\s+(?:on\s+receipt|immediately|urgent)/i.test(prompt)) {
+    dueDays = 0;
+  } else if (/due\s+next\s+week/i.test(prompt)) {
+    dueDays = 7;
   }
+  dueDate.setDate(currentDate.getDate() + dueDays);
 
-  // Extract client name - more flexible pattern
-  const nameMatch = description.match(/(?:for|to|client|customer)\s+([A-Za-z\s]+?)(?:\s*,|\s*\(|\s*$|\s*\[|\s*\]|\s*\-)/i);
-  if (nameMatch) {
-    clientName = nameMatch[1].trim();
-    // Extract the description (everything before the name pattern)
-    const descParts = description.split(/(?:for|to|client|customer)\s+[A-Za-z\s]+/i);
-    if (descParts.length > 0) {
-      description = descParts[0].trim();
+  // 3. Extract Client / Company Name
+  const namePatterns = [
+    /(?:bill\s+to|billed\s+to|client|customer|recipient|to)\s+([A-Za-z0-9\s.,&'-]+?)(?:\s*\(|\s*,|\s*email|\s*due|\s*for\s+\d|\s*\$|\s*₹|\s*rs|\s*inr|\s*$)/i,
+    /(?:for)\s+([A-Z][A-Za-z0-9\s&'-]+?)(?:\s*\(|\s*,|\s*email|\s*due|\s*for|\s*\$|\s*₹|\s*rs|\s*inr|\s*$)/
+  ];
+  for (const pat of namePatterns) {
+    const m = prompt.match(pat);
+    if (m && m[1] && m[1].trim().length > 1 && !/^(an|a|the|invoice|bill|payment|services)$/i.test(m[1].trim())) {
+      clientName = m[1].trim();
+      break;
     }
   }
 
-  // Extract due date - more flexible pattern
-  const dueDaysMatch = prompt.match(/(?:due|payment|payable)\s+(?:in|after|within)?\s*(\d+)\s*(?:days|day|d)?/i);
-  if (dueDaysMatch) {
-    const days = parseInt(dueDaysMatch[1]);
-    dueDate.setDate(currentDate.getDate() + days);
+  // 4. Extract Tax (e.g., 18% GST, 10% tax)
+  const taxes: TaxItem[] = [];
+  const taxMatch = prompt.match(/(\d+(?:\.\d+)?)\%\s*(gst|vat|tax|sales tax)/i);
+  if (taxMatch) {
+    taxes.push({
+      id: "tax_0",
+      name: taxMatch[2].toUpperCase(),
+      rate: parseFloat(taxMatch[1]),
+      amount: 0,
+    });
   }
 
-  // Clean up description
-  description = description
-    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
-    .replace(/^\s+|\s+$/g, '') // Trim whitespace
-    .replace(/[.,]$/, ''); // Remove trailing punctuation
+  // 5. Extract Discount (e.g., 10% discount)
+  const discounts: DiscountItem[] = [];
+  const discountMatch = prompt.match(/(\d+(?:\.\d+)?)\%\s*(?:discount|off)/i);
+  if (discountMatch) {
+    discounts.push({
+      id: "disc_0",
+      name: "Discount",
+      rate: parseFloat(discountMatch[1]),
+      amount: 0,
+    });
+  }
+
+  // 6. Extract Line Items (handles ₹, $, €, £, INR, Rs, comma-separated amounts)
+  // Clean prompt helper for parsing numbers (convert 15,000 -> 15000)
+  const parseNum = (str: string) => parseFloat(str.replace(/,/g, ""));
+
+  const items: InvoiceItem[] = [];
+
+  // Split prompt into candidate item clauses (separated by 'and', '+', ',', '\n', ';')
+  const clauses = prompt.split(/(?:\band\b|\+|\n|;)/i);
+
+  clauses.forEach((clause, index) => {
+    // Match quantity & price patterns:
+    // e.g., "2 logo designs at $150 each" OR "Web development ₹25,000" OR "5 hours @ Rs 500"
+    const itemMatch = clause.match(
+      /(?:(\d+)\s*(?:x|units?|hrs?|hours?|items?)?\s*(?:@|at)?\s*)?([A-Za-z0-9\s\-_/'.]+?)\s*(?:for|at|=|:|\$|₹|rs\.?|inr|usd|€|£)?\s*(?:(?:USD|\$|₹|Rs\.?|INR|EUR|€|GBP|£)\s*)?([\d,]+(?:\.\d{1,2})?)(?:\s*(?:each|per\s*item|per\s*hr|per\s*hour|total))?/i
+    );
+
+    if (itemMatch && itemMatch[3]) {
+      const qty = itemMatch[1] ? parseInt(itemMatch[1], 10) : 1;
+      const rawPrice = parseNum(itemMatch[3]);
+
+      let desc = itemMatch[2]?.trim() || `Item ${index + 1}`;
+
+      // Strip common non-item filler words from description
+      desc = desc
+        .replace(/^(invoice|bill|create|generate|send|charge|for|to|client|customer)\s+/i, "")
+        .replace(/\s+(for|to|client|customer)$/i, "")
+        .trim();
+
+      if (desc.length > 0 && rawPrice > 0) {
+        items.push({
+          id: String(index),
+          description: desc.charAt(0).toUpperCase() + desc.slice(1),
+          quantity: qty,
+          unitPrice: rawPrice,
+          totalPrice: qty * rawPrice,
+        });
+      }
+    }
+  });
+
+  // Fallback single item if clause splitter found nothing
+  if (items.length === 0) {
+    const singlePriceMatch = prompt.match(/(?:USD|\$|₹|Rs\.?|INR|EUR|€|GBP|£)\s*([\d,]+(?:\.\d{1,2})?)|([\d,]+(?:\.\d{1,2})?)\s*(?:USD|\$|₹|Rs\.?|INR|EUR|€|GBP|£)/i);
+    const amount = singlePriceMatch ? parseNum(singlePriceMatch[1] || singlePriceMatch[2]) : 1000;
+
+    let desc = prompt
+      .replace(/(?:mailto:|\(|\[)?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\)|\])?/gi, "")
+      .replace(/(?:USD|\$|₹|Rs\.?|INR|EUR|€|GBP|£)\s*[\d,]+(?:\.\d{1,2})?/gi, "")
+      .replace(/(?:due|payable|net)\s*[\w\s\d]+/gi, "")
+      .replace(/(?:bill|billed|to|for|client|customer)\s+[A-Za-z0-9\s.,&'-]+/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    items.push({
+      id: "0",
+      description: desc.length > 2 ? desc.charAt(0).toUpperCase() + desc.slice(1) : "Services Rendered",
+      quantity: 1,
+      unitPrice: amount,
+      totalPrice: amount,
+    });
+  }
+
+  const subtotal = items.reduce((sum, it) => sum + it.totalPrice, 0);
+
+  // Recalculate tax & discount amounts
+  taxes.forEach((t) => (t.amount = (t.rate / 100) * subtotal));
+  discounts.forEach((d) => (d.amount = (d.rate / 100) * subtotal));
+
+  const totalTax = taxes.reduce((s, t) => s + t.amount, 0);
+  const totalDiscount = discounts.reduce((s, d) => s + d.amount, 0);
+  const grandTotal = subtotal + totalTax - totalDiscount;
 
   return {
     status: "draft",
     dueDate: dueDate.toISOString().split("T")[0],
     name: clientName,
     email: clientEmail,
-    details: "",
-    items: [
-      {
-        id: "0",
-        description: description || "Service provided",
-        quantity: 1,
-        unitPrice: amount,
-        totalPrice: amount,
-      },
-    ],
-    subtotal: amount,
-    total: amount,
+    details: clientDetails,
+    items: items,
+    subtotal: subtotal,
+    total: grandTotal,
     fromCompany: "Your Company",
     invoiceNumber: generateInvoiceNumber(),
-    invoiceTitle: "Invoice",
+    invoiceTitle: invoiceTitle,
     issuedDate: currentDate.toISOString().split("T")[0],
-    notes: "",
+    notes: notes,
     paymentMethods: [
-      {
-        type: "bank",
-        isEnabled: true,
-        instructions: "",
-      },
-      {
-        type: "stripe",
-        isEnabled: false,
-        connectURL: "",
-      },
+      { type: "bank", isEnabled: true, instructions: "" },
+      { type: "stripe", isEnabled: false, connectURL: "" },
     ],
-    taxes: [],
-    discounts: [],
+    taxes: taxes,
+    discounts: discounts,
+    is_recurring: false,
   };
 };
 
@@ -544,13 +618,13 @@ export const InvoiceForm = ({
           enabled:
             generatedInvoice.paymentMethods.find((pm) => pm.type === "bank")
               ?.isEnabled || false,
-          instructions: paymentMethods.bank.instructions,
+          instructions: paymentMethods?.bank?.instructions || "",
         },
-        stripe: {
+        online: {
           enabled:
             generatedInvoice.paymentMethods.find((pm) => pm.type === "stripe")
               ?.isEnabled || false,
-          connectURL: paymentMethods.stripe.connectURL,
+          url: paymentMethods?.online?.url || "",
         },
       });
 
@@ -705,13 +779,13 @@ export const InvoiceForm = ({
   return (
     <div className="flex flex-col gap-6 p-2 rounded-lg w-full max-w-7xl mx-auto">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-        <h2 className="text-lg font-semibold mb-4">Generate with Promt</h2>
+        <h2 className="text-lg font-semibold mb-4">Generate with AI Prompt ✨</h2>
         <textarea
-          className="w-full min-h-[100px] p-3 border rounded-md mb-4 dark:bg-gray-700 dark:border-gray-600 focus-within:border-yellow-400 outline-none"
+          className="w-full min-h-[100px] p-3 border rounded-md mb-4 dark:bg-gray-700 dark:border-gray-600 focus-within:border-primary outline-none"
           placeholder={
             userSubscription.tier === "pro"
-              ? "Describe the work done and we'll generate an invoice (e.g., 'Website development for John Smith (john@example.com) - $500, due in 30 days')"
-              : "Upgrade to Pro to use AI-powered invoice generation"
+              ? "Describe the work (e.g., '2 Logo designs @ ₹5,000 each and Web Dev for ₹25,000 to Rahul Corp (rahul@example.com) with 18% GST, due in 15 days')"
+              : "Upgrade to Pro to use AI-powered natural language invoice generation"
           }
           value={promptText}
           onChange={(e) => setPromptText(e.target.value)}
