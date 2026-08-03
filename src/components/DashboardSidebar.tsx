@@ -13,6 +13,7 @@ import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useEffect, useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
+import Logo from "./Logo";
 
 const menuItems = [
   { icon: LayoutGrid, label: "Dashboard", path: "/app" },
@@ -113,19 +114,7 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
     <div className="w-64 h-full bg-background dark:bg-[hsl(var(--card))] flex flex-col overflow-hidden">
       {/* Logo Row */}
       <div className="p-5 flex items-center justify-between flex-shrink-0">
-        <Link
-          to="/app"
-          className="flex items-center gap-2.5"
-          onClick={onClose}
-          aria-label="Go to Dashboard"
-        >
-          <div className="bg-primary h-8 w-8 rounded-lg flex items-center justify-center shadow-sm">
-            <div className="bg-gray-800 h-4 w-5 rounded-r-full" />
-          </div>
-          <span className="font-bold text-lg text-foreground tracking-tight">
-            invoicelly
-          </span>
-        </Link>
+        <Logo onClick={onClose} href="/app" />
         {/* Close button — only visible inside mobile drawer */}
         {onClose && (
           <Button

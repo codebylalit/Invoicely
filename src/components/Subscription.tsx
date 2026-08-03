@@ -331,7 +331,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               "Unlimited Invoices & Unlimited Clients",
               "All 20 Premium Invoice Templates",
               "100% White-Label (Remove Invoicely branding)",
-              "Live Client Payment Link (/pay/:id) + Confetti 🎉",
+              "Live Client Payment Links + Confetti 🎉",
               "Unlimited AI Natural Language Prompt Generator",
               "GST & Multi-Currency auto-tax calculations",
               "Collection Autopilot & Automated Email Reminders",

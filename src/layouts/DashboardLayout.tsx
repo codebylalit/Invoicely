@@ -4,6 +4,7 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import ConditionalAd from "@/components/ConditionalAd";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import Logo from "@/components/Logo";
 
 // Context to allow child components to control sidebar
 export const SidebarContext = createContext<{
@@ -50,12 +51,7 @@ const DashboardLayout = () => {
         <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
           {/* Mobile Top Header */}
           <header className="lg:hidden sticky top-0 z-20 flex items-center justify-between px-4 py-3 bg-background border-b border-border">
-            <div className="flex items-center gap-2">
-              <div className="bg-primary h-7 w-7 rounded-md flex items-center justify-center flex-shrink-0">
-                <div className="bg-gray-800 h-3.5 w-4 rounded-r-full" />
-              </div>
-              <span className="font-bold text-base text-foreground">invoicelly</span>
-            </div>
+            <Logo size="sm" />
             <Button
               variant="ghost"
               size="icon"
