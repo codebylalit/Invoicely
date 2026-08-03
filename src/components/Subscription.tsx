@@ -246,9 +246,10 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
         <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden flex flex-col justify-between">
           <div className="p-6">
             <h3 className="text-lg font-bold text-invoice-lightText dark:text-invoice-darkText">Free Starter</h3>
-            <div className="mt-2 flex items-baseline gap-1">
-              <span className="text-3xl font-black text-invoice-lightText dark:text-invoice-darkText">₹0</span>
+            <div className="mt-2 flex items-baseline gap-1.5">
+              <span className="text-3xl font-black text-invoice-lightText dark:text-invoice-darkText">$0</span>
               <span className="text-sm text-gray-500 dark:text-gray-400">/ forever</span>
+              <span className="text-xs text-gray-400 ml-1">(₹0)</span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Perfect for getting started with basic invoices</p>
 
@@ -287,14 +288,16 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
             <h3 className="text-lg font-bold text-invoice-lightText dark:text-invoice-darkText flex items-center gap-1.5">
               Pro Growth ⚡
             </h3>
-            <div className="mt-2 flex items-baseline gap-1">
+            <div className="mt-2 flex items-baseline gap-1.5 flex-wrap">
               <span className="text-3xl font-black text-invoice-lightText dark:text-invoice-darkText">
-                {billingCycle === "monthly" ? "₹499" : "₹4,999"}
+                {billingCycle === "monthly" ? "$6" : "$59"}
               </span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
                 {billingCycle === "monthly" ? "/ month" : "/ year"}
               </span>
-              <span className="text-xs text-gray-400 ml-2">($9 USD)</span>
+              <span className="text-xs font-semibold text-gray-400 ml-1">
+                {billingCycle === "monthly" ? "(~₹499 / mo)" : "(~₹4,999 / yr)"}
+              </span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">For freelancers, agencies & growing businesses</p>
 

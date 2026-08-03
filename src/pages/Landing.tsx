@@ -30,8 +30,8 @@ import Logo from "@/components/Logo";
 const pricingTiers = [
   {
     name: "Free",
-    price: "₹0",
-    subPrice: "/ $0",
+    price: "$0",
+    subPrice: "(₹0)",
     period: "/ forever",
     description: "Get started at no cost. No credit card required.",
     badge: null,
@@ -48,13 +48,13 @@ const pricingTiers = [
   },
   {
     name: "Pro",
-    price: "₹499",
-    subPrice: "/ $6 USD",
+    price: "$6",
+    subPrice: "(~₹499)",
     period: "/ month",
-    yearlyNote: "or ₹4,999 / $59 per year — save 17%",
+    yearlyNote: "or $59 / year (~₹4,999) — save 17%",
     description: "For freelancers, agencies & global businesses.",
     badge: "Most Popular",
-    cta: "Start Pro Plan",
+    cta: "Start Pro — $6/mo",
     ctaStyle: "bg-amber-400 hover:bg-amber-500 text-[#1a1a1a] font-bold",
     features: [
       "Unlimited invoices & clients",
