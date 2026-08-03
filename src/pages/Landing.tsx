@@ -618,9 +618,12 @@ const Landing = () => {
                 <div>
                   <h3 className="text-2xl font-black text-[#1a1a1a] mb-1">{tier.name}</h3>
                   <p className="text-xs text-stone-400 mb-5">{tier.description}</p>
-                  <div className="mb-1">
+                  <div className="mb-1 flex items-baseline gap-1.5 flex-wrap">
                     <span className="text-5xl font-black text-[#1a1a1a]">{tier.price}</span>
-                    <span className="text-sm font-semibold text-stone-400 ml-1">{tier.period}</span>
+                    {tier.subPrice && (
+                      <span className="text-xl font-bold text-stone-500">{tier.subPrice}</span>
+                    )}
+                    <span className="text-sm font-semibold text-stone-400">{tier.period}</span>
                   </div>
                   {tier.yearlyNote && (
                     <p className="text-xs text-emerald-600 font-semibold mb-6">{tier.yearlyNote}</p>
