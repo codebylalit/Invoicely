@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { SessionContextProvider, useSession } from '@supabase/auth-helpers-react';
+import { SessionContextProvider, useSession, useSessionContext } from '@supabase/auth-helpers-react';
 import Index from "./pages/Dashboard";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
@@ -35,10 +35,21 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const session = useSession();
+  const { session, isLoading } = useSessionContext();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F5F0E8] text-slate-700">
+        <div className="animate-spin rounded-full h-10 w-10 border-4 border-amber-400 border-t-transparent mb-3" />
+        <p className="text-xs font-semibold tracking-wide uppercase text-stone-500">Loading your session...</p>
+      </div>
+    );
+  }
+
   if (!session) {
     return <Navigate to="/" replace />;
   }
+
   return <>{children}</>;
 };
 
