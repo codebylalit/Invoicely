@@ -20,6 +20,9 @@ import {
   CheckCircle2,
   Send,
   Sparkles,
+  TrendingUp,
+  Award,
+  Lock,
 } from "lucide-react";
 import Logo from "@/components/Logo";
 
@@ -36,7 +39,7 @@ const pricingTiers = [
     description: "Get started at no cost. No credit card required.",
     badge: null,
     cta: "Get Started Free",
-    ctaStyle: "bg-[#1a1a1a] hover:bg-black text-white",
+    ctaStyle: "bg-stone-900 hover:bg-black text-white shadow-md hover:shadow-lg",
     features: [
       "5 invoices per month",
       "3 professional invoice templates",
@@ -55,7 +58,7 @@ const pricingTiers = [
     description: "For freelancers, agencies & global businesses.",
     badge: "Most Popular",
     cta: "Start Pro — $6/mo",
-    ctaStyle: "bg-amber-400 hover:bg-amber-500 text-[#1a1a1a] font-bold",
+    ctaStyle: "bg-amber-400 hover:bg-amber-500 text-[#1a1a1a] font-black shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all",
     features: [
       "Unlimited invoices & clients",
       "All 20 premium templates",
@@ -161,15 +164,22 @@ const testimonials = [
   },
 ];
 
+const metrics = [
+  { value: "$2M+", label: "Invoiced Globally", icon: TrendingUp },
+  { value: "< 30s", label: "Average Setup Time", icon: ZapIcon },
+  { value: "99.2%", label: "On-Time Payments", icon: Award },
+  { value: "100%", label: "Bank-Grade Encryption", icon: Lock },
+];
+
 // ─────────────────────────────────────────────────────────────────────────────
 // FAQ ACCORDION
 // ─────────────────────────────────────────────────────────────────────────────
 const FAQItem = ({ q, a }: { q: string; a: string }) => {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-stone-200 last:border-0">
+    <div className="border-b border-stone-200/80 last:border-0">
       <button
-        className="w-full flex items-center justify-between py-5 text-left gap-4 group"
+        className="w-full flex items-center justify-between py-5 text-left gap-4 group cursor-pointer"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
       >
@@ -177,11 +187,15 @@ const FAQItem = ({ q, a }: { q: string; a: string }) => {
           {q}
         </span>
         <ChevronDown
-          className={`h-5 w-5 text-stone-400 flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180 text-amber-500" : ""}`}
+          className={`h-5 w-5 text-stone-400 flex-shrink-0 transition-transform duration-300 ${
+            open ? "rotate-180 text-amber-500" : "group-hover:text-stone-600"
+          }`}
         />
       </button>
       {open && (
-        <div className="pb-5 text-sm text-stone-500 leading-relaxed">{a}</div>
+        <div className="pb-5 text-sm text-stone-600 leading-relaxed animate-in fade-in-50 duration-200">
+          {a}
+        </div>
       )}
     </div>
   );
@@ -196,6 +210,7 @@ const Landing = () => {
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"ai" | "payment" | "gst">("ai");
 
   useEffect(() => {
     if (session) navigate("/app", { replace: true });
@@ -215,40 +230,43 @@ const Landing = () => {
 
   return (
     <div
-      className="flex flex-col min-h-screen font-sans selection:bg-amber-300 selection:text-[#1a1a1a]"
+      className="flex flex-col min-h-screen font-sans selection:bg-amber-300 selection:text-[#1a1a1a] relative overflow-hidden"
       style={{ backgroundColor: "#F5F0E8", color: "#1a1a1a" }}
     >
+      {/* Dynamic Background Glow Orbs */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-amber-200/40 via-amber-100/20 to-transparent blur-3xl pointer-events-none -z-10" />
+
       {/* ════════════════════════════════════════
-          HEADER
+          GLASSMORPHIC HEADER
       ════════════════════════════════════════ */}
-      <div
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isHeaderVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
-          }`}
-        style={{ backgroundColor: "#F5F0E8" }}
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 backdrop-blur-md bg-[#F5F0E8]/85 border-b border-stone-200/70 ${
+          isHeaderVisible ? "opacity-100 translate-y-0 shadow-sm" : "opacity-0 -translate-y-4"
+        }`}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between border-b border-stone-200/80">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
           <Logo href="/" />
 
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-stone-500">
-            <a href="#howitworks" className="hover:text-[#1a1a1a] transition-colors">How it works</a>
-            <a href="#features" className="hover:text-[#1a1a1a] transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-[#1a1a1a] transition-colors">Pricing</a>
-            <a href="#faq" className="hover:text-[#1a1a1a] transition-colors">FAQ</a>
+          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-stone-600">
+            <a href="#howitworks" className="hover:text-amber-600 transition-colors">How it works</a>
+            <a href="#features" className="hover:text-amber-600 transition-colors">Features</a>
+            <a href="#pricing" className="hover:text-amber-600 transition-colors">Pricing</a>
+            <a href="#faq" className="hover:text-amber-600 transition-colors">FAQ</a>
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button
               onClick={() => navigate("/auth")}
               variant="outline"
               size="sm"
-              className="hidden md:flex font-semibold border-stone-300 bg-transparent hover:bg-stone-100 text-stone-600"
+              className="hidden md:flex font-semibold border-stone-300/80 bg-white/50 hover:bg-white text-stone-700 backdrop-blur-sm transition-all"
             >
               Sign In
             </Button>
             <Button
               onClick={() => navigate("/auth")}
               size="sm"
-              className="bg-amber-400 hover:bg-amber-500 text-[#1a1a1a] font-bold px-4 shadow-sm"
+              className="bg-amber-400 hover:bg-amber-500 text-[#1a1a1a] font-bold px-4 shadow-sm hover:shadow transition-all hover:scale-[1.02]"
             >
               Get Started Free
             </Button>
@@ -256,21 +274,20 @@ const Landing = () => {
               onClick={toggleMobileMenu}
               size="sm"
               variant="ghost"
-              className="md:hidden text-[#1a1a1a] p-2"
+              className="md:hidden text-[#1a1a1a] p-2 hover:bg-stone-200/50"
               aria-label="Open navigation menu"
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </Button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Glass Drawer */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={toggleMobileMenu}>
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs md:hidden" onClick={toggleMobileMenu}>
           <div
-            className="fixed top-0 right-0 h-full w-72 p-6 shadow-2xl flex flex-col justify-between"
-            style={{ backgroundColor: "#F5F0E8" }}
+            className="fixed top-0 right-0 h-full w-72 p-6 shadow-2xl flex flex-col justify-between backdrop-blur-xl bg-[#F5F0E8]/95 border-l border-stone-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div>
@@ -287,129 +304,180 @@ const Landing = () => {
                   { label: "Pricing", href: "#pricing" },
                   { label: "FAQ", href: "#faq" },
                 ].map((item) => (
-                  <a key={item.href} href={item.href} onClick={toggleMobileMenu}
-                    className="py-3 px-3 text-base font-semibold text-stone-700 hover:bg-stone-100 rounded-lg transition-colors">
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={toggleMobileMenu}
+                    className="py-3 px-3 text-base font-semibold text-stone-700 hover:bg-amber-100/50 hover:text-amber-800 rounded-xl transition-all"
+                  >
                     {item.label}
                   </a>
                 ))}
               </nav>
             </div>
-            <Button
-              onClick={() => { navigate("/auth"); toggleMobileMenu(); }}
-              className="w-full bg-amber-400 hover:bg-amber-500 text-[#1a1a1a] font-bold py-6"
-            >
-              Get Started Free
-            </Button>
+            <div className="space-y-2">
+              <Button
+                onClick={() => { navigate("/auth"); toggleMobileMenu(); }}
+                className="w-full bg-amber-400 hover:bg-amber-500 text-[#1a1a1a] font-bold py-6 rounded-xl shadow-md"
+              >
+                Get Started Free
+              </Button>
+            </div>
           </div>
         </div>
       )}
 
       {/* ════════════════════════════════════════
-          HERO
+          HERO SECTION
       ════════════════════════════════════════ */}
-      <section className="pt-36 sm:pt-44 pb-16 sm:pb-24 px-4 sm:px-6 relative overflow-hidden">
-        {/* Floating decorative squares */}
-        <div className="absolute top-24 right-8 sm:right-20 h-12 w-12 sm:h-16 sm:w-16 rounded-2xl bg-amber-400 rotate-12 opacity-80 pointer-events-none" aria-hidden="true" />
-        <div className="absolute bottom-10 left-6 sm:left-16 h-8 w-8 sm:h-12 sm:w-12 rounded-xl bg-amber-400 -rotate-12 opacity-50 pointer-events-none" aria-hidden="true" />
+      <section className="pt-36 sm:pt-44 pb-16 sm:pb-24 px-4 sm:px-6 relative">
+        {/* Floating Decorative Glass Accents */}
+        <div className="absolute top-28 right-6 sm:right-24 h-14 w-14 sm:h-20 sm:w-20 rounded-2xl bg-amber-400/80 rotate-12 blur-[1px] shadow-lg pointer-events-none animate-pulse duration-1000" aria-hidden="true" />
+        <div className="absolute bottom-12 left-4 sm:left-20 h-10 w-10 sm:h-14 sm:w-14 rounded-xl bg-amber-300/60 -rotate-12 blur-[1px] shadow-md pointer-events-none" aria-hidden="true" />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          {/* SaaS pill badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-stone-200 text-stone-600 text-xs font-semibold mb-8 shadow-sm">
-            <Sparkles className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
-            <span>Trusted by freelancers &amp; businesses across the globe 🌍</span>
+          {/* SaaS Pill Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 border border-stone-200/90 text-stone-700 text-xs font-semibold mb-8 shadow-sm backdrop-blur-sm hover:border-amber-400 transition-colors">
+            <Sparkles className="h-4 w-4 text-amber-500 animate-spin" style={{ animationDuration: '6s' }} aria-hidden="true" />
+            <span>Trusted by 10,000+ freelancers &amp; agencies worldwide 🌍</span>
           </div>
 
           {/* Headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] mb-6 text-[#1a1a1a]">
             Create Professional Invoices in{" "}
-            <span className="underline decoration-amber-400 decoration-wavy underline-offset-8">
+            <span className="relative inline-block px-2 py-0.5 rounded-lg bg-amber-300/60 text-[#1a1a1a] border border-amber-400/40">
               30 Seconds
             </span>{" "}
             <br className="hidden sm:block" />
-            — and Actually Get Paid.
+            — and Get Paid Faster.
           </h1>
 
           {/* Sub-headline */}
-          <p className="text-stone-500 text-lg sm:text-xl max-w-xl mx-auto mb-10 leading-relaxed">
-            Stop wasting time on manual invoices. Create, send, and track professional invoices with AI, online payments, and beautiful templates—all in minutes.
+          <p className="text-stone-600 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
+            Stop wasting hours on manual spreadsheets. Create, send, and track stunning invoices with AI prompts, instant payment links, and auto-tax calculation.
           </p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
               onClick={() => navigate("/auth")}
               size="lg"
-              className="w-full sm:w-auto bg-amber-400 hover:bg-amber-500 text-[#1a1a1a] font-bold px-10 py-6 text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              className="w-full sm:w-auto bg-amber-400 hover:bg-amber-500 text-[#1a1a1a] font-extrabold px-10 py-6 text-base rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 group"
             >
-              Get Started Free <ArrowRight className="h-5 w-5 ml-2" aria-hidden="true" />
+              Get Started Free <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
             </Button>
             <a href="#howitworks" className="w-full sm:w-auto">
               <Button
                 variant="outline"
                 size="lg"
-                className="w-full font-semibold px-7 py-6 text-base rounded-xl border-stone-300 bg-transparent hover:bg-stone-100 text-stone-600"
+                className="w-full font-semibold px-8 py-6 text-base rounded-xl border-stone-300 bg-white/60 hover:bg-white text-stone-700 shadow-xs backdrop-blur-xs transition-all"
               >
                 See How It Works
               </Button>
             </a>
           </div>
 
-          {/* Micro trust badges */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-5 text-xs font-medium text-stone-500">
-            <span className="flex items-center gap-1.5">
+          {/* Trust Badges */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold text-stone-500">
+            <span className="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-lg border border-stone-200/60">
               <ShieldCheck className="h-4 w-4 text-amber-500" aria-hidden="true" />
               No credit card required
             </span>
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-lg border border-stone-200/60">
               <CheckIcon className="h-4 w-4 text-amber-500" aria-hidden="true" />
-              GST &amp; multi-currency ready
+              GST &amp; Multi-currency ready
             </span>
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-2 bg-white/70 px-3 py-1.5 rounded-lg border border-stone-200/60">
               <Globe className="h-4 w-4 text-amber-500" aria-hidden="true" />
-              Instant PDF download
+              Instant 1-Click PDF export
             </span>
           </div>
         </div>
       </section>
 
       {/* ════════════════════════════════════════
-          VIDEO PREVIEW
+          METRICS BANNER
       ════════════════════════════════════════ */}
-      <section className="pb-4 px-4 sm:px-6 max-w-5xl mx-auto w-full">
-        <div className="rounded-2xl overflow-hidden shadow-2xl border border-stone-200/60">
-          {/* Browser chrome */}
-          <div className="flex items-center gap-2 px-4 py-3 bg-white border-b border-stone-100">
+      <section className="pb-12 px-4 sm:px-6 max-w-5xl mx-auto w-full">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/80 backdrop-blur-md rounded-2xl border border-stone-200/80 shadow-md">
+          {metrics.map((m) => (
+            <div key={m.label} className="text-center p-3">
+              <m.icon className="h-5 w-5 text-amber-500 mx-auto mb-2" />
+              <div className="text-2xl sm:text-3xl font-black text-stone-900">{m.value}</div>
+              <div className="text-xs font-semibold text-stone-500 mt-1">{m.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════
+          VIDEO / INTERACTIVE PREVIEW
+      ════════════════════════════════════════ */}
+      <section className="pb-16 px-4 sm:px-6 max-w-5xl mx-auto w-full">
+        {/* Interactive Feature Pills */}
+        <div className="flex items-center justify-center gap-2 mb-6 flex-wrap">
+          {[
+            { id: "ai", label: "✨ AI Invoice Generator" },
+            { id: "payment", label: "💳 Instant Payment Link" },
+            { id: "gst", label: "🧾 Auto GST & Currency" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                activeTab === tab.id
+                  ? "bg-stone-900 text-white shadow-md"
+                  : "bg-white/80 text-stone-600 hover:bg-white border border-stone-200"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Browser Mockup Shell */}
+        <div className="rounded-2xl overflow-hidden shadow-2xl border border-stone-300/80 bg-white group hover:shadow-3xl transition-shadow duration-500">
+          {/* Browser Top Chrome */}
+          <div className="flex items-center gap-2 px-4 py-3 bg-stone-100/90 border-b border-stone-200">
             <div className="flex gap-1.5">
               <span className="h-3 w-3 rounded-full bg-red-400" aria-hidden="true" />
               <span className="h-3 w-3 rounded-full bg-amber-400" aria-hidden="true" />
               <span className="h-3 w-3 rounded-full bg-green-400" aria-hidden="true" />
             </div>
-            <div className="flex-1 mx-3 bg-stone-100 rounded px-3 py-1 text-xs text-stone-400 text-center font-mono">
-              app.invoicely.me/dashboard
+            <div className="flex-1 mx-3 bg-white border border-stone-200 rounded-md px-3 py-1 text-xs text-stone-500 text-center font-mono shadow-inner flex items-center justify-center gap-2">
+              <Lock className="h-3 w-3 text-emerald-600" /> app.invoicely.me/dashboard
             </div>
           </div>
-          <div className="aspect-video">
-            <video className="w-full h-full object-cover" autoPlay muted loop playsInline poster="/video-poster.jpg">
+
+          <div className="aspect-video relative bg-stone-900">
+            <video
+              className="w-full h-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster="/video-poster.jpg"
+            >
               <source src="/invoicely preview.mp4" type="video/mp4" />
             </video>
           </div>
         </div>
-        <p className="text-center text-sm text-stone-400 mt-4 font-medium">
-          Your entire invoicing workflow — in one beautiful dashboard
+        <p className="text-center text-sm text-stone-500 mt-4 font-medium">
+          ⚡ Create, customize, and deliver invoices seamlessly from one intuitive dashboard.
         </p>
       </section>
 
       {/* ════════════════════════════════════════
           WHO IT'S FOR
       ════════════════════════════════════════ */}
-      <section className="py-12 px-4 sm:px-6">
+      <section className="py-10 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-5">Made for</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-5">Designed Specifically For</p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             {["Freelancers", "Agencies", "Consultants", "Creators", "Startups", "Small Businesses"].map((who) => (
               <span
                 key={who}
-                className="px-4 py-2 rounded-full bg-white border border-stone-200 text-stone-600 text-sm font-semibold shadow-sm hover:border-amber-400 hover:text-amber-700 transition-colors cursor-default"
+                className="px-4 py-2.5 rounded-xl bg-white border border-stone-200 text-stone-700 text-sm font-semibold shadow-xs hover:border-amber-400 hover:bg-amber-50 hover:text-amber-900 transition-all cursor-default"
               >
                 {who}
               </span>
@@ -421,84 +489,86 @@ const Landing = () => {
       {/* ════════════════════════════════════════
           HOW IT WORKS
       ════════════════════════════════════════ */}
-      <section id="howitworks" className="py-20 sm:py-28 px-4 sm:px-6 bg-white">
+      <section id="howitworks" className="py-20 sm:py-28 px-4 sm:px-6 bg-white border-y border-stone-200/70">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-3">Simple by design</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">Simple by Design</p>
             <h2 className="text-4xl sm:text-5xl font-black text-[#1a1a1a] mb-4">
-              From idea to paid — in under a minute
+              From Idea to Paid — in 3 Easy Steps
             </h2>
-            <p className="text-stone-500 text-base max-w-md mx-auto">
-              No training. No complicated setup. Just describe your work and get paid.
+            <p className="text-stone-600 text-base max-w-md mx-auto">
+              No manual formatting. No spreadsheets. Get paid faster in minutes.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
                 num: "1",
                 title: "Describe Your Work",
-                desc: "Type what you did, or let AI generate the invoice from a short prompt. Items, rates, and GST are added automatically.",
+                desc: "Type what you did or let AI generate your line items automatically. Rates, quantities, and GST are calculated for you.",
               },
               {
                 num: "2",
-                title: "Pick a Template",
-                desc: "Choose from 20 professionally designed invoice styles. Preview instantly. Switch in one click.",
+                title: "Choose a Template",
+                desc: "Select from 20 modern invoice designs. Customize colors, add your brand logo, and preview instant PDF output.",
               },
               {
                 num: "3",
                 title: "Share & Get Paid",
-                desc: "Send a payment link. Your client pays online via UPI or card. You're notified the moment payment lands.",
+                desc: "Send a live payment link. Clients pay via UPI, Razorpay, or credit card. Get notified the second payment arrives.",
               },
             ].map((step) => (
               <div
                 key={step.num}
-                className="p-7 bg-white rounded-2xl border border-stone-100 shadow-md hover:shadow-lg transition-shadow flex flex-col"
+                className="p-8 bg-[#F5F0E8]/50 rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all flex flex-col group"
               >
-                <div className="h-11 w-11 rounded-xl bg-amber-400 text-[#1a1a1a] font-black text-lg flex items-center justify-center mb-5 flex-shrink-0">
+                <div className="h-12 w-12 rounded-xl bg-amber-400 text-[#1a1a1a] font-black text-xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform">
                   {step.num}
                 </div>
-                <h3 className="text-lg font-bold text-[#1a1a1a] mb-2">{step.title}</h3>
-                <p className="text-sm text-stone-500 leading-relaxed">{step.desc}</p>
+                <h3 className="text-xl font-bold text-[#1a1a1a] mb-3">{step.title}</h3>
+                <p className="text-sm text-stone-600 leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
 
-          <div className="text-center mt-10">
+          <div className="text-center mt-12">
             <Button
               onClick={() => navigate("/auth")}
-              className="bg-amber-400 hover:bg-amber-500 text-[#1a1a1a] font-bold px-9 py-5 rounded-xl text-sm shadow-md hover:shadow-lg transition-all"
+              className="bg-amber-400 hover:bg-amber-500 text-[#1a1a1a] font-bold px-10 py-6 rounded-xl text-base shadow-md hover:shadow-lg transition-all"
             >
-              Try It Free <ArrowRight className="h-4 w-4 ml-2 inline" aria-hidden="true" />
+              Try It Free Now <ArrowRight className="h-5 w-5 ml-2 inline" aria-hidden="true" />
             </Button>
           </div>
         </div>
       </section>
 
       {/* ════════════════════════════════════════
-          FEATURES
+          FEATURES GRID
       ════════════════════════════════════════ */}
       <section id="features" className="py-20 sm:py-28 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-3">Why Invoicely</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">Why Invoicely</p>
             <h2 className="text-4xl sm:text-5xl font-black text-[#1a1a1a] mb-4">
-              Built to save you 10+ hours a month
+              Everything You Need to Run Your Invoicing
             </h2>
-            <p className="text-stone-500 text-base max-w-lg mx-auto">
-              Every feature is designed around one goal — less admin, more revenue.
+            <p className="text-stone-600 text-base max-w-lg mx-auto">
+              Save 10+ hours every month while maintaining a polished professional brand image.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f) => (
               <div
                 key={f.title}
-                className="p-7 bg-white rounded-2xl border border-stone-100 shadow-md hover:shadow-lg transition-shadow group"
+                className="p-8 bg-white rounded-2xl border border-stone-200/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
               >
-                <f.icon className="h-7 w-7 text-amber-400 mb-5 group-hover:scale-110 transition-transform" aria-hidden="true" />
-                <h3 className="text-base font-bold text-[#1a1a1a] mb-2">{f.title}</h3>
-                <p className="text-sm text-stone-500 leading-relaxed">{f.desc}</p>
+                <div className="h-12 w-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-6 group-hover:bg-amber-400 group-hover:text-[#1a1a1a] transition-colors">
+                  <f.icon className="h-6 w-6" aria-hidden="true" />
+                </div>
+                <h3 className="text-lg font-bold text-[#1a1a1a] mb-2">{f.title}</h3>
+                <p className="text-sm text-stone-600 leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -508,41 +578,41 @@ const Landing = () => {
       {/* ════════════════════════════════════════
           COMPARISON TABLE
       ════════════════════════════════════════ */}
-      <section className="py-20 sm:py-28 px-4 sm:px-6 bg-white">
+      <section className="py-20 sm:py-28 px-4 sm:px-6 bg-white border-y border-stone-200/70">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-3">The difference</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">The Difference</p>
             <h2 className="text-4xl sm:text-5xl font-black text-[#1a1a1a] mb-4">
-              Why switch from spreadsheets?
+              Why Switch from Spreadsheets?
             </h2>
-            <p className="text-stone-500 text-base max-w-md mx-auto">
-              See what you're leaving on the table every time you invoice manually.
+            <p className="text-stone-600 text-base max-w-md mx-auto">
+              See what manual invoicing is costing your business every single week.
             </p>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-stone-200 shadow-md">
+          <div className="overflow-hidden rounded-2xl border border-stone-200 shadow-md">
             <table className="w-full bg-white text-sm">
               <thead>
-                <tr className="border-b border-stone-100">
-                  <th className="text-left px-6 py-4 font-bold text-stone-400 text-xs uppercase tracking-wider w-1/3">Task</th>
-                  <th className="px-6 py-4 font-bold text-stone-400 text-xs uppercase tracking-wider text-center">
+                <tr className="border-b border-stone-200 bg-stone-50/80">
+                  <th className="text-left px-6 py-4 font-bold text-stone-500 text-xs uppercase tracking-wider w-1/3">Task</th>
+                  <th className="px-6 py-4 font-bold text-red-600 text-xs uppercase tracking-wider text-center bg-red-50/40">
                     <span className="flex items-center justify-center gap-2">
-                      <XCircle className="h-4 w-4 text-red-400" aria-hidden="true" /> Without Invoicely
+                      <XCircle className="h-4 w-4 text-red-500" aria-hidden="true" /> Without Invoicely
                     </span>
                   </th>
-                  <th className="px-6 py-4 font-bold text-amber-600 text-xs uppercase tracking-wider text-center bg-amber-50/60">
+                  <th className="px-6 py-4 font-bold text-amber-800 text-xs uppercase tracking-wider text-center bg-amber-100/60">
                     <span className="flex items-center justify-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-amber-500" aria-hidden="true" /> With Invoicely
+                      <CheckCircle2 className="h-4 w-4 text-amber-600" aria-hidden="true" /> With Invoicely
                     </span>
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {comparisonRows.map((row, i) => (
-                  <tr key={row.label} className={i % 2 === 0 ? "bg-white" : "bg-stone-50/40"}>
+                  <tr key={row.label} className={`border-b border-stone-100 last:border-0 ${i % 2 === 0 ? "bg-white" : "bg-stone-50/30"}`}>
                     <td className="px-6 py-4 font-semibold text-[#1a1a1a]">{row.label}</td>
-                    <td className="px-6 py-4 text-center text-stone-500">{row.without}</td>
-                    <td className="px-6 py-4 text-center font-semibold text-emerald-700 bg-amber-50/30">{row.with}</td>
+                    <td className="px-6 py-4 text-center text-stone-500 bg-red-50/10">{row.without}</td>
+                    <td className="px-6 py-4 text-center font-bold text-emerald-800 bg-amber-50/50">{row.with}</td>
                   </tr>
                 ))}
               </tbody>
@@ -557,31 +627,33 @@ const Landing = () => {
       <section className="py-20 sm:py-28 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-3">What people say</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">Community Love</p>
             <h2 className="text-4xl sm:text-5xl font-black text-[#1a1a1a] mb-4">
-              Freelancers &amp; businesses love Invoicely
+              Loved by Freelancers &amp; Business Owners
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((t) => (
               <div
                 key={t.name}
-                className="p-7 bg-white rounded-2xl border border-stone-100 shadow-md hover:shadow-lg transition-shadow flex flex-col gap-4"
+                className="p-8 bg-white rounded-2xl border border-stone-200/80 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between"
               >
-                <div className="flex gap-0.5" aria-label={`${t.stars} out of 5 stars`}>
-                  {Array.from({ length: t.stars }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden="true" />
-                  ))}
+                <div>
+                  <div className="flex gap-1 mb-4" aria-label={`${t.stars} out of 5 stars`}>
+                    {Array.from({ length: t.stars }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden="true" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-stone-700 leading-relaxed font-medium mb-6">"{t.quote}"</p>
                 </div>
-                <p className="text-sm text-stone-600 leading-relaxed flex-1">"{t.quote}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                <div className="flex items-center gap-3 pt-4 border-t border-stone-100">
+                  <div className="h-10 w-10 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center font-extrabold text-xs flex-shrink-0 shadow-xs">
                     {t.initials}
                   </div>
                   <div>
                     <p className="text-sm font-bold text-[#1a1a1a]">{t.name}</p>
-                    <p className="text-xs text-stone-400">{t.role}</p>
+                    <p className="text-xs text-stone-500 font-medium">{t.role}</p>
                   </div>
                 </div>
               </div>
@@ -593,46 +665,47 @@ const Landing = () => {
       {/* ════════════════════════════════════════
           PRICING
       ════════════════════════════════════════ */}
-      <section id="pricing" className="py-20 sm:py-28 px-4 sm:px-6 bg-white">
+      <section id="pricing" className="py-20 sm:py-28 px-4 sm:px-6 bg-white border-y border-stone-200/70">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-3">Pricing</p>
-            <h2 className="text-4xl sm:text-5xl font-black text-[#1a1a1a] mb-4">Simple Pricing. Start Free.</h2>
-            <p className="text-stone-500 text-base max-w-md mx-auto">
-              Use it free forever. Upgrade when your business grows.
+            <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">Transparent Pricing</p>
+            <h2 className="text-4xl sm:text-5xl font-black text-[#1a1a1a] mb-4">Start Free. Upgrade Anytime.</h2>
+            <p className="text-stone-600 text-base max-w-md mx-auto">
+              No hidden fees. Pick the plan that fits your current workflow.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 items-stretch">
+          <div className="grid md:grid-cols-2 gap-8 items-stretch">
             {pricingTiers.map((tier) => (
               <div
                 key={tier.name}
-                className={`p-8 rounded-2xl bg-white flex flex-col justify-between shadow-md hover:shadow-lg transition-shadow relative border ${tier.badge ? "border-2 border-amber-400" : "border-stone-100"
-                  }`}
+                className={`p-8 rounded-2xl bg-white flex flex-col justify-between shadow-md hover:shadow-xl transition-all relative border ${
+                  tier.badge ? "border-2 border-amber-400 bg-amber-50/10" : "border-stone-200"
+                }`}
               >
                 {tier.badge && (
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-[#1a1a1a] text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full whitespace-nowrap">
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-[#1a1a1a] text-[10px] font-black uppercase tracking-widest px-4 py-1 rounded-full shadow-sm">
                     {tier.badge}
                   </span>
                 )}
                 <div>
                   <h3 className="text-2xl font-black text-[#1a1a1a] mb-1">{tier.name}</h3>
-                  <p className="text-xs text-stone-400 mb-5">{tier.description}</p>
-                  <div className="mb-1 flex items-baseline gap-1.5 flex-wrap">
+                  <p className="text-xs text-stone-500 mb-6">{tier.description}</p>
+                  <div className="mb-2 flex items-baseline gap-1.5 flex-wrap">
                     <span className="text-5xl font-black text-[#1a1a1a]">{tier.price}</span>
                     {tier.subPrice && (
                       <span className="text-xl font-bold text-stone-500">{tier.subPrice}</span>
                     )}
-                    <span className="text-sm font-semibold text-stone-400">{tier.period}</span>
+                    <span className="text-sm font-semibold text-stone-500">{tier.period}</span>
                   </div>
                   {tier.yearlyNote && (
-                    <p className="text-xs text-emerald-600 font-semibold mb-6">{tier.yearlyNote}</p>
+                    <p className="text-xs text-emerald-700 font-bold mb-6">{tier.yearlyNote}</p>
                   )}
                   {!tier.yearlyNote && <div className="mb-6" />}
-                  <ul className="space-y-3">
+                  <ul className="space-y-3.5 border-t border-stone-100 pt-6">
                     {tier.features.map((feat, idx) => (
-                      <li key={idx} className="flex items-center text-sm text-stone-600">
-                        <CheckIcon className="h-4 w-4 text-amber-400 mr-2.5 flex-shrink-0" aria-hidden="true" />
+                      <li key={idx} className="flex items-center text-sm font-medium text-stone-700">
+                        <CheckIcon className="h-4 w-4 text-amber-500 mr-3 flex-shrink-0" aria-hidden="true" />
                         {feat}
                       </li>
                     ))}
@@ -648,8 +721,8 @@ const Landing = () => {
             ))}
           </div>
 
-          <p className="text-center text-xs text-stone-400 mt-6">
-            All plans include PDF export, GST support, and bank / UPI payment details. No hidden fees.
+          <p className="text-center text-xs text-stone-500 mt-8 font-medium">
+            🔒 All plans include PDF exports, GST calculations, and custom bank/UPI payment setup.
           </p>
         </div>
       </section>
@@ -660,10 +733,10 @@ const Landing = () => {
       <section id="faq" className="py-20 sm:py-28 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <p className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-3">FAQ</p>
-            <h2 className="text-4xl sm:text-5xl font-black text-[#1a1a1a] mb-4">Questions? We've got answers.</h2>
+            <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">Got Questions?</p>
+            <h2 className="text-4xl sm:text-5xl font-black text-[#1a1a1a] mb-4">Frequently Asked Questions</h2>
           </div>
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-md px-6">
+          <div className="bg-white rounded-2xl border border-stone-200 shadow-sm px-8 py-2">
             {faqs.map((faq) => (
               <FAQItem key={faq.q} q={faq.q} a={faq.a} />
             ))}
@@ -674,22 +747,22 @@ const Landing = () => {
       {/* ════════════════════════════════════════
           FOOTER
       ════════════════════════════════════════ */}
-      <footer className="py-8 bg-[#1a1a1a] text-stone-500 text-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2 text-xs text-stone-500">
-            <span>Made with</span>
+      <footer className="py-10 bg-[#1a1a1a] text-stone-400 text-sm border-t border-stone-800">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2 text-xs text-stone-400 font-medium">
+            <span>Built with</span>
             <span className="text-amber-400">🧡</span>
             <span>© {new Date().getFullYear()} Invoicely. All rights reserved.</span>
           </div>
-          <div className="flex flex-wrap justify-center gap-6 text-xs font-medium">
-            <Link to="/terms" className="hover:text-white transition-colors">Terms &amp; conditions</Link>
-            <Link to="/privacy" className="hover:text-white transition-colors">Privacy policy</Link>
-            <Link to="/refunds" className="hover:text-white transition-colors">Cancellation &amp; Refunds</Link>
-            <Link to="/contact-us" className="hover:text-white transition-colors">Contact Us</Link>
+          <div className="flex flex-wrap justify-center gap-6 text-xs font-semibold">
+            <Link to="/terms" className="hover:text-amber-400 transition-colors">Terms &amp; Conditions</Link>
+            <Link to="/privacy" className="hover:text-amber-400 transition-colors">Privacy Policy</Link>
+            <Link to="/refunds" className="hover:text-amber-400 transition-colors">Cancellation &amp; Refunds</Link>
+            <Link to="/contact-us" className="hover:text-amber-400 transition-colors">Contact Us</Link>
           </div>
         </div>
       </footer>
-    </div >
+    </div>
   );
 };
 
