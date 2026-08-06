@@ -1,4 +1,4 @@
-﻿import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -464,21 +464,62 @@ const Settings = () => {
                   id="bank-details"
                   className="min-h-[140px] resize-none font-mono text-sm rounded-xl border-stone-200"
                   placeholder={`Bank Name: HDFC Bank\nAccount Name: Your Company\nAccount Number: 1234567890\nIFSC Code: HDFC0001234\nIBAN: â€”\nSWIFT/BIC: â€”`}
+                  placeholder={`Bank Name: HDFC Bank\nAccount Name: Your Company\nAccount Number: 1234567890\nIFSC Code: HDFC0001234\nIBAN: —\nSWIFT/BIC: —`}
                   value={userSubscription.bankTransferDetails}
                   onChange={(e) =>
                     setUserSubscription((p) => ({ ...p, bankTransferDetails: e.target.value }))
                   }
                 />
               </div>
+              <button
+                onClick={savePaymentDetails}
+                disabled={loading}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm text-white disabled:opacity-60 transition-all hover:shadow-md"
+                style={{ backgroundColor: "#0A0A0A" }}
+              >
+                {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</> : "Save Bank Details"}
+              </button>
+            </CardContent>
+          </Card>
 
-          <Card className="border-border/60">
+          <Card className="border-stone-200/80 bg-white rounded-2xl">
             <CardHeader>
-              <CardTitle>Online Payment Link</CardTitle>
-              <CardDescription>
+              <CardTitle className="font-black text-[#0A0A0A] tracking-tight">Online Payment Link</CardTitle>
+              <CardDescription className="text-stone-400">
                 Add a payment link (Razorpay, Stripe, UPI, PayPal, etc.) that will appear on your invoices.
               </CardDescription>
             </CardHeader>
-             {/* â”€â”€ Preferences â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="payment-link">Payment Link URL</Label>
+                <Input
+                  id="payment-link"
+                  type="url"
+                  placeholder="https://razorpay.me/@yourname"
+                  value={userSubscription.paymentLink}
+                  onChange={(e) =>
+                    setUserSubscription((p) => ({ ...p, paymentLink: e.target.value }))
+                  }
+                  className="rounded-xl border-stone-200"
+                />
+                <p className="text-xs text-stone-400">
+                  Accepts any URL — Razorpay, Stripe Payment Links, UPI intent links, etc.
+                </p>
+              </div>
+              <button
+                onClick={savePaymentDetails}
+                disabled={loading}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm text-white disabled:opacity-60 transition-all hover:shadow-md"
+                style={{ backgroundColor: "#0A0A0A" }}
+              >
+                {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</> : "Save Payment Link"}
+              </button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* ──────────────────────────────────────────────────────────────────────── */}
       {activeTab === "preferences" && (
         <Card className="border-stone-200/80 bg-white rounded-2xl">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
