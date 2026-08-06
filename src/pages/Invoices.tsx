@@ -280,11 +280,16 @@ const Invoices = () => {
 
   return (
     <div className="space-y-6 pb-4">
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      {/* ── Header ────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Invoices</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h1
+            className="text-2xl sm:text-3xl font-black tracking-tight"
+            style={{ color: "#0A0A0A", fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+          >
+            Invoices
+          </h1>
+          <p className="text-sm text-stone-400 mt-1">
             {invoices.length} total invoice{invoices.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -295,6 +300,7 @@ const Invoices = () => {
             onClick={fetchInvoices}
             disabled={loading}
             aria-label="Refresh invoices"
+            className="rounded-full border-stone-200 hover:border-stone-400"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
@@ -302,21 +308,22 @@ const Invoices = () => {
         </div>
       </div>
 
-      {/* ── Search + Filters ────────────────────────────────────────────────── */}
+      {/* ── Search + Filters ────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+          <input
+            type="text"
             placeholder="Search by client name, invoice #, or email…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="w-full pl-10 pr-4 py-2.5 rounded-full border border-stone-200 bg-white text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
           />
         </div>
       </div>
 
-      {/* ── Status Filter Tabs ───────────────────────────────────────────────── */}
+      {/* ── Status Filter Tabs ─────────────────────────────────────────────── */}
       <div className="flex gap-2 flex-wrap">
         {ALL_STATUSES.map((s) => {
           const count = statusCounts[s] || 0;
@@ -325,19 +332,19 @@ const Invoices = () => {
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 border ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-150 ${
                 statusFilter === s
-                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                  : "bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground"
+                  ? "bg-[#0A0A0A] text-white shadow-sm"
+                  : "bg-white text-stone-500 border border-stone-200 hover:border-stone-400 hover:text-stone-800"
               }`}
             >
               {s}
               {count > 0 && (
                 <span
-                  className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                  className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
                     statusFilter === s
-                      ? "bg-primary-foreground/20 text-primary-foreground"
-                      : "bg-muted text-muted-foreground"
+                      ? "bg-white/20 text-white"
+                      : "bg-stone-100 text-stone-500"
                   }`}
                 >
                   {count}
@@ -348,20 +355,22 @@ const Invoices = () => {
         })}
       </div>
 
-      {/* ── Content ─────────────────────────────────────────────────────────── */}
+      {/* ── Content ──────────────────────────────────────────────────────── */}
       {loading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-24 bg-muted rounded-xl animate-pulse" />
+            <div key={i} className="h-24 bg-stone-100 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center rounded-xl border border-dashed border-border bg-muted/30">
-          <FileText className="h-12 w-12 text-muted-foreground/40 mb-3" />
-          <h3 className="text-lg font-semibold text-foreground mb-1">
+        <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-dashed border-stone-200 bg-stone-50/50">
+          <div className="h-14 w-14 rounded-2xl bg-amber-50 flex items-center justify-center mb-4">
+            <FileText className="h-7 w-7 text-amber-500" />
+          </div>
+          <h3 className="text-lg font-bold text-[#0A0A0A] mb-1">
             {invoices.length === 0 ? "No invoices yet" : "No results found"}
           </h3>
-          <p className="text-sm text-muted-foreground mb-4 max-w-xs">
+          <p className="text-sm text-stone-400 mb-4 max-w-xs">
             {invoices.length === 0
               ? "Create your first invoice to start getting paid faster."
               : "Try adjusting your search or filter to find what you're looking for."}
@@ -450,12 +459,12 @@ const InvoiceCard = ({
   };
 
   return (
-    <Card className="border-border/60 hover:shadow-md hover:border-border transition-all duration-200 group overflow-hidden">
+    <Card className="border-stone-200/80 bg-white hover:shadow-md hover:border-stone-200 transition-all duration-200 group overflow-hidden rounded-2xl">
       <CardContent className="p-0">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 sm:p-5">
           {/* Left: Invoice icon */}
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <FileText className="h-4 w-4 text-primary" />
+          <div className="h-10 w-10 rounded-2xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+            <FileText className="h-4 w-4 text-amber-600" />
           </div>
 
           {/* Middle: Info */}

@@ -257,19 +257,29 @@ const Clients = () => {
 
   return (
     <div className="space-y-6 pb-4">
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Clients</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h1
+            className="text-2xl sm:text-3xl font-black tracking-tight"
+            style={{ color: "#0A0A0A", fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+          >
+            Clients
+          </h1>
+          <p className="text-sm text-stone-400 mt-1">
             {clients.length} client{clients.length !== 1 ? "s" : ""}
             {userTier === "free" ? ` · Free plan: ${clients.length}/${FREE_TIER_LIMIT}` : ""}
           </p>
         </div>
-        <Button onClick={openAddDialog} disabled={limitReached} className="flex-shrink-0">
-          <UserPlus className="h-4 w-4 mr-2" />
+        <button
+          onClick={openAddDialog}
+          disabled={limitReached}
+          className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm text-white transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ backgroundColor: "#0A0A0A" }}
+        >
+          <UserPlus className="h-4 w-4" />
           Add Client
-        </Button>
+        </button>
       </div>
 
       {/* ── Free Tier Banner ─────────────────────────────────────────────────── */}
@@ -290,54 +300,57 @@ const Clients = () => {
         </div>
       )}
 
-      {/* ── Summary Cards ──────────────────────────────────────────────────────── */}
+      {/* ── Summary Cards ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <Card className="border-border/60">
+        <Card className="border-stone-200/80 bg-white rounded-2xl">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">Total Clients</p>
-            <p className="text-2xl font-bold text-foreground tabular-nums">{clients.length}</p>
+            <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">Total Clients</p>
+            <p className="text-2xl font-black text-[#0A0A0A] tabular-nums">{clients.length}</p>
           </CardContent>
         </Card>
-        <Card className="border-border/60">
+        <Card className="border-stone-200/80 bg-white rounded-2xl">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">With Invoices</p>
-            <p className="text-2xl font-bold text-foreground tabular-nums">
+            <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">With Invoices</p>
+            <p className="text-2xl font-black text-[#0A0A0A] tabular-nums">
               {clients.filter((c) => (c.invoice_count || 0) > 0).length}
             </p>
           </CardContent>
         </Card>
-        <Card className="border-border/60 col-span-2 sm:col-span-1">
+        <Card className="border-stone-200/80 bg-white rounded-2xl col-span-2 sm:col-span-1">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-1">Total Revenue</p>
-            <p className="text-2xl font-bold text-foreground tabular-nums">
+            <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">Total Revenue</p>
+            <p className="text-2xl font-black text-[#0A0A0A] tabular-nums">
               {fmtCurrency(clients.reduce((s, c) => s + (c.total_revenue || 0), 0))}
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* ── Search ────────────────────────────────────────────────────────────── */}
+      {/* ── Search ─────────────────────────────────────────────────────────── */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+        <input
+          type="text"
           placeholder="Search clients by name, company or email…"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
+          className="w-full pl-10 pr-4 py-2.5 rounded-full border border-stone-200 bg-white text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all"
         />
       </div>
 
-      {/* ── Client List ───────────────────────────────────────────────────────── */}
+      {/* ── Client List ───────────────────────────────────────────────────── */}
       {loading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-20 bg-muted rounded-xl animate-pulse" />
+            <div key={i} className="h-20 bg-stone-100 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center rounded-xl border border-dashed border-border bg-muted/30">
-          <Users className="h-12 w-12 text-muted-foreground/40 mb-3" />
-          <h3 className="text-lg font-semibold text-foreground mb-1">
+        <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-dashed border-stone-200 bg-stone-50/50">
+          <div className="h-14 w-14 rounded-2xl bg-amber-50 flex items-center justify-center mb-4">
+            <Users className="h-7 w-7 text-amber-500" />
+          </div>
+          <h3 className="text-lg font-bold text-[#0A0A0A] mb-1">
             {clients.length === 0 ? "No clients yet" : "No results found"}
           </h3>
           <p className="text-sm text-muted-foreground mb-4 max-w-xs">
@@ -477,8 +490,8 @@ const ClientCard = ({
   isSelected: boolean;
 }) => (
   <Card
-    className={`border-border/60 hover:shadow-md transition-all duration-200 cursor-pointer ${
-      isSelected ? "border-primary/50 shadow-sm" : ""
+    className={`border-stone-200/80 bg-white hover:shadow-md transition-all duration-200 cursor-pointer rounded-2xl ${
+      isSelected ? "border-amber-300 shadow-sm" : ""
     }`}
   >
     <CardContent className="p-0">
@@ -490,8 +503,11 @@ const ClientCard = ({
         tabIndex={0}
         onKeyDown={(e) => e.key === "Enter" && onSelect()}
       >
-        {/* Avatar initials */}
-        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-sm">
+        {/* Avatar initials — amber square */}
+        <div
+          className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-sm"
+          style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}
+        >
           {client.name?.charAt(0)?.toUpperCase() || "?"}
         </div>
 
@@ -558,27 +574,27 @@ const ClientCard = ({
 
       {/* Expanded detail panel */}
       {isSelected && (
-        <div className="border-t border-border/60 bg-muted/30 p-4 sm:p-5">
+        <div className="border-t border-stone-100 bg-stone-50/70 p-4 sm:p-5">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-3 rounded-lg bg-background border border-border/60 text-center">
-              <p className="text-xs text-muted-foreground mb-1">Total Invoices</p>
-              <p className="text-xl font-bold text-foreground tabular-nums">{client.invoice_count || 0}</p>
+            <div className="p-3 rounded-xl bg-white border border-stone-200/80 text-center">
+              <p className="text-xs text-stone-400 mb-1">Total Invoices</p>
+              <p className="text-xl font-black text-[#0A0A0A] tabular-nums">{client.invoice_count || 0}</p>
             </div>
-            <div className="p-3 rounded-lg bg-background border border-border/60 text-center">
-              <p className="text-xs text-muted-foreground mb-1">Total Earned</p>
-              <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+            <div className="p-3 rounded-xl bg-white border border-stone-200/80 text-center">
+              <p className="text-xs text-stone-400 mb-1">Total Earned</p>
+              <p className="text-xl font-black text-emerald-600 tabular-nums">
                 {fmtCurrency(client.total_revenue || 0)}
               </p>
             </div>
-            <div className="p-3 rounded-lg bg-background border border-border/60 text-center">
-              <p className="text-xs text-muted-foreground mb-1">Outstanding</p>
-              <p className="text-xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+            <div className="p-3 rounded-xl bg-white border border-stone-200/80 text-center">
+              <p className="text-xs text-stone-400 mb-1">Outstanding</p>
+              <p className="text-xl font-black text-amber-600 tabular-nums">
                 {fmtCurrency(client.pending_revenue || 0)}
               </p>
             </div>
           </div>
           {client.address && (
-            <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
+            <div className="flex items-start gap-2 mt-3 text-sm text-stone-500">
               <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
               <span>{client.address}</span>
             </div>

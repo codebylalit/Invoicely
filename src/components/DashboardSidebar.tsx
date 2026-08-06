@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useEffect, useState } from "react";
-import ThemeToggle from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
 
@@ -40,7 +39,6 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
   useEffect(() => {
     const fetchUserData = async () => {
       if (!session?.user?.id) return;
-
       try {
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
@@ -72,7 +70,6 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
         console.error("Error in fetchUserData:", error);
       }
     };
-
     fetchUserData();
   }, [session, supabase]);
 
@@ -80,7 +77,6 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
     try {
       await supabase.auth.refreshSession();
       const { error } = await supabase.auth.signOut();
-
       if (error) {
         console.error("Error signing out:", error);
         if (
@@ -108,21 +104,30 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
   };
 
   const isPro = userProfile.tier === "pro";
-  const initials = userProfile.name?.charAt(0)?.toUpperCase() || userProfile.email?.charAt(0)?.toUpperCase() || "U";
+  const initials =
+    userProfile.name?.charAt(0)?.toUpperCase() ||
+    userProfile.email?.charAt(0)?.toUpperCase() ||
+    "U";
 
   return (
-    <div className="w-64 h-full bg-background dark:bg-[hsl(var(--card))] flex flex-col overflow-hidden">
+    <div
+      className="w-64 h-full flex flex-col overflow-hidden"
+      style={{
+        backgroundColor: "#FAFAF9",
+        borderRight: "1px solid rgba(0,0,0,0.06)",
+        fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif",
+      }}
+    >
       {/* Logo Row */}
       <div className="p-5 flex items-center justify-between flex-shrink-0">
         <Logo onClick={onClose} href="/app" />
-        {/* Close button — only visible inside mobile drawer */}
         {onClose && (
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
             aria-label="Close navigation menu"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            className="h-8 w-8 text-stone-400 hover:text-stone-700 hover:bg-stone-100"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -145,53 +150,48 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
               onClick={onClose}
               aria-current={isActive ? "page" : undefined}
               className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 text-sm font-medium group
+                flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-sm font-semibold group relative
                 ${
                   isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "bg-amber-50 text-amber-700"
+                    : "text-stone-500 hover:bg-stone-100 hover:text-stone-800"
                 }
               `}
             >
+              {/* Left accent bar for active */}
+              {isActive && (
+                <span
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-amber-500"
+                />
+              )}
               <Icon
                 className={`h-4 w-4 flex-shrink-0 transition-colors ${
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground group-hover:text-foreground"
+                  isActive ? "text-amber-600" : "text-stone-400 group-hover:text-stone-600"
                 }`}
               />
               <span>{item.label}</span>
-              {isActive && (
-                <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
-              )}
             </Link>
           );
         })}
       </nav>
 
       {/* Bottom Section */}
-      <div className="flex-shrink-0 px-3 pb-4 pt-2 space-y-3 border-t border-border">
+      <div className="flex-shrink-0 px-3 pb-4 pt-3 space-y-3 border-t border-stone-200/60">
         {/* Upgrade / Pro Banner */}
         <div className="px-1">
           {isPro ? (
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary">
-                <Crown className="h-4 w-4" />
-                <span className="text-xs font-semibold">Pro Plan Active</span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full text-xs font-medium"
-                onClick={goToSubscription}
-              >
-                Manage Subscription
-              </Button>
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-200/80">
+              <Crown className="h-4 w-4 text-amber-600 flex-shrink-0" />
+              <span className="text-xs font-bold text-amber-700">Pro Plan Active</span>
             </div>
           ) : (
             <button
               onClick={goToSubscription}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-gradient-to-r from-primary to-amber-400 text-primary-foreground font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl font-bold text-sm text-white shadow-md hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
+              style={{
+                background: "linear-gradient(135deg, #F59E0B 0%, #F97316 100%)",
+                boxShadow: "0 4px 12px rgba(245,158,11,0.35)",
+              }}
             >
               <Sparkles className="h-4 w-4 flex-shrink-0" />
               <span>Upgrade to Pro</span>
@@ -199,16 +199,13 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
           )}
         </div>
 
-        {/* Theme Toggle Row */}
-        <div className="flex items-center justify-between px-2">
-          <span className="text-xs text-muted-foreground">Theme</span>
-          <ThemeToggle />
-        </div>
-
         {/* User Profile */}
         <div className="flex items-center gap-2.5 px-2 pt-1">
-          {/* Avatar */}
-          <div className="h-9 w-9 flex-shrink-0 rounded-full bg-muted border border-border overflow-hidden flex items-center justify-center">
+          {/* Avatar — rounded-2xl square */}
+          <div
+            className="h-9 w-9 flex-shrink-0 rounded-xl overflow-hidden flex items-center justify-center"
+            style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}
+          >
             {userProfile.logo_url ? (
               <img
                 src={userProfile.logo_url}
@@ -216,17 +213,15 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <span className="text-sm font-bold text-muted-foreground">
-                {initials}
-              </span>
+              <span className="text-sm font-black">{initials}</span>
             )}
           </div>
           {/* Name & Email */}
           <div className="flex flex-col min-w-0 flex-1">
-            <span className="text-sm font-semibold text-foreground truncate leading-tight">
+            <span className="text-sm font-bold text-stone-800 truncate leading-tight">
               {userProfile.name || "Hello there!"}
             </span>
-            <span className="text-xs text-muted-foreground truncate leading-tight">
+            <span className="text-xs text-stone-400 truncate leading-tight">
               {userProfile.email}
             </span>
           </div>
@@ -236,7 +231,7 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
             variant="ghost"
             size="icon"
             aria-label="Sign out"
-            className="h-8 w-8 flex-shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-colors"
+            className="h-8 w-8 flex-shrink-0 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
           >
             <LogOut className="h-4 w-4" />
           </Button>

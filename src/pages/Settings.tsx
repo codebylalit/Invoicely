@@ -1,4 +1,4 @@
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+﻿import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,13 +12,13 @@ import { Sun, Moon, Loader2, Building2, CreditCard, Star, Palette, Sliders } fro
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// ─── Currency options ────────────────────────────────────────────────────────
+// â”€â”€â”€ Currency options â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const CURRENCIES = [
-  { code: "INR", label: "₹ Indian Rupee (INR)", symbol: "₹" },
+  { code: "INR", label: "â‚¹ Indian Rupee (INR)", symbol: "â‚¹" },
   { code: "USD", label: "$ US Dollar (USD)", symbol: "$" },
-  { code: "EUR", label: "€ Euro (EUR)", symbol: "€" },
-  { code: "GBP", label: "£ British Pound (GBP)", symbol: "£" },
-  { code: "AED", label: "د.إ UAE Dirham (AED)", symbol: "د.إ" },
+  { code: "EUR", label: "â‚¬ Euro (EUR)", symbol: "â‚¬" },
+  { code: "GBP", label: "Â£ British Pound (GBP)", symbol: "Â£" },
+  { code: "AED", label: "Ø¯.Ø¥ UAE Dirham (AED)", symbol: "Ø¯.Ø¥" },
   { code: "SGD", label: "S$ Singapore Dollar (SGD)", symbol: "S$" },
   { code: "CAD", label: "C$ Canadian Dollar (CAD)", symbol: "C$" },
   { code: "AUD", label: "A$ Australian Dollar (AUD)", symbol: "A$" },
@@ -41,7 +41,7 @@ const Settings = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  // â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [userSubscription, setUserSubscription] = useState({
     tier: "free",
     paymentMethod: null as string | null,
@@ -73,7 +73,7 @@ const Settings = () => {
     default_notes: "",
   });
 
-  // ── Effects ─────────────────────────────────────────────────────────────────
+  // â”€â”€ Effects â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (session?.user?.id) {
       fetchBusinessDetails();
@@ -117,7 +117,7 @@ const Settings = () => {
     setIsDarkMode(!isDarkMode);
   };
 
-  // ── Fetch functions ──────────────────────────────────────────────────────────
+  // â”€â”€ Fetch functions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const fetchBusinessDetails = async () => {
     try {
       setLoading(true);
@@ -179,7 +179,7 @@ const Settings = () => {
     }
   };
 
-  // ── Save functions ─────────────────────────────────────────────────────────
+  // â”€â”€ Save functions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const saveBusinessDetails = async () => {
     try {
       setLoading(true);
@@ -267,19 +267,24 @@ const Settings = () => {
     }
   };
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <div className="space-y-6 pb-4">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <h1
+          className="text-2xl sm:text-3xl font-black tracking-tight"
+          style={{ color: "#0A0A0A", fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+        >
+          Settings
+        </h1>
+        <p className="text-sm text-stone-400 mt-1">
           Manage your account, business profile, and preferences.
         </p>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="flex gap-1 border-b border-border overflow-x-auto pb-px scrollbar-none">
+      {/* Tab Navigation â€” Pill style */}
+      <div className="flex gap-1.5 flex-wrap">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -287,36 +292,40 @@ const Settings = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`
-                flex items-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-150 whitespace-nowrap flex-shrink-0
+                flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-full transition-all duration-150 whitespace-nowrap flex-shrink-0
                 ${
                   activeTab === tab.id
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                    ? "bg-[#0A0A0A] text-white shadow-sm"
+                    : "bg-white text-stone-500 border border-stone-200 hover:border-stone-400 hover:text-stone-800"
                 }
               `}
               aria-current={activeTab === tab.id ? "page" : undefined}
             >
-              <Icon className="h-4 w-4" />
-              <span className="hidden sm:inline">{tab.label}</span>
-              <span className="sm:hidden">{tab.label.split(" ")[0]}</span>
+              <Icon className="h-3.5 w-3.5" />
+              {tab.label}
             </button>
           );
         })}
       </div>
 
-      {/* ── Business Details ────────────────────────────────────────────────── */}
+      {/* â”€â”€ Business Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {activeTab === "business" && (
-        <Card className="border-border/60">
+        <Card className="border-stone-200/80 bg-white rounded-2xl">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
             <div>
-              <CardTitle>Business Details</CardTitle>
-              <CardDescription className="mt-1">
+              <CardTitle className="font-black text-[#0A0A0A] tracking-tight">Business Details</CardTitle>
+              <CardDescription className="mt-1 text-stone-400">
                 These details will appear on all your invoices.
               </CardDescription>
             </div>
-            <Button onClick={saveBusinessDetails} disabled={loading} className="flex-shrink-0 self-start sm:self-auto">
-              {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…</> : "Save Changes"}
-            </Button>
+            <button
+              onClick={saveBusinessDetails}
+              disabled={loading}
+              className="flex-shrink-0 self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm text-white disabled:opacity-60 transition-all hover:shadow-md"
+              style={{ backgroundColor: "#0A0A0A" }}
+            >
+              {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Savingâ€¦</> : "Save Changes"}
+            </button>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <FieldGroup label="Contact Name" required>
@@ -429,7 +438,7 @@ const Settings = () => {
                     />
                   </label>
                   <p className="text-xs text-muted-foreground mt-1.5">
-                    PNG, SVG or JPG · Recommended: 512×512px
+                    PNG, SVG or JPG Â· Recommended: 512Ã—512px
                   </p>
                 </div>
               </div>
@@ -438,13 +447,13 @@ const Settings = () => {
         </Card>
       )}
 
-      {/* ── Payment Details ─────────────────────────────────────────────────── */}
+      {/* â”€â”€ Payment Details â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {activeTab === "payment" && (
         <div className="space-y-4">
-          <Card className="border-border/60">
+          <Card className="border-stone-200/80 bg-white rounded-2xl">
             <CardHeader>
-              <CardTitle>Bank Transfer</CardTitle>
-              <CardDescription>
+              <CardTitle className="font-black text-[#0A0A0A] tracking-tight">Bank Transfer</CardTitle>
+              <CardDescription className="text-stone-400">
                 Add your bank account details for clients who prefer bank transfers.
               </CardDescription>
             </CardHeader>
@@ -453,19 +462,14 @@ const Settings = () => {
                 <Label htmlFor="bank-details">Bank Account Details</Label>
                 <Textarea
                   id="bank-details"
-                  className="min-h-[140px] resize-none font-mono text-sm"
-                  placeholder={`Bank Name: HDFC Bank\nAccount Name: Your Company\nAccount Number: 1234567890\nIFSC Code: HDFC0001234\nIBAN: —\nSWIFT/BIC: —`}
+                  className="min-h-[140px] resize-none font-mono text-sm rounded-xl border-stone-200"
+                  placeholder={`Bank Name: HDFC Bank\nAccount Name: Your Company\nAccount Number: 1234567890\nIFSC Code: HDFC0001234\nIBAN: â€”\nSWIFT/BIC: â€”`}
                   value={userSubscription.bankTransferDetails}
                   onChange={(e) =>
                     setUserSubscription((p) => ({ ...p, bankTransferDetails: e.target.value }))
                   }
                 />
               </div>
-              <Button onClick={savePaymentDetails} disabled={loading}>
-                {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…</> : "Save Bank Details"}
-              </Button>
-            </CardContent>
-          </Card>
 
           <Card className="border-border/60">
             <CardHeader>
@@ -474,43 +478,24 @@ const Settings = () => {
                 Add a payment link (Razorpay, Stripe, UPI, PayPal, etc.) that will appear on your invoices.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="payment-link">Payment Link URL</Label>
-                <Input
-                  id="payment-link"
-                  type="url"
-                  placeholder="https://razorpay.me/@yourname"
-                  value={userSubscription.paymentLink}
-                  onChange={(e) =>
-                    setUserSubscription((p) => ({ ...p, paymentLink: e.target.value }))
-                  }
-                />
-                <p className="text-xs text-muted-foreground">
-                  Accepts any URL — Razorpay, Stripe Payment Links, UPI intent links, etc.
-                </p>
-              </div>
-              <Button onClick={savePaymentDetails} disabled={loading}>
-                {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…</> : "Save Payment Link"}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* ── Preferences ─────────────────────────────────────────────────────── */}
+             {/* â”€â”€ Preferences â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {activeTab === "preferences" && (
-        <Card className="border-border/60">
+        <Card className="border-stone-200/80 bg-white rounded-2xl">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
             <div>
-              <CardTitle>Invoice Preferences</CardTitle>
-              <CardDescription>
+              <CardTitle className="font-black text-[#0A0A0A] tracking-tight">Invoice Preferences</CardTitle>
+              <CardDescription className="text-stone-400">
                 Set your defaults for currency, numbering, taxes, and payment terms.
               </CardDescription>
             </div>
-            <Button onClick={savePreferences} disabled={loading} className="flex-shrink-0 self-start sm:self-auto">
-              {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…</> : "Save Preferences"}
-            </Button>
+            <button
+              onClick={savePreferences}
+              disabled={loading}
+              className="flex-shrink-0 self-start sm:self-auto flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm text-white disabled:opacity-60 transition-all hover:shadow-md"
+              style={{ backgroundColor: "#0A0A0A" }}
+            >
+              {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Savingâ€¦</> : "Save Preferences"}
+            </button>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Currency */}
@@ -519,7 +504,7 @@ const Settings = () => {
                 value={preferences.currency}
                 onValueChange={(v) => setPreferences((p) => ({ ...p, currency: v }))}
               >
-                <SelectTrigger id="currency-select">
+                <SelectTrigger id="currency-select" className="rounded-xl border-stone-200">
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
@@ -530,9 +515,7 @@ const Settings = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                Will be used on all new invoices.
-              </p>
+              <p className="text-xs text-stone-400 mt-1">Will be used on all new invoices.</p>
             </FieldGroup>
 
             {/* Invoice Prefix */}
@@ -542,8 +525,9 @@ const Settings = () => {
                 onChange={(e) => setPreferences((p) => ({ ...p, invoice_prefix: e.target.value }))}
                 placeholder="INV"
                 maxLength={10}
+                className="rounded-xl border-stone-200"
               />
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-stone-400 mt-1">
                 Example: <span className="font-mono font-medium">{preferences.invoice_prefix}-2026-1001</span>
               </p>
             </FieldGroup>
@@ -558,6 +542,7 @@ const Settings = () => {
                 }
                 placeholder="1001"
                 min="1"
+                className="rounded-xl border-stone-200"
               />
             </FieldGroup>
 
@@ -569,8 +554,9 @@ const Settings = () => {
                 onChange={(e) => setPreferences((p) => ({ ...p, default_due_days: e.target.value }))}
                 placeholder="30"
                 min="0"
+                className="rounded-xl border-stone-200"
               />
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-stone-400 mt-1">
                 E.g., 30 means payment due 30 days from invoice date.
               </p>
             </FieldGroup>
@@ -581,6 +567,7 @@ const Settings = () => {
                 value={preferences.default_tax_name}
                 onChange={(e) => setPreferences((p) => ({ ...p, default_tax_name: e.target.value }))}
                 placeholder="GST"
+                className="rounded-xl border-stone-200"
               />
             </FieldGroup>
 
@@ -593,15 +580,16 @@ const Settings = () => {
                 placeholder="18"
                 min="0"
                 max="100"
+                className="rounded-xl border-stone-200"
               />
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-stone-400 mt-1">
                 Quick presets:{" "}
                 {["5", "12", "18", "28"].map((r) => (
                   <button
                     key={r}
                     type="button"
                     onClick={() => setPreferences((p) => ({ ...p, default_tax_rate: r }))}
-                    className="mr-2 text-primary hover:underline font-medium"
+                    className="mr-2 text-amber-600 hover:text-amber-700 hover:underline font-bold text-xs"
                   >
                     {r}%
                   </button>
@@ -616,14 +604,14 @@ const Settings = () => {
                 onChange={(e) => setPreferences((p) => ({ ...p, default_notes: e.target.value }))}
                 placeholder="Thank you for your business! Payment due within 30 days."
                 rows={3}
-                className="resize-none"
+                className="resize-none rounded-xl border-stone-200"
               />
             </FieldGroup>
           </CardContent>
         </Card>
       )}
 
-      {/* ── Subscription ────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Subscription â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {activeTab === "subscription" && (
         <Subscription
           userSubscription={userSubscription}
@@ -631,7 +619,7 @@ const Settings = () => {
         />
       )}
 
-      {/* ── Theme ────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Theme â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {activeTab === "theme" && (
         <Card className="border-border/60">
           <CardHeader>
@@ -678,7 +666,7 @@ const Settings = () => {
   );
 };
 
-// ─── Field Group Helper ────────────────────────────────────────────────────────
+// â”€â”€â”€ Field Group Helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const FieldGroup = ({
   label,
   required,

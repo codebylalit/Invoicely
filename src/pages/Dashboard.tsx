@@ -275,24 +275,25 @@ const Dashboard = () => {
       {/* ── Greeting Header ─────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
+          <h1
+            className="text-2xl sm:text-3xl font-black tracking-tight leading-tight"
+            style={{ color: "#0A0A0A", fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+          >
             {greeting()}
             {businessName ? `, ${businessName.split(" ")[0]}` : ""} 👋
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-stone-400 text-sm mt-1">
             Here's what's happening with your business today.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
+          <button
             onClick={() => navigate("/app/invoices")}
-            className="hidden sm:flex items-center gap-2"
+            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full border border-stone-200 bg-white text-stone-700 font-semibold text-sm hover:border-stone-400 hover:bg-stone-50 transition-all"
           >
             <FileText className="h-4 w-4" />
             View All Invoices
-          </Button>
+          </button>
           <CreateInvoiceButton />
         </div>
       </div>
@@ -300,88 +301,86 @@ const Dashboard = () => {
       {/* ── Stat Cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Total Revenue */}
-        <Card className="border-border/60 hover:shadow-md transition-shadow duration-200">
+        <Card className="border-stone-200/80 bg-white hover:shadow-md transition-all duration-200 rounded-2xl">
           <CardContent className="p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">
                   Total Revenue
                 </p>
-                <p className="text-2xl font-bold text-foreground tabular-nums">
+                <p className="text-2xl font-black text-[#0A0A0A] tabular-nums">
                   {fmtCompact(stats.totalRevenue)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-stone-400 mt-1">
                   {stats.paidCount} paid invoice{stats.paidCount !== 1 ? "s" : ""}
                 </p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <div className="h-10 w-10 rounded-2xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="h-5 w-5 text-emerald-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Pending */}
-        <Card className="border-border/60 hover:shadow-md transition-shadow duration-200">
+        <Card className="border-stone-200/80 bg-white hover:shadow-md transition-all duration-200 rounded-2xl">
           <CardContent className="p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">
                   Awaiting Payment
                 </p>
-                <p className="text-2xl font-bold text-foreground tabular-nums">
+                <p className="text-2xl font-black text-[#0A0A0A] tabular-nums">
                   {fmtCompact(stats.pendingTotal)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-stone-400 mt-1">
                   {stats.pendingCount} pending invoice{stats.pendingCount !== 1 ? "s" : ""}
                 </p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center flex-shrink-0">
-                <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <div className="h-10 w-10 rounded-2xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                <Clock className="h-5 w-5 text-amber-600" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Overdue */}
-        <Card className="border-border/60 hover:shadow-md transition-shadow duration-200">
+        <Card className="border-stone-200/80 bg-white hover:shadow-md transition-all duration-200 rounded-2xl">
           <CardContent className="p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">
                   Overdue
                 </p>
-                <p className="text-2xl font-bold text-foreground tabular-nums">
+                <p className="text-2xl font-black text-[#0A0A0A] tabular-nums">
                   {fmtCompact(stats.overdueTotal)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-stone-400 mt-1">
                   {stats.overdueCount} overdue invoice{stats.overdueCount !== 1 ? "s" : ""}
                 </p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center flex-shrink-0">
-                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              <div className="h-10 w-10 rounded-2xl bg-red-50 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="h-5 w-5 text-red-500" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Total Invoices */}
-        <Card className="border-border/60 hover:shadow-md transition-shadow duration-200">
+        <Card className="border-stone-200/80 bg-white hover:shadow-md transition-all duration-200 rounded-2xl">
           <CardContent className="p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
+                <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">
                   Total Invoices
                 </p>
-                <p className="text-2xl font-bold text-foreground tabular-nums">
+                <p className="text-2xl font-black text-[#0A0A0A] tabular-nums">
                   {invoices.length}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  All time
-                </p>
+                <p className="text-xs text-stone-400 mt-1">All time</p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <FileText className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-2xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                <FileText className="h-5 w-5 text-amber-600" />
               </div>
             </div>
           </CardContent>
@@ -391,18 +390,18 @@ const Dashboard = () => {
       {/* ── Revenue Chart + Recent Invoices ─────────────────────────────────── */}
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
         {/* Chart */}
-        <Card className="xl:col-span-3 border-border/60">
+        <Card className="xl:col-span-3 border-stone-200/80 bg-white rounded-2xl">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold text-foreground">
+              <CardTitle className="text-base font-bold text-[#0A0A0A] tracking-tight">
                 Revenue Overview
               </CardTitle>
-              <span className="text-xs text-muted-foreground">Last 6 months</span>
+              <span className="text-xs text-stone-400">Last 6 months</span>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
             {invoices.length === 0 ? (
-              <div className="h-56 flex flex-col items-center justify-center text-muted-foreground">
+              <div className="h-56 flex flex-col items-center justify-center text-stone-400">
                 <TrendingUp className="h-10 w-10 mb-2 opacity-30" />
                 <p className="text-sm">No data yet. Create your first invoice!</p>
               </div>
@@ -411,23 +410,23 @@ const Dashboard = () => {
                 <AreaChart data={monthlyData} margin={{ top: 4, right: 0, left: -10, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(40 100% 50%)" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(40 100% 50%)" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorPending" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(38 92% 50%)" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="hsl(38 92% 50%)" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#D97706" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#D97706" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" />
                   <XAxis
                     dataKey="month"
-                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    tick={{ fontSize: 12, fill: "#a8a29e" }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis
-                    tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+                    tick={{ fontSize: 12, fill: "#a8a29e" }}
                     axisLine={false}
                     tickLine={false}
                     tickFormatter={fmtCompact}
@@ -436,7 +435,7 @@ const Dashboard = () => {
                   <Area
                     type="monotone"
                     dataKey="revenue"
-                    stroke="hsl(40 100% 50%)"
+                    stroke="#F59E0B"
                     strokeWidth={2}
                     fill="url(#colorRevenue)"
                     name="revenue"
@@ -444,7 +443,7 @@ const Dashboard = () => {
                   <Area
                     type="monotone"
                     dataKey="pending"
-                    stroke="hsl(220 90% 60%)"
+                    stroke="#D97706"
                     strokeWidth={2}
                     fill="url(#colorPending)"
                     name="pending"
@@ -456,15 +455,15 @@ const Dashboard = () => {
         </Card>
 
         {/* Recent Invoices */}
-        <Card className="xl:col-span-2 border-border/60">
+        <Card className="xl:col-span-2 border-stone-200/80 bg-white rounded-2xl">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold text-foreground">
+              <CardTitle className="text-base font-bold text-[#0A0A0A] tracking-tight">
                 Recent Invoices
               </CardTitle>
               <Link
                 to="/app/invoices"
-                className="text-xs text-primary hover:underline font-medium"
+                className="text-xs text-amber-600 hover:text-amber-700 font-bold hover:underline"
               >
                 View all
               </Link>
@@ -472,7 +471,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent className="pt-0 space-y-3">
             {recentInvoices.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+              <div className="flex flex-col items-center justify-center py-8 text-stone-400">
                 <FileText className="h-8 w-8 mb-2 opacity-30" />
                 <p className="text-sm text-center">No invoices yet.</p>
                 <CreateInvoiceButton />
@@ -481,21 +480,21 @@ const Dashboard = () => {
               recentInvoices.map((inv) => (
                 <div
                   key={inv.id}
-                  className="flex items-center gap-3 py-2 border-b border-border/50 last:border-0"
+                  className="flex items-center gap-3 py-2 border-b border-stone-100 last:border-0"
                 >
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <FileText className="h-3.5 w-3.5 text-primary" />
+                  <div className="h-8 w-8 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                    <FileText className="h-3.5 w-3.5 text-amber-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate leading-tight">
+                    <p className="text-sm font-semibold text-[#0A0A0A] truncate leading-tight">
                       {inv.client_name || "—"}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-stone-400">
                       #{inv.invoice_number || "Draft"}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <span className="text-sm font-semibold text-foreground tabular-nums">
+                    <span className="text-sm font-bold text-[#0A0A0A] tabular-nums">
                       {fmtCompact(Number(inv.total) || 0)}
                     </span>
                     <StatusBadge status={inv.status} />
@@ -508,10 +507,12 @@ const Dashboard = () => {
       </div>
 
       {/* ── Quick Actions ────────────────────────────────────────────────────── */}
-      <Card className="border-border/60">
+      <Card className="border-stone-200/80 bg-white rounded-2xl">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
-            <Zap className="h-4 w-4 text-primary" />
+          <CardTitle
+            className="text-base font-bold text-[#0A0A0A] tracking-tight flex items-center gap-2"
+          >
+            <Zap className="h-4 w-4 text-amber-500" />
             Quick Actions
           </CardTitle>
         </CardHeader>
@@ -522,32 +523,31 @@ const Dashboard = () => {
               label="New Invoice"
               sublabel="Create & send"
               onClick={() => {
-                // Trigger create invoice
                 const btn = document.querySelector<HTMLButtonElement>("[data-create-invoice]");
                 btn?.click();
               }}
-              accent="bg-primary/10 text-primary"
+              accent="bg-amber-50 text-amber-700"
             />
             <QuickAction
               icon={<Users className="h-5 w-5" />}
               label="Add Client"
               sublabel="Manage clients"
               onClick={() => navigate("/app/clients")}
-              accent="bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400"
+              accent="bg-blue-50 text-blue-600"
             />
             <QuickAction
               icon={<AlertCircle className="h-5 w-5" />}
               label="Overdue"
               sublabel={`${stats.overdueCount} invoice${stats.overdueCount !== 1 ? "s" : ""}`}
               onClick={() => navigate("/app/invoices")}
-              accent="bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400"
+              accent="bg-red-50 text-red-500"
             />
             <QuickAction
               icon={<CheckCircle2 className="h-5 w-5" />}
               label="Settings"
               sublabel="Business profile"
               onClick={() => navigate("/app/settings")}
-              accent="bg-muted text-muted-foreground"
+              accent="bg-stone-100 text-stone-500"
             />
           </div>
         </CardContent>
@@ -575,16 +575,16 @@ const QuickAction = ({
 }) => (
   <button
     onClick={onClick}
-    className="flex flex-col items-start gap-3 p-4 rounded-xl border border-border/60 bg-background hover:bg-muted/50 hover:border-border transition-all duration-150 text-left group"
+    className="flex flex-col items-start gap-3 p-4 rounded-2xl border border-stone-200/80 bg-white hover:bg-stone-50 hover:border-stone-300 hover:shadow-sm transition-all duration-150 text-left group"
   >
-    <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${accent}`}>
+    <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${accent}`}>
       {icon}
     </div>
     <div>
-      <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-tight">
+      <p className="text-sm font-bold text-[#0A0A0A] group-hover:text-amber-700 transition-colors leading-tight">
         {label}
       </p>
-      <p className="text-xs text-muted-foreground leading-tight mt-0.5">{sublabel}</p>
+      <p className="text-xs text-stone-400 leading-tight mt-0.5">{sublabel}</p>
     </div>
   </button>
 );
