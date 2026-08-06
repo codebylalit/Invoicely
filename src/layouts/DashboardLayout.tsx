@@ -21,12 +21,9 @@ const DashboardLayout = () => {
     <SidebarContext.Provider
       value={{ isOpen: isSidebarOpen, setIsOpen: setIsSidebarOpen }}
     >
-      <div
-        className="min-h-screen flex flex-col"
-        style={{ backgroundColor: "#FAFAF9", color: "#0A0A0A" }}
-      >
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
         {/* Desktop Sidebar - FIXED on screen, hidden on mobile */}
-        <aside className="hidden lg:block fixed top-0 left-0 bottom-0 z-30 w-64 h-screen">
+        <aside className="hidden lg:block fixed top-0 left-0 bottom-0 z-30 w-64 h-screen border-r border-border bg-background">
           <DashboardSidebar />
         </aside>
 
@@ -53,14 +50,14 @@ const DashboardLayout = () => {
         {/* Main Content Area - Shifted right by 256px (lg:pl-64) for fixed desktop sidebar */}
         <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
           {/* Mobile Top Header */}
-          <header className="lg:hidden sticky top-0 z-20 flex items-center justify-between px-4 py-3 bg-white/95 backdrop-blur-xl border-b border-stone-100">
+          <header className="lg:hidden sticky top-0 z-20 flex items-center justify-between px-4 py-3 bg-background border-b border-border">
             <Logo size="sm" />
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               aria-label="Toggle navigation menu"
-              className="h-9 w-9 text-stone-500 hover:text-stone-800 hover:bg-stone-100"
+              className="h-9 w-9"
             >
               {isSidebarOpen ? (
                 <X className="h-5 w-5" />

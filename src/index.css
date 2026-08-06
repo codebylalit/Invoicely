@@ -118,7 +118,7 @@
 @layer base {
   * {
     @apply border-border;
-    font-family: 'Plus Jakarta Sans', Poppins, sans-serif;
+    font-family: Poppins;
   }
 
   body {
