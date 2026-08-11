@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { FileCheck, Clock, AlertCircle, Check } from "lucide-react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface InvoiceStats {
@@ -20,6 +20,7 @@ interface InvoiceStats {
 }
 
 const InvoiceStats = ({ updateTrigger }) => {
+  const session = useSession();
   const [stats, setStats] = useState({
     paid: { count: 0, total: 0 },
     overdue: { count: 0, total: 0 },
@@ -31,14 +32,16 @@ const InvoiceStats = ({ updateTrigger }) => {
 
   useEffect(() => {
     const fetchInvoiceStats = async () => {
+      if (!session?.user?.id) return;
       setLoading(true);
       try {
         const today = new Date().toISOString().split("T")[0]; // Current date in YYYY-MM-DD format
 
-        // Fetch all invoices
+        // Fetch user's invoices
         const { data, error } = await supabase
           .from("invoices")
-          .select("status, due_date, total");
+          .select("status, due_date, total")
+          .eq("user_id", session.user.id);
 
         if (error) throw error;
 

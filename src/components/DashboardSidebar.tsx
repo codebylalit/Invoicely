@@ -108,7 +108,29 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
   };
 
   const isPro = userProfile.tier === "pro";
-  const initials = userProfile.name?.charAt(0)?.toUpperCase() || userProfile.email?.charAt(0)?.toUpperCase() || "U";
+
+  // Extract a friendly name from email: "heyylalit@gmail.com" → "Heyylalit"
+  const getDisplayName = () => {
+    if (userProfile.name?.trim()) return userProfile.name.trim();
+    const emailLocal = userProfile.email?.split('@')[0] || '';
+    // Capitalize first letter, replace dots/underscores/numbers with space
+    return emailLocal
+      .replace(/[._\-]/g, ' ')
+      .replace(/\d+/g, '')
+      .trim()
+      .replace(/\b\w/g, (c) => c.toUpperCase()) || 'User';
+  };
+
+  const getGreeting = () => {
+    const h = new Date().getHours();
+    if (h >= 5 && h < 12) return 'Good morning';
+    if (h >= 12 && h < 17) return 'Good afternoon';
+    if (h >= 17 && h < 21) return 'Good evening';
+    return 'Good night';
+  };
+
+  const displayName = getDisplayName();
+  const initials = displayName.slice(0, 2).toUpperCase() || 'U';
 
   return (
     <div className="w-64 h-full bg-background dark:bg-[hsl(var(--card))] flex flex-col overflow-hidden">
@@ -224,7 +246,7 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
           {/* Name & Email */}
           <div className="flex flex-col min-w-0 flex-1">
             <span className="text-sm font-semibold text-foreground truncate leading-tight">
-              {userProfile.name || "Hello there!"}
+              {displayName}
             </span>
             <span className="text-xs text-muted-foreground truncate leading-tight">
               {userProfile.email}

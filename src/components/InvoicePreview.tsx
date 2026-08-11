@@ -245,7 +245,11 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
   }, [displayInvoice?.email]);
 
   const generatePDF = async () => {
-    if (!pdfRef.current) return null;
+    const sourceElement = invoiceRef.current;
+    if (!sourceElement) {
+      console.error("Preview element not found");
+      return null;
+    }
 
     try {
       setLoading(true);
@@ -254,15 +258,72 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
         description: "Your invoice PDF is being prepared",
       });
 
-      const element = pdfRef.current;
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        backgroundColor: "#FFFFFF",
-        letterRendering: true,
+      // Create a hidden, fixed-width A4 container (800px width) in document body
+      // This guarantees standard desktop rendering regardless of screen/device size or viewport width
+      const container = document.createElement("div");
+      container.style.position = "absolute";
+      container.style.top = "-9999px";
+      container.style.left = "-9999px";
+      container.style.width = "800px";
+      container.style.backgroundColor = "#FFFFFF";
+      container.style.color = "#0f172a";
+
+      // Clone the source preview element into the container
+      const clone = sourceElement.cloneNode(true) as HTMLElement;
+      clone.classList.remove("dark");
+      clone.style.backgroundColor = "#FFFFFF";
+      clone.style.color = "#0f172a";
+      clone.style.width = "800px";
+      clone.style.maxWidth = "800px";
+      clone.style.padding = "24px";
+      clone.style.margin = "0px";
+
+      // Force explicit white text on dark cards inside clone tree
+      const darkCards = clone.querySelectorAll(".bg-gray-900, .bg-slate-900, .bg-\\[\\#0f172a\\], .bg-\\[\\#18181b\\], .bg-black");
+      darkCards.forEach((card) => {
+        (card as HTMLElement).style.color = "#ffffff";
+        const children = card.querySelectorAll("p, span, h1, h2, h3, div");
+        children.forEach((c) => {
+          const el = c as HTMLElement;
+          if (!el.className.includes("text-gray-400") && !el.className.includes("opacity-60") && !el.className.includes("text-slate-400")) {
+            el.style.color = "#ffffff";
+          }
+        });
       });
 
+      container.appendChild(clone);
+      document.body.appendChild(container);
+
+      // Wait for fonts & images inside the cloned node to complete loading
+      if (document.fonts) {
+        await document.fonts.ready;
+      }
+      const images = Array.from(clone.querySelectorAll("img"));
+      await Promise.all(
+        images.map((img) => {
+          if (img.complete) return Promise.resolve();
+          return new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        })
+      );
+      await new Promise((r) => setTimeout(r, 100));
+
+      // Render canvas with html2canvas
+      const canvas = await html2canvas(clone, {
+        scale: 3, // High DPI retina quality
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#FFFFFF",
+        logging: false,
+        windowWidth: 800,
+      });
+
+      // Clean up clone container from DOM immediately
+      document.body.removeChild(container);
+
+      // Create PDF with exact A4 proportions
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -270,13 +331,29 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
         format: "a4",
       });
 
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pdfWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
       pdf.setFillColor(255, 255, 255);
-      pdf.rect(0, 0, imgWidth, pageHeight, "F");
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+      pdf.rect(0, 0, pdfWidth, pageHeight, "F");
+
+      if (imgHeight <= pageHeight) {
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
+      } else {
+        let heightLeft = imgHeight;
+        let position = 0;
+        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.setFillColor(255, 255, 255);
+          pdf.rect(0, 0, pdfWidth, pageHeight, "F");
+          pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+      }
 
       return pdf;
     } catch (error) {
@@ -326,12 +403,7 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
   };
 
   const handleDownloadPDF = async () => {
-    setIsPdfView(true);
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
     const pdf = await generatePDF();
-    setIsPdfView(false);
-
     if (!pdf) return;
 
     pdf.save(`Invoice-${displayInvoice?.invoiceNumber || "unknown"}.pdf`);
@@ -373,14 +445,7 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
       }
 
       setSendingEmail(true);
-
-      // Switch to PDF view for generation
-      setIsPdfView(true);
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
       const pdf = await generatePDF();
-      setIsPdfView(false);
-
       if (!pdf) {
         throw new Error("Failed to generate PDF");
       }
@@ -491,15 +556,43 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
         variant: "default",
       });
 
-      // Send the email
-      const result = await emailjs.send(
-        "service_weenz74",
-        "template_h6i0q4e",
-        templateParams,
-        "oEKkAS-XYQUnWfbKa"
-      );
+      // 1. Send via Supabase Edge Function (Resend API)
+      let sentSuccessfully = false;
+      try {
+        const pdfBase64 = pdf ? pdf.output("datauristring").split(",")[1] : undefined;
+        const payUrl = displayInvoice?.id ? `${window.location.origin}/pay/${displayInvoice.id}` : '';
+        const { data: edgeData, error: edgeErr } = await supabase.functions.invoke('send-invoice-email', {
+          body: {
+            to: emailFormData.to,
+            subject: emailFormData.subject || `Invoice #${displayInvoice?.invoiceNumber || ''} from ${businessDetails.business_name || 'Invoicely'}`,
+            message: emailFormData.message || '',
+            invoiceNumber: displayInvoice?.invoiceNumber || '',
+            amount: displayInvoice?.total ? Number(displayInvoice.total).toFixed(2) : '0.00',
+            dueDate: formattedDueDate,
+            clientName: displayInvoice?.name || 'Valued Customer',
+            businessName: businessDetails.business_name || 'Invoicely',
+            payUrl,
+            items: displayInvoice?.items || [],
+            pdfBase64,
+          }
+        });
+        if (!edgeErr && edgeData?.success) {
+          sentSuccessfully = true;
+        }
+      } catch (e) {
+        console.warn('Edge function email skipped, falling back to EmailJS', e);
+      }
 
-      console.log("Email sent successfully:", result);
+      if (!sentSuccessfully) {
+        // 2. Fallback to EmailJS
+        emailjs.init("oEKkAS-XYQUnWfbKa");
+        await emailjs.send(
+          "service_weenz74",
+          "template_h6i0q4e",
+          templateParams,
+          "oEKkAS-XYQUnWfbKa"
+        );
+      }
 
       toast({
         title: (
@@ -674,57 +767,38 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
     <>
       <div className={containerClasses}>
         <div className="flex flex-col items-center">
-          {isPdfView && (
-            <div
-              ref={pdfRef}
-              className={`p-8 bg-white dark:bg-invoice-darkBg text-black dark:text-invoice-darkText max-w-3xl w-full mx-auto ${selectedTemplate ? selectedTemplate.styles.font : ""} ${selectedTemplate ? selectedTemplate.styles.background : ""}`}
-              style={{
-                minHeight: "720px",
-                width: "832px",
-                paddingBottom: "60px",
-              }}
-            >
-              {selectedTemplate && (
-                <InvoiceLayout
-                  layout={selectedTemplate.styles.layout}
-                  businessDetails={businessDetails}
-                  displayInvoice={displayInvoice}
-                  calculatedInvoice={calculatedInvoice}
-                  paymentDetails={paymentDetails}
-                />
-              )}
-            </div>
-          )}
-          {!isPdfView && (
-            <div
-              ref={invoiceRef}
-              className="p-8 max-w-3xl w-full mx-auto pb-24"
-            >
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center space-x-4">
-                  <h1
-                    className={`text-2xl font-bold ${selectedTemplate
+          <div
+            ref={invoiceRef}
+            className={`p-6 sm:p-8 max-w-3xl w-full mx-auto pb-24 transition-all duration-200 ${
+              isPdfView
+                ? "bg-white text-slate-900 shadow-2xl rounded-none border border-gray-200 my-4 min-h-[1050px]"
+                : ""
+            }`}
+          >
+            {formatRecurrenceInfo(displayInvoice) && (
+              <div className="mb-4">
+                <h1
+                  className={`text-xl font-bold ${
+                    selectedTemplate
                       ? selectedTemplate.styles.accent
                       : "text-invoice-lightText dark:text-invoice-darkText"
-                      }`}
-                  >
-                    {/* {displayInvoice.invoiceTitle} */}
-                    {formatRecurrenceInfo(displayInvoice)}
-                  </h1>
-                </div>
+                  }`}
+                >
+                  {formatRecurrenceInfo(displayInvoice)}
+                </h1>
               </div>
-              {selectedTemplate && (
-                <InvoiceLayout
-                  layout={selectedTemplate.styles.layout}
-                  businessDetails={businessDetails}
-                  displayInvoice={displayInvoice}
-                  calculatedInvoice={calculatedInvoice}
-                  paymentDetails={paymentDetails}
-                  isPro={userSubscription.tier === "pro"}
-                />
-              )}
-            </div>
-          )}
+            )}
+            {selectedTemplate && (
+              <InvoiceLayout
+                layout={selectedTemplate.styles.layout}
+                businessDetails={businessDetails}
+                displayInvoice={displayInvoice}
+                calculatedInvoice={calculatedInvoice}
+                paymentDetails={paymentDetails}
+                isPro={userSubscription.tier === "pro"}
+              />
+            )}
+          </div>
 
           {/* Bottom Control Panel - Centered */}
           <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-invoice-darkBg border-t border-gray-200 dark:border-gray-800">

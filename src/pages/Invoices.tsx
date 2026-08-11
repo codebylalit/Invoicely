@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { Card, CardContent } from "@/components/ui/card";
 import CreateInvoiceButton from "@/components/CreateInvoiceButton";
 import ConditionalAd from "@/components/ConditionalAd";
@@ -18,8 +18,14 @@ import {
   CircleDollarSign,
   RefreshCw,
   Link as LinkIcon,
+  Edit,
+  Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { InvoiceForm } from "@/components/InvoiceForm";
+import InvoicePreview from "@/components/InvoicePreview";
+import { useInvoiceManager } from "@/hooks/useInvoiceManager";
+import type { Invoice } from "@/types/invoice";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +43,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import InvoicePreview from "@/components/InvoicePreview";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -187,17 +192,83 @@ const Invoices = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [viewingInvoice, setViewingInvoice] = useState<any>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  const [previewDraft, setPreviewDraft] = useState<Invoice | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const session = useSession();
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const supabase = useSupabaseClient();
   const { toast } = useToast();
+  const { saveInvoice, isSaving } = useInvoiceManager();
   const [statsUpdateTrigger, setStatsUpdateTrigger] = useState(0);
 
+  const handleEdit = (inv: any) => {
+    let rawItems = inv.items;
+    if (typeof rawItems === 'string') {
+      try { rawItems = JSON.parse(rawItems); } catch (_) { rawItems = []; }
+    }
+    if (!Array.isArray(rawItems)) rawItems = [];
+
+    const normalizedItems = rawItems.map((it: any, idx: number) => {
+      const q = Number(it.quantity) || 1;
+      const rate = Number(it.unitPrice ?? it.rate ?? it.price ?? 0);
+      const amt = Number(it.totalPrice ?? it.amount ?? (q * rate));
+      return {
+        id: String(it.id || idx),
+        description: it.description || it.name || "Services Rendered",
+        quantity: q,
+        unitPrice: rate,
+        totalPrice: amt,
+      };
+    });
+
+    const initialDraft: Invoice = {
+      id: inv.id,
+      invoiceNumber: inv.invoice_number || "",
+      name: inv.client_name || "",
+      email: inv.client_email || "",
+      issuedDate: inv.issued_date ? new Date(inv.issued_date).toISOString().split('T')[0] : (inv.created_at ? new Date(inv.created_at).toISOString().split('T')[0] : ""),
+      dueDate: inv.due_date ? new Date(inv.due_date).toISOString().split('T')[0] : "",
+      invoiceTitle: inv.invoice_title || "INVOICE",
+      total: Number(inv.total) || 0,
+      subtotal: Number(inv.subtotal) || 0,
+      taxes: Number(inv.tax || inv.taxes) || 0,
+      discounts: Number(inv.discount || inv.discounts) || 0,
+      items: normalizedItems.length > 0 ? normalizedItems : [{ id: "0", description: "", quantity: 1, unitPrice: 0, totalPrice: 0 }],
+      details: inv.details || "",
+      notes: inv.notes || "",
+      is_recurring: inv.is_recurring || false,
+      recurrence_frequency: inv.recurrence_frequency,
+      recurrence_interval: inv.recurrence_interval,
+      recurrence_start_date: inv.recurrence_start_date,
+      recurrence_end_date: inv.recurrence_end_date,
+    };
+
+    setEditingInvoice(initialDraft);
+    setPreviewDraft(initialDraft);
+    setIsEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!previewDraft && !editingInvoice) return;
+    const toSave = { ...(previewDraft || editingInvoice), id: editingInvoice?.id };
+    const res = await saveInvoice(toSave as any);
+    if (res) {
+      setIsEditOpen(false);
+      setEditingInvoice(null);
+      setPreviewDraft(null);
+      fetchInvoices();
+    }
+  };
+
   const fetchInvoices = async () => {
+    if (!session?.user?.id) return;
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from("invoices")
         .select("*")
+        .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       setInvoices(data || []);
@@ -214,7 +285,7 @@ const Invoices = () => {
 
   useEffect(() => {
     fetchInvoices();
-  }, []);
+  }, [session?.user?.id]);
 
   // ─── Filtered list ────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -374,6 +445,7 @@ const Invoices = () => {
             <InvoiceCard
               key={inv.id}
               invoice={inv}
+              onEdit={() => handleEdit(inv)}
               onView={() => handleView(inv)}
               onUpdateStatus={updateStatus}
               onDelete={() => setDeleteTarget(inv.id)}
@@ -390,6 +462,40 @@ const Invoices = () => {
               <InvoicePreview invoice={viewingInvoice} />
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Full Invoice Builder Dialog (Edit Mode) ───────────────────────── */}
+      <Dialog open={isEditOpen} onOpenChange={(o) => { if (!o) { setEditingInvoice(null); setPreviewDraft(null); } setIsEditOpen(o); }}>
+        <DialogContent className="w-screen h-screen max-w-none max-h-none p-0 overflow-hidden">
+          <div className="px-4 md:px-6 py-3 border-b flex justify-between items-center bg-background sticky top-0 z-10">
+            <h2 className="text-lg font-bold">Edit Invoice #{editingInvoice?.invoiceNumber}</h2>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => { setIsEditOpen(false); setEditingInvoice(null); setPreviewDraft(null); }}>
+                Cancel
+              </Button>
+              <Button size="sm" disabled={isSaving} onClick={handleSaveEdit}>
+                {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-2 p-4 h-[calc(100vh-65px)] overflow-hidden">
+            <div className="flex-1 md:border-r md:border-border md:pr-4 overflow-y-auto">
+              {editingInvoice && (
+                <InvoiceForm
+                  key={editingInvoice.id}
+                  invoiceDraft={editingInvoice}
+                  onGenerate={(draft) => setPreviewDraft({ ...draft, id: editingInvoice.id })}
+                  isLoading={false}
+                />
+              )}
+            </div>
+            <div className="flex-1 md:pl-4 overflow-y-auto">
+              {previewDraft && <InvoicePreview invoice={previewDraft} showSendByEmail />}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -422,11 +528,13 @@ const Invoices = () => {
 // ─── Invoice Card ─────────────────────────────────────────────────────────────
 const InvoiceCard = ({
   invoice: inv,
+  onEdit,
   onView,
   onUpdateStatus,
   onDelete,
 }: {
   invoice: any;
+  onEdit: () => void;
   onView: () => void;
   onUpdateStatus: (id: string, status: string) => void;
   onDelete: () => void;
@@ -450,18 +558,18 @@ const InvoiceCard = ({
   };
 
   return (
-    <Card className="border-border/60 hover:shadow-md hover:border-border transition-all duration-200 group overflow-hidden">
+    <Card className="border-border/60 hover:shadow-md hover:border-amber-500/40 transition-all duration-200 group overflow-hidden">
       <CardContent className="p-0">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 sm:p-5">
           {/* Left: Invoice icon */}
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <div onClick={onEdit} className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 cursor-pointer">
             <FileText className="h-4 w-4 text-primary" />
           </div>
 
           {/* Middle: Info */}
-          <div className="flex-1 min-w-0">
+          <div onClick={onEdit} className="flex-1 min-w-0 cursor-pointer">
             <div className="flex flex-wrap items-center gap-2 mb-1">
-              <span className="font-semibold text-foreground text-sm">
+              <span className="font-semibold text-foreground text-sm hover:text-amber-500 transition-colors">
                 {inv.client_name || "Unnamed Client"}
               </span>
               {inv.is_recurring && (
@@ -490,7 +598,7 @@ const InvoiceCard = ({
 
             {/* Actions Dropdown */}
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                 <Button
                   variant="outline"
                   size="sm"
@@ -500,12 +608,16 @@ const InvoiceCard = ({
                   <ChevronDown className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
-                <DropdownMenuItem onClick={onView} className="flex items-center gap-2">
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }} className="flex items-center gap-2 font-semibold">
+                  <Edit className="h-4 w-4 text-amber-500" /> Edit in Builder
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onView(); }} className="flex items-center gap-2">
                   <Eye className="h-4 w-4" /> View & Download
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     const payUrl = `${window.location.origin}/pay/${inv.id}`;
                     navigator.clipboard.writeText(payUrl);
                     toast({
@@ -519,38 +631,38 @@ const InvoiceCard = ({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => onUpdateStatus(inv.id, "Paid")}
+                  onClick={(e) => { e.stopPropagation(); onUpdateStatus(inv.id, "Paid"); }}
                   className="flex items-center gap-2 text-emerald-600"
                 >
                   <Check className="h-4 w-4" /> Mark as Paid
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => onUpdateStatus(inv.id, "Pending")}
+                  onClick={(e) => { e.stopPropagation(); onUpdateStatus(inv.id, "Pending"); }}
                   className="flex items-center gap-2 text-amber-600"
                 >
                   <Clock className="h-4 w-4" /> Mark as Pending
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => onUpdateStatus(inv.id, "Overdue")}
+                  onClick={(e) => { e.stopPropagation(); onUpdateStatus(inv.id, "Overdue"); }}
                   className="flex items-center gap-2 text-red-600"
                 >
                   <AlertCircle className="h-4 w-4" /> Mark as Overdue
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => onUpdateStatus(inv.id, "Partial")}
+                  onClick={(e) => { e.stopPropagation(); onUpdateStatus(inv.id, "Partial"); }}
                   className="flex items-center gap-2 text-blue-600"
                 >
                   <CircleDollarSign className="h-4 w-4" /> Mark as Partial
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => onUpdateStatus(inv.id, "Cancelled")}
+                  onClick={(e) => { e.stopPropagation(); onUpdateStatus(inv.id, "Cancelled"); }}
                   className="flex items-center gap-2 text-gray-500"
                 >
                   <Ban className="h-4 w-4" /> Mark as Cancelled
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={onDelete}
+                  onClick={(e) => { e.stopPropagation(); onDelete(); }}
                   className="flex items-center gap-2 text-destructive focus:text-destructive"
                 >
                   <Trash2 className="h-4 w-4" /> Delete

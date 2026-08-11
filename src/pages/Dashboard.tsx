@@ -170,6 +170,7 @@ const Dashboard = () => {
           supabase
             .from("invoices")
             .select("id, invoice_number, client_name, total, status, created_at, due_date")
+            .eq("user_id", session.user.id)
             .order("created_at", { ascending: false }),
           supabase
             .from("business_details")
@@ -249,6 +250,16 @@ const Dashboard = () => {
 
   const recentInvoices = invoices.slice(0, 5);
 
+  const displayName = useMemo(() => {
+    if (businessName?.trim()) return businessName.trim();
+    const emailLocal = session?.user?.email?.split('@')[0] || '';
+    return emailLocal
+      .replace(/[._\-]/g, ' ')
+      .replace(/\d+/g, '')
+      .trim()
+      .replace(/\b\w/g, (c) => c.toUpperCase()) || '';
+  }, [businessName, session?.user?.email]);
+
   const greeting = () => {
     const h = new Date().getHours();
     if (h < 12) return "Good morning";
@@ -276,8 +287,7 @@ const Dashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
-            {greeting()}
-            {businessName ? `, ${businessName.split(" ")[0]}` : ""} 👋
+            {greeting()}{displayName ? `, ${displayName}` : ""} 👋
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
             Here's what's happening with your business today.

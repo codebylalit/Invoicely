@@ -20,7 +20,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get all recurring invoices that need to be generated
+    // Get all recurring invoices due for generation
     const { data: recurringInvoices, error: fetchError } = await supabaseClient
       .from('invoices')
       .select('*')
@@ -30,10 +30,11 @@ serve(async (req) => {
 
     if (fetchError) throw fetchError
 
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://getinvoicely.online'
+
     for (const invoice of recurringInvoices) {
-      // Check if we've reached the end date
+      // Stop if end date has passed
       if (invoice.recurrence_end_date && new Date(invoice.recurrence_end_date) < new Date()) {
-        // Update the parent invoice to stop recurring
         await supabaseClient
           .from('invoices')
           .update({ is_recurring: false })
@@ -48,15 +49,15 @@ serve(async (req) => {
         new Date(invoice.next_recurrence_date)
       )
 
-      // Create new invoice
+      // Create new invoice from parent
       const { data: newInvoice, error: createError } = await supabaseClient
         .from('invoices')
         .insert({
           ...invoice,
-          id: undefined, // Let the database generate a new ID
+          id: undefined,
           status: 'draft',
           issued_date: new Date().toISOString(),
-          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           parent_invoice_id: invoice.id,
           next_recurrence_date: nextDate.toISOString(),
         })
@@ -71,36 +72,92 @@ serve(async (req) => {
         .update({ next_recurrence_date: nextDate.toISOString() })
         .eq('id', invoice.id)
 
-      if (newInvoice && newInvoice.email) {
+      // Send email to client if email is available
+      const clientEmail = newInvoice?.client_email || newInvoice?.email
+      if (newInvoice && clientEmail) {
+        const clientName = newInvoice.client_name || newInvoice.name || 'there'
+        const businessName = newInvoice.fromCompany || newInvoice.business_name || 'Invoicely'
+
+        let rawItems = newInvoice.items
+        if (typeof rawItems === 'string') {
+          try { rawItems = JSON.parse(rawItems) } catch (_) { rawItems = [] }
+        }
+        if (!Array.isArray(rawItems)) rawItems = []
+
+        const itemsTableHtml = rawItems.length > 0
+          ? rawItems.map((it: any) => `
+              <tr>
+                <td style="padding:10px;border-bottom:1px solid #e2e8f0;color:#334155">${it.description || it.name || 'Services'}</td>
+                <td style="padding:10px;border-bottom:1px solid #e2e8f0;color:#334155;text-align:center">${it.quantity || 1}</td>
+                <td style="padding:10px;border-bottom:1px solid #e2e8f0;color:#334155;text-align:right">₹${Number(it.unitPrice || it.rate || 0).toFixed(2)}</td>
+                <td style="padding:10px;border-bottom:1px solid #e2e8f0;color:#334155;text-align:right;font-weight:600">₹${Number(it.totalPrice || it.amount || 0).toFixed(2)}</td>
+              </tr>
+            `).join('')
+          : `<tr><td colspan="4" style="padding:10px;color:#64748b">Recurring Subscription / Services</td></tr>`
+
         await resend.emails.send({
-          from: "Your Company <your@email.com>",
-          to: newInvoice.email,
-          subject: `Your Invoice #${newInvoice.invoice_number || newInvoice.invoiceNumber}`,
+          from: "Invoicely <no-reply@getinvoicely.online>",
+          to: clientEmail,
+          subject: `Invoice #${newInvoice.invoice_number} from ${businessName} — Payment Due`,
           html: `
-            <h2>Hi ${newInvoice.name || "there"},</h2>
-            <p>Your new invoice is ready.</p>
-            <p><b>Amount:</b> $${newInvoice.total}</p>
-            <p><b>Due Date:</b> ${newInvoice.due_date || newInvoice.dueDate}</p>
-            <p>Thank you for your business!</p>
+            <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#ffffff;border-radius:12px;border:1px solid #e2e8f0">
+              <div style="margin-bottom:20px;border-bottom:2px solid #f1f5f9;padding-bottom:16px">
+                <h1 style="color:#0f172a;font-size:22px;margin:0">${businessName}</h1>
+                <p style="color:#64748b;font-size:14px;margin:4px 0 0 0">Recurring Invoice #${newInvoice.invoice_number}</p>
+              </div>
+
+              <p style="color:#334155;font-size:15px;line-height:1.5">Hi ${clientName},</p>
+              <p style="color:#475569;font-size:14px;background:#f8fafc;padding:12px 16px;border-radius:8px;border-left:4px solid #3b82f6">
+                A new recurring invoice has been automatically generated for your ongoing subscription.
+              </p>
+
+              <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px">
+                <thead>
+                  <tr style="background:#f8fafc;color:#64748b">
+                    <th style="padding:10px;text-align:left;border-bottom:1px solid #cbd5e1">Description</th>
+                    <th style="padding:10px;text-align:center;border-bottom:1px solid #cbd5e1">Qty</th>
+                    <th style="padding:10px;text-align:right;border-bottom:1px solid #cbd5e1">Rate</th>
+                    <th style="padding:10px;text-align:right;border-bottom:1px solid #cbd5e1">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsTableHtml}
+                </tbody>
+              </table>
+
+              <div style="margin:24px 0;background:#f8fafc;padding:16px;border-radius:8px">
+                <div style="display:flex;justify-content:space-between;color:#0f172a;font-size:18px;font-weight:700">
+                  <span>Total Amount Due:</span>
+                  <span style="color:#f59e0b">₹${Number(newInvoice.total || 0).toFixed(2)}</span>
+                </div>
+                <p style="color:#64748b;font-size:12px;margin:6px 0 0 0">Due Date: ${newInvoice.due_date ? new Date(newInvoice.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A'}</p>
+              </div>
+
+              <div style="text-align:center;margin:30px 0">
+                <a href="${siteUrl}/pay/${newInvoice.id}"
+                   style="display:inline-block;background:#f59e0b;color:#ffffff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px">
+                  View &amp; Pay Invoice Online →
+                </a>
+              </div>
+
+              <p style="color:#94a3b8;margin-top:28px;font-size:12px;text-align:center;border-top:1px solid #f1f5f9;padding-top:16px">
+                This is an automated recurring invoice sent via Invoicely.
+              </p>
+            </div>
           `,
-        });
+        })
       }
     }
 
     return new Response(
-      JSON.stringify({ message: 'Recurring invoices processed successfully' }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
+      JSON.stringify({ message: 'Recurring invoices processed successfully', count: recurringInvoices?.length ?? 0 }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {
+    console.error('generate-recurring-invoices error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     )
   }
 })
@@ -111,7 +168,7 @@ function calculateNextRecurrenceDate(
   currentDate: Date
 ): Date {
   const nextDate = new Date(currentDate)
-  
+
   switch (frequency) {
     case 'weekly':
       nextDate.setDate(nextDate.getDate() + (7 * interval))
@@ -123,8 +180,8 @@ function calculateNextRecurrenceDate(
       nextDate.setDate(nextDate.getDate() + interval)
       break
     default:
-      throw new Error('Invalid frequency')
+      throw new Error('Invalid frequency: ' + frequency)
   }
-  
+
   return nextDate
-} 
+}

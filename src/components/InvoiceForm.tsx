@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { InvoiceDetails } from "./InvoiceDetails";
 import { InvoiceItems } from "./InvoiceItems";
@@ -269,8 +269,19 @@ export const InvoiceForm = ({
   ]);
   const [taxes, setTaxes] = useState<TaxItem[]>([]);
   const [discounts, setDiscounts] = useState<DiscountItem[]>([]);
-  const [subtotal, setSubtotal] = useState(0);
-  const [total, setTotal] = useState(0);
+
+  const subtotal = useMemo(() => {
+    return items.reduce((sum, item) => {
+      const itemTotal = Number(item.totalPrice) || (Number(item.quantity || 1) * Number(item.unitPrice || 0));
+      return sum + itemTotal;
+    }, 0);
+  }, [items]);
+
+  const total = useMemo(() => {
+    const taxSum = taxes.reduce((s, t) => s + (Number(t.amount) || 0), 0);
+    const discSum = discounts.reduce((s, d) => s + (Number(d.amount) || 0), 0);
+    return subtotal + taxSum - discSum;
+  }, [subtotal, taxes, discounts]);
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [clientDropdownOpen, setClientDropdownOpen] = useState(false);
@@ -378,6 +389,43 @@ export const InvoiceForm = ({
     }
   }, [session]);
 
+  // Pre-populate form fields when editing an existing invoice draft
+  useEffect(() => {
+    if (invoiceDraft) {
+      let rawItems = invoiceDraft.items;
+      if (typeof rawItems === 'string') {
+        try { rawItems = JSON.parse(rawItems); } catch (_) { rawItems = []; }
+      }
+      if (Array.isArray(rawItems) && rawItems.length > 0) {
+        const parsedItems = rawItems.map((it: any, idx: number) => {
+          const q = Number(it.quantity) || 1;
+          const rate = Number(it.unitPrice ?? it.rate ?? it.price ?? 0);
+          const amt = Number(it.totalPrice ?? it.amount ?? (q * rate));
+          return {
+            id: String(it.id || idx),
+            description: it.description || it.name || "Services Rendered",
+            quantity: q,
+            unitPrice: rate,
+            totalPrice: amt,
+          };
+        });
+        setItems(parsedItems);
+      }
+      if (invoiceDraft.invoiceTitle) setInvoiceTitle(invoiceDraft.invoiceTitle);
+      if (invoiceDraft.invoiceNumber) setInvoiceNumber(invoiceDraft.invoiceNumber);
+      if (invoiceDraft.issuedDate) setIssuedDate(invoiceDraft.issuedDate);
+      if (invoiceDraft.dueDate) setDueDate(invoiceDraft.dueDate);
+      if (invoiceDraft.name) setCustomerName(invoiceDraft.name);
+      if (invoiceDraft.email) setCustomerEmail(invoiceDraft.email);
+      if (invoiceDraft.details) setCustomerDetails(invoiceDraft.details);
+      if (invoiceDraft.notes) setNotes(invoiceDraft.notes);
+      if (invoiceDraft.is_recurring !== undefined) setIsRecurring(invoiceDraft.is_recurring);
+      if (invoiceDraft.recurrence_frequency) setRecurrenceFrequency(invoiceDraft.recurrence_frequency as any);
+      if (invoiceDraft.recurrence_interval) setRecurrenceInterval(invoiceDraft.recurrence_interval);
+      if (invoiceDraft.recurrence_start_date) setRecurrenceStartDate(invoiceDraft.recurrence_start_date);
+    }
+  }, [invoiceDraft?.id, invoiceDraft?.invoiceNumber]);
+
   // Update the invoice preview whenever form state changes
   useEffect(() => {
     // Always update the preview whenever form state changes, regardless of hasUsedPrompt
@@ -450,37 +498,7 @@ export const InvoiceForm = ({
       });
     }
   };
-  // Recalculate totals whenever items, taxes, or discounts change
-  useEffect(() => {
-    const newSubtotal = items.reduce(
-      (sum, item) => sum + (item.totalPrice || 0),
-      0
-    );
-    setSubtotal(newSubtotal);
 
-    const updatedTaxes = taxes.map((tax) => ({
-      ...tax,
-      amount: (tax.rate / 100) * newSubtotal,
-    }));
-    setTaxes(updatedTaxes);
-
-    const updatedDiscounts = discounts.map((discount) => ({
-      ...discount,
-      amount: (discount.rate / 100) * newSubtotal,
-    }));
-    setDiscounts(updatedDiscounts);
-
-    const taxAmount = updatedTaxes.reduce(
-      (sum, tax) => sum + (tax.amount || 0),
-      0
-    );
-    const discountAmount = updatedDiscounts.reduce(
-      (sum, discount) => sum + (discount.amount || 0),
-      0
-    );
-
-    setTotal(newSubtotal + taxAmount - discountAmount);
-  }, [items, taxes.length, discounts.length]);
 
   const fetchPaymentDetails = async () => {
     try {
@@ -610,8 +628,6 @@ export const InvoiceForm = ({
       setCustomerEmail(generatedInvoice.email);
       setCustomerDetails(generatedInvoice.details);
       setItems(generatedInvoice.items);
-      setSubtotal(generatedInvoice.subtotal);
-      setTotal(generatedInvoice.total);
       setNotes(generatedInvoice.notes);
       setPaymentMethods({
         bank: {

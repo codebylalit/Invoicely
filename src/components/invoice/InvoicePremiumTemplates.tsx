@@ -384,7 +384,9 @@ export const CorporateBlueTemplate: React.FC<TemplateProps> = ({ businessDetails
       <div className="flex items-center justify-between">
         <div>
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-12 object-contain mb-3" style={{ filter: 'brightness(0) invert(1)' }} />
+            <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-3">
+              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" />
+            </div>
           ) : (
             <p className="text-xl font-bold mb-1">{businessDetails.business_name || 'Company'}</p>
           )}
@@ -645,7 +647,9 @@ export const ModernPurpleTemplate: React.FC<TemplateProps> = ({ businessDetails,
       <div className="flex items-start justify-between">
         <div>
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain mb-4" style={{ filter: 'brightness(0) invert(1)' }} />
+            <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-4">
+              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" />
+            </div>
           ) : (
             <p className="text-2xl font-bold text-white mb-1">{businessDetails.business_name || 'Company'}</p>
           )}
@@ -719,7 +723,9 @@ export const CreativeAgencyTemplate: React.FC<TemplateProps> = ({ businessDetail
       {/* Left sidebar */}
       <div className="bg-[#ff6b35] text-white px-6 py-10 flex flex-col">
         {businessDetails.logo_url ? (
-          <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain mb-8" style={{ filter: 'brightness(0) invert(1)' }} />
+          <div className="bg-white/95 p-2 rounded-lg inline-block shadow-sm mb-6">
+            <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" />
+          </div>
         ) : (
           <p className="text-xl font-black mb-8 tracking-tight">{businessDetails.business_name || 'AGENCY'}</p>
         )}
@@ -951,7 +957,9 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ businessDetails, disp
       <div className="flex items-start justify-between">
         <div>
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain mb-3" style={{ filter: 'brightness(0) invert(1)' }} />
+            <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-3">
+              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" />
+            </div>
           ) : (
             <p className="text-xl font-bold mb-1">{businessDetails.business_name}</p>
           )}
@@ -1459,7 +1467,9 @@ export const GreenEcoTemplate: React.FC<TemplateProps> = ({ businessDetails, dis
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+            <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm">
+              <img src={businessDetails.logo_url} alt="Logo" className="h-9 object-contain" />
+            </div>
           ) : (
             <div className="flex items-center gap-2">
               <svg className="h-8 w-8 text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1549,7 +1559,9 @@ export const ProfessionalGrayTemplate: React.FC<TemplateProps> = ({ businessDeta
       <div className="flex items-start justify-between">
         <div>
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain mb-3" style={{ filter: 'brightness(0) invert(1)' }} />
+            <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-3">
+              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" />
+            </div>
           ) : (
             <p className="text-xl font-bold mb-1">{businessDetails.business_name || 'Company Name'}</p>
           )}
@@ -1641,7 +1653,9 @@ export const InternationalBusinessTemplate: React.FC<TemplateProps> = ({ busines
       <div className="flex items-start justify-between relative z-10">
         <div>
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-12 object-contain mb-4" style={{ filter: 'brightness(0) invert(1)' }} />
+            <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-4">
+              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" />
+            </div>
           ) : (
             <p className="text-2xl font-bold text-white mb-2">{businessDetails.business_name || 'Global Company'}</p>
           )}

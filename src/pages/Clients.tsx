@@ -104,20 +104,23 @@ const Clients = () => {
   }, [session]);
 
   const fetchClients = async () => {
+    if (!session?.user?.id) return;
     setLoading(true);
     try {
       // ── Optimized: single query to get clients + invoice aggregates ──────
       const { data: clientsData, error: clientsError } = await supabase
         .from("clients")
         .select("*")
+        .eq("user_id", session.user.id)
         .order("name", { ascending: true });
 
       if (clientsError) throw clientsError;
 
-      // Fetch all invoices once (not N queries)
+      // Fetch user's invoices for aggregate client calculation
       const { data: invoicesData } = await supabase
         .from("invoices")
-        .select("client_name, total, status");
+        .select("client_name, total, status")
+        .eq("user_id", session.user.id);
 
       // Build aggregation map
       const invoiceMap: Record<string, { count: number; total: number; pending: number }> = {};

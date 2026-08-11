@@ -13,10 +13,16 @@ export function useInvoiceManager() {
   // Function to get the next available invoice number
   const getNextInvoiceNumber = async () => {
     try {
-      // Get the highest invoice number from the database
-      const { data, error } = await supabase
+      // Get the highest invoice number from the database for this user
+      let query = supabase
         .from("invoices")
-        .select("invoice_number")
+        .select("invoice_number");
+
+      if (session?.user?.id) {
+        query = query.eq("user_id", session.user.id);
+      }
+
+      const { data, error } = await query
         .order("invoice_number", { ascending: false })
         .limit(1);
 
@@ -105,12 +111,26 @@ export function useInvoiceManager() {
           : null,
       };
 
-      // Insert invoice into Supabase
-      const { data, error } = await supabase
-        .from("invoices")
-        .insert(supabaseInvoice)
-        .select()
-        .single();
+      // Insert or update invoice in Supabase
+      let data, error;
+      if (invoiceData.id) {
+        const res = await supabase
+          .from("invoices")
+          .update(supabaseInvoice)
+          .eq("id", invoiceData.id)
+          .select()
+          .single();
+        data = res.data;
+        error = res.error;
+      } else {
+        const res = await supabase
+          .from("invoices")
+          .insert(supabaseInvoice)
+          .select()
+          .single();
+        data = res.data;
+        error = res.error;
+      }
 
       if (error) throw error;
 

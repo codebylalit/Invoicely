@@ -1,140 +1,194 @@
 import React, { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle2, Send, ArrowLeft, Mail, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Contact = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: "",
-  });
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
   const navigate = useNavigate();
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) return;
     setLoading(true);
-
+    setError(null);
     try {
-      const response = await fetch("https://formspree.io/f/xeolankl", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const { error: dbError } = await (supabase as any)
+        .from("contact_inquiries")
+        .insert({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          subject: formData.subject.trim() || "General Inquiry",
+          message: formData.message.trim(),
+          status: "new",
+        });
 
-      if (response.ok) {
-        setSubmitted(true);
-        setFormData({ name: "", email: "", message: "" });
-      } else {
-        throw new Error("Failed to submit form");
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("There was an error submitting your message. Please try again.");
+      if (dbError) throw new Error(dbError.message);
+      setSubmitted(true);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (err: any) {
+      setError("Something went wrong. Please try again or email us directly at support@invoicely.me");
+      console.error("Contact form error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F5F1] py-12">
-      <div className="max-w-4xl mx-auto px-4">
-        <Button onClick={() => navigate(-1)} variant="ghost" className="mb-8">
-          ← Back
+    <div className="min-h-screen bg-[#F6F5F1] dark:bg-[#0D111D] py-12 transition-colors">
+      <div className="max-w-2xl mx-auto px-4">
+        <Button onClick={() => navigate(-1)} variant="ghost" className="mb-8 text-slate-600 dark:text-slate-400">
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </Button>
 
-        <Card className="bg-white">
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold text-[#2D2D2D]">
-              Contact Us
-            </CardTitle>
-            <p className="text-[#6B6B6B]">
-              Have a question, suggestion, or need support? Fill out the form
-              below or email us at{" "}
-              <a
-                href="mailto:support@invoicely.me"
-                className="text-[#FFB800] underline"
-              >
-                support@invoicely.me
-              </a>
-              .
-            </p>
+        <Card className="bg-white dark:bg-[#141928] border border-slate-200 dark:border-slate-800 shadow-sm">
+          <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                <MessageSquare className="h-5 w-5 text-amber-500" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">
+                  Contact Support
+                </CardTitle>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                  We usually respond within 24 hours
+                </p>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+
+          <CardContent className="pt-6">
             {submitted ? (
-              <div className="bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded mb-6">
-                Thank you for contacting us! We will get back to you soon.
+              <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+                <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                  <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Message Sent!</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
+                    We've received your inquiry and will get back to you soon.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSubmitted(false)}
+                  className="mt-2 text-xs"
+                >
+                  Send another message
+                </Button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block mb-2 font-semibold text-[#2D2D2D]">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full border rounded px-3 py-2"
-                  />
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Name + Email */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                      Your Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      placeholder="Lalit Kumar"
+                      className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-900/60 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-400 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      placeholder="you@example.com"
+                      className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-900/60 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-400 transition-colors"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block mb-2 font-semibold text-[#2D2D2D]">
-                    Email
+
+                {/* Subject */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                    Subject
                   </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full border rounded px-3 py-2"
-                  />
+                  <select
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-900/60 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-400 transition-colors"
+                  >
+                    <option value="">Select a topic…</option>
+                    <option value="Billing & Subscription">Billing & Subscription</option>
+                    <option value="Invoice Issue">Invoice Issue</option>
+                    <option value="Payment Problem">Payment Problem</option>
+                    <option value="Account Help">Account Help</option>
+                    <option value="Feature Request">Feature Request</option>
+                    <option value="Bug Report">Bug Report</option>
+                    <option value="General Inquiry">General Inquiry</option>
+                  </select>
                 </div>
-                <div>
-                  <label className="block mb-2 font-semibold text-[#2D2D2D]">
-                    Message
+
+                {/* Message */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                    Message *
                   </label>
                   <textarea
                     name="message"
                     value={formData.message}
-                    onChange={handleInputChange}
+                    onChange={handleChange}
                     required
-                    className="w-full border rounded px-3 py-2 min-h-[100px]"
+                    rows={5}
+                    placeholder="Describe your issue or question in detail…"
+                    className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-900/60 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-400 transition-colors resize-none"
                   />
                 </div>
+
+                {/* Error */}
+                {error && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-sm text-rose-600 dark:text-rose-400">
+                    {error}
+                  </div>
+                )}
+
+                {/* Submit */}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-[#FFB800] text-[#2D2D2D] font-semibold px-6 py-2 rounded hover:bg-[#FFB800]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-white font-semibold px-6 py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
-                  {loading ? "Sending..." : "Send Message"}
+                  {loading ? (
+                    <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  {loading ? "Sending…" : "Send Message"}
                 </button>
+
+                <p className="text-center text-xs text-slate-400">
+                  Or email us directly at{" "}
+                  <a href="mailto:support@invoicely.me" className="text-amber-500 hover:underline">
+                    support@invoicely.me
+                  </a>
+                </p>
               </form>
             )}
           </CardContent>
