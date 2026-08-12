@@ -169,19 +169,17 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
               aria-current={isActive ? "page" : undefined}
               className={`
                 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 text-sm font-medium group
-                ${
-                  isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                ${isActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }
               `}
             >
               <Icon
-                className={`h-4 w-4 flex-shrink-0 transition-colors ${
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground group-hover:text-foreground"
-                }`}
+                className={`h-4 w-4 flex-shrink-0 transition-colors ${isActive
+                  ? "text-primary"
+                  : "text-muted-foreground group-hover:text-foreground"
+                  }`}
               />
               <span className="flex-1">{item.label}</span>
               {item.path === "/app/recurring" && !isPro && (

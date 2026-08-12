@@ -123,7 +123,13 @@ export const fetchLiveAdminData = async (
       status: 'Active' as UserStatus,
       lastActive,
       mrr: planMRR(plan),
-      location: biz?.address?.split('\n')[0] ?? biz?.city ?? 'Global',
+      location: (() => {
+        if (!biz) return 'Global';
+        const parts = [biz.city, biz.state, biz.country].filter(Boolean);
+        if (parts.length > 0) return parts.join(', ');
+        if (biz.address) return biz.address.split('\n')[0];
+        return 'Global';
+      })(),
       ipAddress: 'Registered User',
       invoicesCount: invoiceCountByUserId.get(uid) ?? 0
     };
@@ -143,7 +149,12 @@ export const fetchLiveAdminData = async (
         status: 'Active' as UserStatus,
         lastActive: 'N/A',
         mrr: 0,
-        location: b.address?.split('\n')[0] ?? b.city ?? 'Global',
+        location: (() => {
+          const parts = [b.city, b.state, b.country].filter(Boolean);
+          if (parts.length > 0) return parts.join(', ');
+          if (b.address) return b.address.split('\n')[0];
+          return 'Global';
+        })(),
         ipAddress: 'Registered User',
         invoicesCount: invoiceCountByUserId.get(b.user_id) ?? 0
       });
@@ -314,4 +325,21 @@ export const fetchLiveAdminData = async (
     userActivity,
     planRevenue
   };
+};
+
+/**
+ * Delete user using security definer RPC function.
+ */
+export const deleteAdminUser = async (client: SupabaseClient, userId: string): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const { data, error } = await client.rpc('delete_user_admin' as any, { target_user_id: userId });
+    if (error) throw error;
+    if (data && typeof data === 'object' && 'error' in data) {
+      return { success: false, error: (data as any).error };
+    }
+    return { success: true };
+  } catch (err: any) {
+    console.error('Delete admin user failed:', err);
+    return { success: false, error: err.message || 'Failed to delete user' };
+  }
 };

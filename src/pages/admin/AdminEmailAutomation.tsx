@@ -954,7 +954,17 @@ const AutomationsTab = ({
           },
         },
       });
-      if (error) throw error;
+      if (error) {
+        let errorMsg = error.message;
+        try {
+          if ('context' in error && (error as any).context?.json) {
+            const errBody = await (error as any).context.json();
+            if (errBody?.error) errorMsg = errBody.error;
+          }
+        } catch (_) {}
+        toast.error(`Test email failed: ${errorMsg}`);
+        return;
+      }
       if (data?.skipped) {
         toast.info('Email skipped (automation disabled or duplicate)');
       } else if (data?.success) {

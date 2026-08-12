@@ -75,8 +75,8 @@ serve(async (req) => {
 
     if (!automation) {
       return new Response(
-        JSON.stringify({ success: false, error: `No automation found for event: ${triggerEvent}` }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+        JSON.stringify({ success: false, error: `No automation template configured for trigger: ${triggerEvent}` }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       )
     }
 

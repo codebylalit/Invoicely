@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import { AdminUser, PlanType, UserStatus } from '@/types/admin';
-import { fetchLiveAdminData } from '@/services/adminDataService';
+import { fetchLiveAdminData, deleteAdminUser } from '@/services/adminDataService';
+import { useToast } from '@/hooks/use-toast';
 import {
   Search,
   Calendar,
@@ -14,7 +15,9 @@ import {
   DollarSign,
   Building2,
   Hash,
-  X
+  X,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -97,6 +100,35 @@ export const AdminUsers: React.FC = () => {
   const [invoicePreviewId, setInvoicePreviewId] = useState<string | null>(null);
   const [invoiceFullData, setInvoiceFullData] = useState<UserInvoice | null>(null);
   const [invoicePreviewLoading, setInvoicePreviewLoading] = useState(false);
+  const { toast } = useToast();
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState<AdminUser | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
+
+  const handleDeleteUser = async (user: AdminUser) => {
+    setDeletingUser(true);
+    try {
+      const res = await deleteAdminUser(supabaseClient, user.id);
+      if (!res.success) {
+        throw new Error(res.error || 'Failed to delete user');
+      }
+      toast({
+        title: 'User Deleted',
+        description: `Successfully deleted user ${user.name} (${user.email}).`,
+      });
+      setDeleteConfirmUser(null);
+      setSelectedUser(null);
+      const data = await fetchLiveAdminData(supabaseClient);
+      setUsers(data.users);
+    } catch (err: any) {
+      toast({
+        title: 'Delete Failed',
+        description: err.message || 'Error deleting user',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeletingUser(false);
+    }
+  };
 
   // Fetch full invoice data via RPC (bypasses RLS)
   const openInvoicePreview = async (inv: UserInvoice) => {
@@ -500,6 +532,27 @@ export const AdminUsers: React.FC = () => {
                             </div>
                           </div>
                         )}
+
+                        {/* Danger Zone: Delete User */}
+                        <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                          <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/20 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="text-xs font-bold text-rose-600 dark:text-rose-400">Danger Zone</h4>
+                                <p className="text-[10px] text-slate-500">Permanently delete user and all associated invoices/clients.</p>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => setDeleteConfirmUser(selectedUser)}
+                                className="h-8 text-xs bg-rose-600 hover:bg-rose-700 text-white font-bold gap-1.5"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Delete User
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
 
@@ -721,6 +774,50 @@ export const AdminUsers: React.FC = () => {
               )}
             </div>
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Confirm Delete User Dialog ── */}
+      <Dialog open={!!deleteConfirmUser} onOpenChange={(open) => !open && setDeleteConfirmUser(null)}>
+        <DialogContent className="sm:max-w-md bg-white dark:bg-[#0D111D] border border-slate-200 dark:border-slate-800">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold">
+              <AlertTriangle className="h-5 w-5" />
+              Delete User Account
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2 text-xs text-slate-600 dark:text-slate-300">
+            <p>
+              Are you sure you want to permanently delete <strong className="text-slate-900 dark:text-white">{deleteConfirmUser?.name}</strong> ({deleteConfirmUser?.email})?
+            </p>
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300">
+              <p className="font-bold mb-1 text-[11px]">⚠️ This action is permanent and cannot be undone:</p>
+              <ul className="list-disc list-inside space-y-0.5 text-[11px] opacity-90">
+                <li>Deletes user profile & authentication account</li>
+                <li>Deletes all associated invoices and client records</li>
+                <li>Deletes business settings and audit logs</li>
+              </ul>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDeleteConfirmUser(null)}
+              disabled={deletingUser}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => deleteConfirmUser && handleDeleteUser(deleteConfirmUser)}
+              disabled={deletingUser}
+              className="bg-rose-600 hover:bg-rose-700 font-bold gap-1.5"
+            >
+              {deletingUser ? 'Deleting…' : 'Yes, Delete User'}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
