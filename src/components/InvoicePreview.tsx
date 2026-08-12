@@ -16,6 +16,7 @@ import emailjs from "@emailjs/browser";
 import { Link, useNavigate } from "react-router-dom";
 import InvoiceLayout from './invoice/InvoiceLayout';
 import EmailModal from './invoice/EmailModal';
+import confetti from "canvas-confetti";
 
 interface InvoicePreviewProps {
   invoice: Invoice | null;
@@ -640,13 +641,22 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange }: InvoiceP
         }
       }
 
+      // ── Fire Confetti 🎉 ──────────────────────────────────────────────────
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 },
+        zIndex: 9999,
+        colors: ['#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6']
+      });
+
       toast({
         title: (
           <div className="flex items-center gap-2 success-animation">
             <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>Success</span>
+            <span>Success 🎉</span>
           </div>
         ),
         description: (

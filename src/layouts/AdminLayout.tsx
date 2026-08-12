@@ -190,23 +190,6 @@ export const AdminLayout: React.FC = () => {
                 <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">admin@invoicely.app</p>
               </div>
             </div>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleTheme}
-                    className="h-7 w-7 rounded-lg text-slate-500 dark:text-slate-400 hover:text-amber-500 dark:hover:text-amber-400"
-                  >
-                    {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p className="text-xs">Toggle {isDarkMode ? 'Light' : 'Dark'} Mode</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
         </div>
       </aside>
@@ -267,16 +250,6 @@ export const AdminLayout: React.FC = () => {
             >
               <Bell className="h-4 w-4 text-slate-600 dark:text-slate-300" />
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-amber-500"></span>
-            </Button>
-
-            {/* Dark Mode Toggle */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleTheme}
-              className="h-9 w-9 rounded-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-amber-500"
-            >
-              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
           </div>
         </header>

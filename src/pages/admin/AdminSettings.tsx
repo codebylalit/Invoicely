@@ -8,7 +8,10 @@ import {
   Lock,
   Copy,
   Eye,
-  EyeOff
+  EyeOff,
+  Palette,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -51,6 +54,23 @@ export const AdminSettings: React.FC = () => {
 
   const [showApiKey, setShowApiKey] = useState<boolean>(false);
 
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return savedTheme === 'dark' || (!savedTheme && prefersDark);
+  });
+
+  const toggleTheme = (enableDark: boolean) => {
+    setIsDarkMode(enableDark);
+    if (enableDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
   const handleSave = () => {
     localStorage.setItem('invoicely_admin_settings', JSON.stringify(settings));
     toast.success('Admin settings saved successfully!');
@@ -88,6 +108,10 @@ export const AdminSettings: React.FC = () => {
           <TabsTrigger value="general" className="rounded-xl text-xs font-semibold gap-2">
             <Globe className="h-3.5 w-3.5" />
             General
+          </TabsTrigger>
+          <TabsTrigger value="appearance" className="rounded-xl text-xs font-semibold gap-2">
+            <Palette className="h-3.5 w-3.5" />
+            Appearance
           </TabsTrigger>
           <TabsTrigger value="notifications" className="rounded-xl text-xs font-semibold gap-2">
             <Bell className="h-3.5 w-3.5" />
@@ -148,6 +172,40 @@ export const AdminSettings: React.FC = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Tab: Appearance */}
+        <TabsContent value="appearance">
+          <Card className="border border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-[#0D111D]/80 backdrop-blur-sm shadow-sm rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-base font-bold text-slate-900 dark:text-white">
+                Theme & Appearance
+              </CardTitle>
+              <CardDescription className="text-xs text-slate-500">
+                Switch between dark mode and light mode interface styles.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                    {isDarkMode ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+                  </div>
+                  <div>
+                    <Label className="text-xs font-bold text-slate-900 dark:text-white">Dark Mode</Label>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Enable dark theme across the admin panel and main application.
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={isDarkMode}
+                  onCheckedChange={(val) => toggleTheme(val)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
 
         {/* Tab 2: Notifications & Alerts */}
         <TabsContent value="notifications">

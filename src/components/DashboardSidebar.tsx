@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useEffect, useState } from "react";
-import ThemeToggle from "./ThemeToggle";
+
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
 
@@ -221,11 +221,6 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
           )}
         </div>
 
-        {/* Theme Toggle Row */}
-        <div className="flex items-center justify-between px-2">
-          <span className="text-xs text-muted-foreground">Theme</span>
-          <ThemeToggle />
-        </div>
 
         {/* User Profile */}
         <div className="flex items-center gap-2.5 px-2 pt-1">
