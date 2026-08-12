@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useEffect, useState } from "react";
+import { useEntitlements } from "@/hooks/useEntitlements";
 
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
@@ -32,10 +33,10 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
   const location = useLocation();
   const session = useSession();
   const supabase = useSupabaseClient();
+  const { isPro } = useEntitlements();
   const [userProfile, setUserProfile] = useState({
     name: "",
     email: session?.user?.email || "",
-    tier: "free",
     logo_url: null as string | null,
   });
 
@@ -48,9 +49,9 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
           .from("profiles")
           .select("tier")
           .eq("user_id", session.user.id)
-          .single();
+          .maybeSingle();
 
-        if (profileError && profileError.code !== "PGRST116") {
+        if (profileError) {
           console.error("Error fetching user profile:", profileError);
         }
 
@@ -58,9 +59,9 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
           .from("business_details")
           .select("contact_name, logo_url")
           .eq("user_id", session.user.id)
-          .single();
+          .maybeSingle();
 
-        if (businessError && businessError.code !== "PGRST116") {
+        if (businessError) {
           console.error("Error fetching business details:", businessError);
         }
 
@@ -108,8 +109,6 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
     navigate("/app/settings?tab=subscription");
     onClose?.();
   };
-
-  const isPro = userProfile.tier === "pro";
 
   // Extract a friendly name from email: "heyylalit@gmail.com" → "Heyylalit"
   const getDisplayName = () => {
@@ -184,9 +183,14 @@ const DashboardSidebar = ({ onClose }: DashboardSidebarProps = {}) => {
                     : "text-muted-foreground group-hover:text-foreground"
                 }`}
               />
-              <span>{item.label}</span>
+              <span className="flex-1">{item.label}</span>
+              {item.path === "/app/recurring" && !isPro && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  PRO
+                </span>
+              )}
               {isActive && (
-                <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+                <div className="ml-1 h-1.5 w-1.5 rounded-full bg-primary" />
               )}
             </Link>
           );

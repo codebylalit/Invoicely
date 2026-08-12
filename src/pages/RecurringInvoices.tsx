@@ -28,6 +28,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useEntitlements } from "@/hooks/useEntitlements";
 
 const fmtCurrency = (amount: number) =>
   new Intl.NumberFormat("en-IN", {
@@ -58,6 +59,7 @@ export const RecurringInvoices = () => {
   const supabase = useSupabaseClient();
   const session = useSession();
   const { toast } = useToast();
+  const { isPro, isLoading: entitlementsLoading } = useEntitlements();
   const { saveInvoice, isSaving, getNextInvoiceNumber } = useInvoiceManager();
 
   const [recurringInvoices, setRecurringInvoices] = useState<any[]>([]);
@@ -300,6 +302,34 @@ export const RecurringInvoices = () => {
       return name.includes(query) || email.includes(query) || num.includes(query);
     });
   }, [recurringInvoices, searchQuery]);
+  if (entitlementsLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-3">
+        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+        <p className="text-xs font-medium text-slate-500">Checking plan entitlements...</p>
+      </div>
+    );
+  }
+
+  if (!isPro) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center max-w-md mx-auto">
+        <div className="h-16 w-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-4">
+          <Zap className="h-8 w-8" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Pro Feature Locked</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 mb-6">
+          Recurring Invoices are exclusive to Invoicely Pro subscribers. Upgrade your plan to automate your billing.
+        </p>
+        <Button
+          onClick={() => window.location.href = '/app/settings?tab=subscription'}
+          className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-2.5 rounded-xl shadow-md"
+        >
+          Upgrade to Pro
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-12 animate-fade-up max-w-7xl">

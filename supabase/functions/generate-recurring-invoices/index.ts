@@ -33,6 +33,25 @@ serve(async (req) => {
     const siteUrl = Deno.env.get('SITE_URL') || 'https://getinvoicely.online'
 
     for (const invoice of recurringInvoices) {
+      // Plan check: verify user is currently a Pro user
+      if (invoice.user_id) {
+        const { data: profile } = await supabaseClient
+          .from('profiles')
+          .select('tier')
+          .eq('user_id', invoice.user_id)
+          .maybeSingle()
+
+        const userTier = String(profile?.tier || 'free').toLowerCase()
+        if (!userTier.includes('pro') && !userTier.includes('admin')) {
+          console.log(`[Recurring] Pausing invoice ${invoice.id} because user ${invoice.user_id} is on ${userTier} plan`)
+          await supabaseClient
+            .from('invoices')
+            .update({ is_recurring: false })
+            .eq('id', invoice.id)
+          continue
+        }
+      }
+
       // Stop if end date has passed
       if (invoice.recurrence_end_date && new Date(invoice.recurrence_end_date) < new Date()) {
         await supabaseClient

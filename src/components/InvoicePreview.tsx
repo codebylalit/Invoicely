@@ -17,6 +17,7 @@ import { Link, useNavigate } from "react-router-dom";
 import InvoiceLayout from './invoice/InvoiceLayout';
 import EmailModal from './invoice/EmailModal';
 import confetti from "canvas-confetti";
+import { useEntitlements } from "@/hooks/useEntitlements";
 
 interface InvoicePreviewProps {
   invoice: Invoice | null;
@@ -130,35 +131,8 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
   const goToSubscription = () => {
     navigate("/app/settings?tab=subscription");
   };
-  const [userSubscription, setUserSubscription] = useState({
-    tier: "free", // Default to free
-  });
-  const fetchUserSubscription = async () => {
-    try {
-      if (!session?.user?.id) return;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("tier")
-        .eq("user_id", session.user.id)
-        .single();
-
-      if (error) throw error;
-
-      if (data) {
-        setUserSubscription({
-          tier: data.tier || "free",
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching user subscription:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load subscription details",
-        variant: "destructive",
-      });
-    }
-  };
+  const { isPro, tier, canUseTemplate, canRemoveWatermark } = useEntitlements();
+  const userSubscription = useMemo(() => ({ tier }), [tier]);
 
   // Default empty invoice for new/manual creation
   const defaultInvoice: Invoice = {
@@ -233,7 +207,7 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
         .from("profiles")
         .select("payment_method, bank_transfer_details, payment_link")
         .eq("user_id", session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -276,7 +250,7 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
 
   const handleSelectTemplate = (template: InvoiceTemplate) => {
     // Check if user is trying to use a premium template while on free tier
-    if (userSubscription.tier !== "pro" && template.id > 3) {
+    if (!canUseTemplate(template.id)) {
       toast({
         title: "Premium Template",
         description:
@@ -879,9 +853,9 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
         .from("business_details")
         .select("*")
         .eq("user_id", session?.user?.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
         throw error;
       }
 

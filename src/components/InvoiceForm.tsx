@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { RecurringInvoiceSettings } from "./RecurringInvoiceSettings";
 import { CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { useEntitlements } from "@/hooks/useEntitlements";
 
 interface Invoice {
   id?: string;
@@ -332,9 +332,8 @@ export const InvoiceForm = ({
   });
   const [promptText, setPromptText] = useState("");
   const [hasUsedPrompt, setHasUsedPrompt] = useState(false);
-  const [userSubscription, setUserSubscription] = useState({
-    tier: "free",
-  });
+  const { isPro, tier } = useEntitlements();
+  const userSubscription = useMemo(() => ({ tier }), [tier]);
 
   const supabase = useSupabaseClient();
   const session = useSession();
@@ -352,7 +351,7 @@ export const InvoiceForm = ({
   const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
   const [templateId, setTemplateId] = useState<number>(() => {
     const saved = activeDraft?.template_id;
-    return (typeof saved === 'number' && !isNaN(saved)) ? saved : 3;
+    return (typeof saved === 'number' && !isNaN(saved)) ? saved : 0;
   });
   const [showWatermark, setShowWatermark] = useState<boolean>(() => activeDraft?.show_watermark ?? true);
   const [pageSize, setPageSize] = useState<'auto' | 'a4' | 'letter'>(() => {
@@ -365,6 +364,7 @@ export const InvoiceForm = ({
   });
 
   const generateCurrentInvoice = useCallback(() => {
+    const effectiveIsRecurring = isPro ? isRecurring : false;
     return {
       id: activeDraft?.id,
       status: "draft",
@@ -395,13 +395,13 @@ export const InvoiceForm = ({
       taxes,
       discounts,
       showPaymentMethods: showPaymentInInvoice,
-      is_recurring: isRecurring,
-      recurrence_frequency: isRecurring ? recurrenceFrequency : undefined,
-      recurrence_interval: isRecurring ? recurrenceInterval : undefined,
-      recurrence_start_date: isRecurring ? recurrenceStartDate : undefined,
-      recurrence_end_date: isRecurring ? recurrenceEndDate || undefined : undefined,
+      is_recurring: effectiveIsRecurring,
+      recurrence_frequency: effectiveIsRecurring ? recurrenceFrequency : undefined,
+      recurrence_interval: effectiveIsRecurring ? recurrenceInterval : undefined,
+      recurrence_start_date: effectiveIsRecurring ? recurrenceStartDate : undefined,
+      recurrence_end_date: effectiveIsRecurring ? recurrenceEndDate || undefined : undefined,
       template_id: templateId,
-      show_watermark: userSubscription.tier === "pro" ? showWatermark : true,
+      show_watermark: isPro ? showWatermark : true,
       page_size: pageSize,
     };
   }, [
@@ -538,7 +538,7 @@ export const InvoiceForm = ({
         .from("profiles")
         .select("tier")
         .eq("user_id", session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -566,7 +566,7 @@ export const InvoiceForm = ({
         .from("profiles")
         .select("payment_method, bank_transfer_details, payment_link")
         .eq("user_id", session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -605,9 +605,9 @@ export const InvoiceForm = ({
         .from("business_details")
         .select("*")
         .eq("user_id", session?.user?.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") throw error;
+      if (error) throw error;
       if (data) setBusinessDetails(data);
     } catch (error: any) {
       console.error("Error fetching business details:", error);

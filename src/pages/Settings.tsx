@@ -123,8 +123,8 @@ const Settings = () => {
         .from("business_details")
         .select("*")
         .eq("user_id", session!.user.id)
-        .single();
-      if (error && error.code !== "PGRST116") throw error;
+        .maybeSingle();
+      if (error) throw error;
       if (data) setBusinessDetails(data);
     } catch (err) {
       console.error("Error fetching business details:", err);
@@ -139,8 +139,8 @@ const Settings = () => {
         .from("profiles")
         .select("tier, payment_method, bank_transfer_details, payment_link")
         .eq("user_id", session!.user.id)
-        .single();
-      if (error && error.code !== "PGRST116") throw error;
+        .maybeSingle();
+      if (error) throw error;
       setUserSubscription({
         tier: data?.tier || "free",
         paymentMethod: data?.payment_method || null,
@@ -159,7 +159,7 @@ const Settings = () => {
         .from("profiles")
         .select("*")
         .eq("user_id", session!.user.id)
-        .single();
+        .maybeSingle();
       if (data) {
         // Try to read preferences if stored (graceful fallback if columns don't exist yet)
         setPreferences({
@@ -186,7 +186,7 @@ const Settings = () => {
         .from("business_details")
         .select("id")
         .eq("user_id", session!.user.id)
-        .single();
+        .maybeSingle();
 
       const { error } = existing
         ? await supabase.from("business_details").update(payload).eq("user_id", session!.user.id)

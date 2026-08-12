@@ -54,16 +54,27 @@ export const fetchLiveAdminData = async (
     client.rpc('get_all_business_details' as any)
   ]);
 
-  let rawProfiles: any[] = Array.isArray(profilesRes.data) ? profilesRes.data : [];
+  const parseRpcArray = (resData: any): any[] => {
+    if (Array.isArray(resData)) return resData;
+    if (typeof resData === 'string') {
+      try {
+        const parsed = JSON.parse(resData);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (_) {}
+    }
+    return [];
+  };
+
+  let rawProfiles: any[] = parseRpcArray(profilesRes.data);
   if (rawProfiles.length === 0) {
     const { data: directProfiles } = await client.from('profiles').select('*');
     if (directProfiles && directProfiles.length > 0) {
       rawProfiles = directProfiles;
     }
   }
-  const rawInvoices: any[] = Array.isArray(invoicesRes.data) ? invoicesRes.data : [];
-  const rawClients: any[] = Array.isArray(clientsRes.data) ? clientsRes.data : [];
-  const rawBusiness: any[] = Array.isArray(businessRes.data) ? businessRes.data : [];
+  const rawInvoices: any[] = parseRpcArray(invoicesRes.data);
+  const rawClients: any[] = parseRpcArray(clientsRes.data);
+  const rawBusiness: any[] = parseRpcArray(businessRes.data);
 
   // Debug log — open browser console to confirm data is flowing
   console.log('[AdminDataService] RPC profiles:', rawProfiles.length, profilesRes.error?.message ?? 'OK');

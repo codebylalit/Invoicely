@@ -17,7 +17,6 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Refunds from "./pages/Refunds";
-import { createClient } from "@supabase/supabase-js";
 import Contact from "./pages/Contact";
 import Subscription from "./components/Subscription";
 import About from "./pages/About";
@@ -33,15 +32,10 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminFeatures from "./pages/admin/AdminFeatures";
 import AdminInquiries from "./pages/admin/AdminInquiries";
 import AdminEmailAutomation from "./pages/admin/AdminEmailAutomation";
+import { useEntitlements } from "@/hooks/useEntitlements";
+import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
-
-// Initialize Supabase client
-const supabaseUrl = "https://mrmjkdxerrpwrrmmymmv.supabase.co";
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ybWprZHhlcnJwd3JybW15bW12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1OTMwNDAsImV4cCI6MjA5NzE2OTA0MH0.G0nuJd44Ib6rBKgBSgpPn_6SSUBY0lRBYY3muGj6GTw";
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ─── Authorized admin emails ─────────────────────────────────────────────────
 // Only these emails can access /admin. Add more if needed.
@@ -113,6 +107,44 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Pro-only route guard – blocks direct URL access for Free users
+const ProRouteGuard = ({ children }: { children: React.ReactNode }) => {
+  const { isPro, isLoading } = useEntitlements();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-slate-700">
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-amber-400 border-t-transparent mb-3" />
+        <p className="text-xs font-semibold tracking-wide uppercase text-slate-400">Verifying plan entitlement...</p>
+      </div>
+    );
+  }
+
+  if (!isPro) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center max-w-md mx-auto">
+        <div className="h-16 w-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-4">
+          <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Pro Feature Locked</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 mb-6">
+          Recurring Invoices are exclusive to Invoicely Pro subscribers. Upgrade your plan to automate your billing.
+        </p>
+        <a
+          href="/app/settings?tab=subscription"
+          className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-md"
+        >
+          Upgrade to Pro
+        </a>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
+
 const App = () => {
   return (
     <SessionContextProvider supabaseClient={supabase}>
@@ -172,7 +204,7 @@ const App = () => {
                 <Route index element={<Index />} />
                 <Route path="clients" element={<Clients />} />
                 <Route path="invoices" element={<Invoices />} />
-                <Route path="recurring" element={<RecurringInvoices />} />
+                <Route path="recurring" element={<ProRouteGuard><RecurringInvoices /></ProRouteGuard>} />
                 <Route path="items" element={<Index />} />
                 <Route path="page" element={<Index />} />
                 <Route path="settings" element={<Settings />} />

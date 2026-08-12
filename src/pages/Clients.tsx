@@ -42,7 +42,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 
-// ─── Types ─────────────────────────────────────────────────────────────────────
+import { useEntitlements } from "@/hooks/useEntitlements";
+
 interface Client {
   id: string;
   name: string;
@@ -89,18 +90,7 @@ const Clients = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [userTier, setUserTier] = useState("free");
-
-  useEffect(() => {
-    if (session?.user?.id) {
-      supabase
-        .from("profiles")
-        .select("tier")
-        .eq("user_id", session.user.id)
-        .single()
-        .then(({ data }) => setUserTier(data?.tier || "free"));
-    }
-  }, [session]);
+  const { isPro, canAddClient, maxClients } = useEntitlements();
 
   const fetchClients = async () => {
     if (!session?.user?.id) return;
@@ -154,7 +144,7 @@ const Clients = () => {
 
   useEffect(() => {
     fetchClients();
-  }, [userTier]);
+  }, [session?.user?.id]);
 
   const filtered = useMemo(
     () =>
@@ -195,7 +185,7 @@ const Clients = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isEditing && userTier === "free" && clients.length >= FREE_TIER_LIMIT) {
+    if (!isEditing && limitReached) {
       setUpgradeDialogOpen(true);
       return;
     }
@@ -255,7 +245,7 @@ const Clients = () => {
     }
   };
 
-  const limitReached = userTier === "free" && clients.length >= FREE_TIER_LIMIT;
+  const limitReached = !canAddClient(clients.length);
 
   return (
     <div className="space-y-6 pb-4">
@@ -265,7 +255,7 @@ const Clients = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Clients</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {clients.length} client{clients.length !== 1 ? "s" : ""}
-            {userTier === "free" ? ` · Free plan: ${clients.length}/${FREE_TIER_LIMIT}` : ""}
+            {!isPro ? ` · Free plan: ${clients.length}/${maxClients}` : ""}
           </p>
         </div>
         <Button onClick={openAddDialog} disabled={limitReached} className="flex-shrink-0">

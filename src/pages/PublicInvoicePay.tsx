@@ -151,9 +151,9 @@ const PublicInvoicePay = () => {
           .from("invoices")
           .select("*")
           .eq("id", id)
-          .single();
+          .maybeSingle();
 
-        if (invErr) throw new Error("Invoice not found or link has expired.");
+        if (invErr || !invData) throw new Error("Invoice not found or link has expired.");
         setInvoice(invData);
 
         // Fetch seller business details
@@ -162,7 +162,7 @@ const PublicInvoicePay = () => {
             .from("business_details")
             .select("*")
             .eq("user_id", invData.user_id)
-            .single();
+            .maybeSingle();
           if (bData) setBusinessDetails(bData);
         }
 

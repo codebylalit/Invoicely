@@ -50,7 +50,7 @@ const EmailModal: React.FC<EmailModalProps> = ({
                         </svg>
                     </Button>
                 </div>
-                {userSubscription.tier === "pro" ? (
+                {(userSubscription.tier === "pro" || userSubscription.tier === "admin") ? (
                     <>
                         <div className="space-y-4">
                             <div>

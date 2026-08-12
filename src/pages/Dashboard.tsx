@@ -175,7 +175,7 @@ const Dashboard = () => {
             .from("business_details")
             .select("contact_name, business_name")
             .eq("user_id", session.user.id)
-            .single(),
+            .maybeSingle(),
         ]);
 
         if (invoicesRes.data) setInvoices(invoicesRes.data);

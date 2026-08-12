@@ -79,7 +79,24 @@ export function useInvoiceManager() {
         return isNaN(parsed) ? 0 : parsed;
       };
 
-      // Prepare invoice data for Supabase
+      // Independent DB plan verification before saving
+      let isProUser = false;
+      try {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("tier")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        if (profileData?.tier) {
+          const rawTier = String(profileData.tier).toLowerCase();
+          isProUser = rawTier.includes("pro") || rawTier.includes("admin");
+        }
+      } catch (_) {}
+
+      const reqTemplateId = invoiceData.template_id ?? 0;
+      const validTemplateId = (reqTemplateId <= 2 || isProUser) ? reqTemplateId : 0;
+
+      // Prepare invoice data for Supabase with strict Pro/Free enforcement
       const supabaseInvoice = {
         user_id: session.user.id,
         invoice_number: invoiceData.invoiceNumber,
@@ -100,16 +117,17 @@ export function useInvoiceManager() {
         // Make sure complex objects are properly converted to JSONB
         items: invoiceData.items || [],
         payment_methods: invoiceData.paymentMethods || [],
-        template_id: invoiceData.template_id ?? null,
-        show_watermark: invoiceData.show_watermark ?? true,
+        template_id: validTemplateId,
+        // Free users MUST have watermark = true
+        show_watermark: isProUser ? (invoiceData.show_watermark ?? true) : true,
         page_size: invoiceData.page_size || 'auto',
-        // Recurring fields
-        is_recurring: invoiceData.is_recurring || false,
-        recurrence_frequency: invoiceData.is_recurring ? invoiceData.recurrence_frequency || null : null,
-        recurrence_interval: invoiceData.is_recurring ? invoiceData.recurrence_interval || 1 : 1,
-        recurrence_start_date: invoiceData.is_recurring ? invoiceData.recurrence_start_date || null : null,
-        recurrence_end_date: invoiceData.is_recurring ? invoiceData.recurrence_end_date || null : null,
-        next_recurrence_date: invoiceData.is_recurring
+        // Free users CANNOT create recurring invoices
+        is_recurring: isProUser ? (invoiceData.is_recurring || false) : false,
+        recurrence_frequency: isProUser && invoiceData.is_recurring ? invoiceData.recurrence_frequency || null : null,
+        recurrence_interval: isProUser && invoiceData.is_recurring ? invoiceData.recurrence_interval || 1 : 1,
+        recurrence_start_date: isProUser && invoiceData.is_recurring ? invoiceData.recurrence_start_date || null : null,
+        recurrence_end_date: isProUser && invoiceData.is_recurring ? invoiceData.recurrence_end_date || null : null,
+        next_recurrence_date: isProUser && invoiceData.is_recurring
           ? (invoiceData.next_recurrence_date || invoiceData.recurrence_start_date || null)
           : null,
       };
