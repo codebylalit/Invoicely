@@ -42,7 +42,7 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                     <div className="flex justify-between items-center mb-8">
                         <div className="flex items-center space-x-4">
                             {businessDetails.logo_url && (
-                                <img src={businessDetails.logo_url} alt="Business logo" className="h-14 w-14 object-contain" />
+                                <img src={businessDetails.logo_url} alt="Business logo" className="h-14 w-14 object-contain" crossOrigin="anonymous" />
                             )}
                             <div>
                                 <h1 className="text-2xl font-bold text-invoice-lightText dark:text-invoice-darkText">
@@ -165,7 +165,7 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                             </div>
                         </div>
                         {businessDetails.logo_url && (
-                            <img src={businessDetails.logo_url} alt="Logo" className="h-16" />
+                            <img src={businessDetails.logo_url} alt="Logo" className="h-16" crossOrigin="anonymous" />
                         )}
                     </div>
                     <div className="grid grid-cols-2 gap-12">
@@ -294,7 +294,7 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                             <p className="text-gray-300">Invoice #{displayInvoice.invoiceNumber}</p>
                         </div>
                         {businessDetails.logo_url && (
-                            <img src={businessDetails.logo_url} alt="Logo" className="h-16 bg-white rounded-full p-2" />
+                            <img src={businessDetails.logo_url} alt="Logo" className="h-16 bg-white rounded-full p-2" crossOrigin="anonymous" />
                         )}
                     </div>
                     <div className="grid grid-cols-2 gap-8">
@@ -340,7 +340,7 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                             <p className="text-gray-500">Invoice #{displayInvoice.invoiceNumber}</p>
                         </div>
                         {businessDetails.logo_url && (
-                            <img src={businessDetails.logo_url} alt="Logo" className="h-12" />
+                            <img src={businessDetails.logo_url} alt="Logo" className="h-12" crossOrigin="anonymous" />
                         )}
                     </div>
                     <div className="grid grid-cols-2 gap-8">
@@ -386,7 +386,7 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                             <p className="text-gray-500">Invoice #{displayInvoice.invoiceNumber}</p>
                         </div>
                         {businessDetails.logo_url && (
-                            <img src={businessDetails.logo_url} alt="Logo" className="h-14 rounded shadow" />
+                            <img src={businessDetails.logo_url} alt="Logo" className="h-14 rounded shadow" crossOrigin="anonymous" />
                         )}
                     </div>
                     <div className="grid grid-cols-2 gap-8">
@@ -432,7 +432,7 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                             <p className="text-green-300">Invoice #{displayInvoice.invoiceNumber}</p>
                         </div>
                         {businessDetails.logo_url && (
-                            <img src={businessDetails.logo_url} alt="Logo" className="h-14" />
+                            <img src={businessDetails.logo_url} alt="Logo" className="h-14" crossOrigin="anonymous" />
                         )}
                     </div>
                     <div className="grid grid-cols-2 gap-8">
@@ -478,7 +478,7 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                             <p className="text-gray-400">Invoice #{displayInvoice.invoiceNumber}</p>
                         </div>
                         {businessDetails.logo_url && (
-                            <img src={businessDetails.logo_url} alt="Logo" className="h-10" />
+                            <img src={businessDetails.logo_url} alt="Logo" className="h-10" crossOrigin="anonymous" />
                         )}
                     </div>
                     <div className="grid grid-cols-2 gap-8">
@@ -524,7 +524,7 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                             <p className="text-pink-500">Invoice #{displayInvoice.invoiceNumber}</p>
                         </div>
                         {businessDetails.logo_url && (
-                            <img src={businessDetails.logo_url} alt="Logo" className="h-14 rounded shadow" />
+                            <img src={businessDetails.logo_url} alt="Logo" className="h-14 rounded shadow" crossOrigin="anonymous" />
                         )}
                     </div>
                     <div className="grid grid-cols-2 gap-8">
@@ -570,7 +570,7 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                             <p className="text-green-700">Invoice #{displayInvoice.invoiceNumber}</p>
                         </div>
                         {businessDetails.logo_url && (
-                            <img src={businessDetails.logo_url} alt="Logo" className="h-14" />
+                            <img src={businessDetails.logo_url} alt="Logo" className="h-14" crossOrigin="anonymous" />
                         )}
                     </div>
                     <div className="grid grid-cols-2 gap-8">
@@ -616,7 +616,7 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                             <p className="text-blue-500">Invoice #{displayInvoice.invoiceNumber}</p>
                         </div>
                         {businessDetails.logo_url && (
-                            <img src={businessDetails.logo_url} alt="Logo" className="h-14" />
+                            <img src={businessDetails.logo_url} alt="Logo" className="h-14" crossOrigin="anonymous" />
                         )}
                     </div>
                     <div className="grid grid-cols-2 gap-8">
@@ -662,7 +662,7 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                             <p className="text-yellow-600">Invoice #{displayInvoice.invoiceNumber}</p>
                         </div>
                         {businessDetails.logo_url && (
-                            <img src={businessDetails.logo_url} alt="Logo" className="h-14 rounded shadow" />
+                            <img src={businessDetails.logo_url} alt="Logo" className="h-14 rounded shadow" crossOrigin="anonymous" />
                         )}
                     </div>
                     <div className="grid grid-cols-2 gap-8">
@@ -708,7 +708,7 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                             <p className="text-blue-700">Invoice #{displayInvoice.invoiceNumber}</p>
                         </div>
                         {businessDetails.logo_url && (
-                            <img src={businessDetails.logo_url} alt="Logo" className="h-14 rounded shadow" />
+                            <img src={businessDetails.logo_url} alt="Logo" className="h-14 rounded shadow" crossOrigin="anonymous" />
                         )}
                     </div>
                     <div className="grid grid-cols-2 gap-8">

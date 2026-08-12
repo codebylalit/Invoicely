@@ -101,6 +101,8 @@ export function useInvoiceManager() {
         items: invoiceData.items || [],
         payment_methods: invoiceData.paymentMethods || [],
         template_id: invoiceData.template_id ?? null,
+        show_watermark: invoiceData.show_watermark ?? true,
+        page_size: invoiceData.page_size || 'auto',
         // Recurring fields
         is_recurring: invoiceData.is_recurring || false,
         recurrence_frequency: invoiceData.is_recurring ? invoiceData.recurrence_frequency || null : null,

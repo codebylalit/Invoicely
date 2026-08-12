@@ -24,26 +24,36 @@ const CreateInvoiceDialog = () => {
   const { saveInvoice, isSaving, getNextInvoiceNumber } = useInvoiceManager();
   const router = useRoutes;
 
-  // Initialize new invoice with next available number
-  useEffect(() => {
-    if (open && !invoiceDraft?.invoiceNumber) {
-      const initializeInvoice = async () => {
-        try {
-          const nextNumber = await getNextInvoiceNumber();
-          if (invoiceDraft) {
-            setInvoiceDraft({
-              ...invoiceDraft,
-              invoiceNumber: nextNumber,
-            });
-          }
-        } catch (error) {
-          console.error("Error initializing invoice:", error);
-        }
-      };
+  const handleOpenChange = async (isOpen: boolean) => {
+    if (isOpen) {
+      let nextNumber = "1001";
+      try {
+        nextNumber = await getNextInvoiceNumber();
+      } catch (_) {}
 
-      initializeInvoice();
+      setInvoiceDraft({
+        invoiceNumber: nextNumber,
+        invoiceTitle: "INVOICE",
+        issuedDate: new Date().toISOString().split("T")[0],
+        dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
+        name: "",
+        email: "",
+        details: "",
+        items: [{ id: "0", description: "", quantity: 1, unitPrice: 0, totalPrice: 0 }],
+        subtotal: 0,
+        total: 0,
+        notes: "",
+        paymentMethods: [],
+        taxes: [],
+        discounts: [],
+        status: "draft",
+        is_recurring: false,
+      });
+    } else {
+      setInvoiceDraft(null);
     }
-  }, [open, invoiceDraft]);
+    setOpen(isOpen);
+  };
 
   const handleDraftChange = (draft: Invoice | null) => {
     setInvoiceDraft(draft);
@@ -62,9 +72,6 @@ const CreateInvoiceDialog = () => {
       setInvoiceDraft(null);
       setIsLoading(false);
       setOpen(false);
-
-      // Refresh the invoices list
-      router.push("/invoices");
     }
   };
 
@@ -75,7 +82,7 @@ const CreateInvoiceDialog = () => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button className="w-full md:w-auto">
           <FileText className="w-4 h-4 mr-2" />
@@ -133,6 +140,11 @@ const CreateInvoiceDialog = () => {
               onTemplateChange={(templateId) =>
                 setInvoiceDraft((prev) =>
                   prev ? { ...prev, template_id: templateId } : prev,
+                )
+              }
+              onPageSizeChange={(pageSize) =>
+                setInvoiceDraft((prev) =>
+                  prev ? { ...prev, page_size: pageSize } : prev,
                 )
               }
             />

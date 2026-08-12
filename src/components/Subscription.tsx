@@ -87,9 +87,29 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
         paymentMethod: "razorpay",
       }));
 
+      // ── Trigger pro_subscription_activated automation ─────────────────────
+      if (plan === 'pro' && userData.user?.email) {
+        try {
+          await supabase.functions.invoke('trigger-automation-email', {
+            body: {
+              triggerEvent: 'pro_subscription_activated',
+              idempotencyKey: `pro_subscription_activated_${userId}`,
+              recipientEmail: userData.user.email,
+              recipientName: userData.user.email.split('@')[0],
+              variables: {
+                userName: userData.user.email.split('@')[0],
+                userEmail: userData.user.email,
+              },
+            },
+          });
+        } catch (autoErr) {
+          console.warn('[automation] Pro activation email failed:', autoErr);
+        }
+      }
+
       // Show success message
       toast({
-        title: "Subscription Upgraded!",
+        title: "Subscription Upgraded! 🎉",
         description: `Your account has been successfully upgraded to the ${plan} plan.`,
       });
 

@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import Clients from "./pages/Clients";
 import Invoices from "./pages/Invoices";
 import Settings from "./pages/Settings";
+import RecurringInvoices from "./pages/RecurringInvoices";
 import DashboardLayout from "./layouts/DashboardLayout";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -171,6 +172,7 @@ const App = () => {
                 <Route index element={<Index />} />
                 <Route path="clients" element={<Clients />} />
                 <Route path="invoices" element={<Invoices />} />
+                <Route path="recurring" element={<RecurringInvoices />} />
                 <Route path="items" element={<Index />} />
                 <Route path="page" element={<Index />} />
                 <Route path="settings" element={<Settings />} />

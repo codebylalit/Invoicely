@@ -7,7 +7,7 @@
 CREATE TABLE IF NOT EXISTS public.email_templates (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name            text NOT NULL,
-  trigger_event   text NOT NULL,
+  trigger_event   text NOT NULL UNIQUE,
   subject         text NOT NULL,
   html_body       text NOT NULL,
   variables       text[] NOT NULL DEFAULT '{}',

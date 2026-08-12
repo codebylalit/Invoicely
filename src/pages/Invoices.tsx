@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo } from "react";
 import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 import { Card, CardContent } from "@/components/ui/card";
 import CreateInvoiceButton from "@/components/CreateInvoiceButton";
-import ConditionalAd from "@/components/ConditionalAd";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -507,6 +506,14 @@ const Invoices = () => {
                       prev ? { ...prev, template_id: templateId } : prev,
                     );
                   }}
+                  onPageSizeChange={(pageSize) => {
+                    setEditingInvoice((prev) =>
+                      prev ? { ...prev, page_size: pageSize } : prev,
+                    );
+                    setPreviewDraft((prev) =>
+                      prev ? { ...prev, page_size: pageSize } : prev,
+                    );
+                  }}
                 />
               )}
             </div>
@@ -534,8 +541,6 @@ const Invoices = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <ConditionalAd adSlot="1234567892" />
     </div>
   );
 };

@@ -55,6 +55,8 @@ export interface Invoice {
   parent_invoice_id?: string;
   next_recurrence_date?: string;
   template_id?: number | null;
+  show_watermark?: boolean;
+  page_size?: 'auto' | 'a4' | 'letter';
 }
 
 export interface AIGeneratedInvoice {

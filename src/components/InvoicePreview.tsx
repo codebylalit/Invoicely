@@ -23,6 +23,7 @@ interface InvoicePreviewProps {
   showSendByEmail?: boolean;
   /** Called whenever the user picks a different template, so the parent can persist the id */
   onTemplateChange?: (templateId: number) => void;
+  onPageSizeChange?: (pageSize: 'auto' | 'a4' | 'letter') => void;
 }
 
 interface EmailFormData {
@@ -37,11 +38,51 @@ function formatDateSafe(dateStr) {
   return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString();
 }
 
-const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange }: InvoicePreviewProps) => {
+const PAGE_SIZE_CONFIGS: Record<string, {
+  widthMm: number;
+  heightMm: number;
+  jsPdfFormat: string | [number, number];
+  isAuto?: boolean;
+  maxWClass: string;
+  minHClass: string;
+}> = {
+  auto: {
+    widthMm: 210,
+    heightMm: 297,
+    jsPdfFormat: 'a4',
+    isAuto: true,
+    maxWClass: 'max-w-[794px]',
+    minHClass: 'h-fit',
+  },
+  a4: {
+    widthMm: 210,
+    heightMm: 297,
+    jsPdfFormat: 'a4',
+    maxWClass: 'max-w-[794px]',
+    minHClass: 'min-h-[1123px]',
+  },
+  letter: {
+    widthMm: 215.9,
+    heightMm: 279.4,
+    jsPdfFormat: 'letter',
+    maxWClass: 'max-w-[816px]',
+    minHClass: 'min-h-[1056px]',
+  },
+};
+
+const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSizeChange }: InvoicePreviewProps) => {
   const { toast } = useToast();
   const supabase = useSupabaseClient();
   const session = useSession();
   const [loading, setLoading] = useState(false);
+  const [selectedPageSize, setSelectedPageSize] = useState<'auto' | 'a4' | 'letter'>(() => {
+    if (invoice?.page_size) return invoice.page_size;
+    try {
+      const saved = localStorage.getItem("invoicely_last_page_size") as any;
+      if (saved === 'a4' || saved === 'letter' || saved === 'auto') return saved;
+    } catch (_) {}
+    return 'auto';
+  });
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailFormData, setEmailFormData] = useState<EmailFormData>({
     to: [],
@@ -219,6 +260,12 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange }: InvoiceP
   }, [paymentDetails]);
 
 
+  useEffect(() => {
+    if (invoice?.page_size) {
+      setSelectedPageSize(invoice.page_size);
+    }
+  }, [invoice?.id, invoice?.page_size]);
+
   /** Re-sync the selected template whenever the invoice changes (e.g. user closes and reopens invoice) */
   useEffect(() => {
     if (invoice?.template_id !== undefined && invoice?.template_id !== null) {
@@ -264,8 +311,46 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange }: InvoiceP
     }
   }, [displayInvoice?.email]);
 
+  // Safety reset: ensure loading/Generating state is never stuck on tab switches, template changes, or re-renders
+  useEffect(() => {
+    setLoading(false);
+  }, [isPdfView, selectedTemplate?.id, invoice?.id, invoice?.invoiceNumber]);
+
   /** Wait for all web fonts in the document to be ready */
-  const waitForFonts = () => document.fonts?.ready ?? Promise.resolve();
+  /** Wait for all web fonts in the document to be ready */
+  const waitForFonts = async () => {
+    if (document.fonts) {
+      await document.fonts.ready;
+    }
+  };
+
+  /** Converts remote logo images inside a container into base64 data URIs to bypass CORS issues during PDF capture */
+  const prepareImagesForCapture = async (el: HTMLElement): Promise<void> => {
+    const imgs = Array.from(el.querySelectorAll<HTMLImageElement>('img'));
+    await Promise.all(
+      imgs.map(async (img) => {
+        if (!img.getAttribute('crossorigin')) {
+          img.setAttribute('crossorigin', 'anonymous');
+        }
+        if (img.src && !img.src.startsWith('data:') && !img.src.startsWith('blob:')) {
+          try {
+            const resp = await fetch(img.src, { mode: 'cors' });
+            if (resp.ok) {
+              const blob = await resp.blob();
+              const base64 = await new Promise<string>((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.readAsDataURL(blob);
+              });
+              img.src = base64;
+            }
+          } catch (e) {
+            console.warn('[PDF Export] Failed to convert image to base64 data URI:', img.src, e);
+          }
+        }
+      })
+    );
+  };
 
   /** Wait for all <img> elements inside a container to finish loading */
   const waitForImages = (el: HTMLElement): Promise<void[]> => {
@@ -288,7 +373,10 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange }: InvoiceP
   const generatePDF = async () => {
     // We capture the ACTUAL visible invoice, not a hidden clone.
     const element = invoiceRef.current;
-    if (!element) return null;
+    if (!element) {
+      setLoading(false);
+      return null;
+    }
 
     try {
       setLoading(true);
@@ -297,71 +385,165 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange }: InvoiceP
         description: 'Preparing your invoice PDF…',
       });
 
-      // 1. Make sure fonts and images are fully loaded before we snapshot.
+      // 1. Resolve Page Size configuration FIRST
+      const effectiveSizeKey = selectedPageSize || displayInvoice?.page_size || 'auto';
+      const sizeConfig = PAGE_SIZE_CONFIGS[effectiveSizeKey] || PAGE_SIZE_CONFIGS.auto;
+      const widthMm = sizeConfig.widthMm;
+      const heightMm = sizeConfig.heightMm;
+
+      // 2. Prepare images (convert remote URLs to base64 Data URIs) and wait for fonts
       await waitForFonts();
+      await prepareImagesForCapture(element);
       await waitForImages(element);
 
-      // 2. Record the element's natural dimensions.
-      const rect = element.getBoundingClientRect();
-      const naturalW = element.scrollWidth;   // full content width (handles overflow)
-      const naturalH = element.scrollHeight;  // full content height
+      // 3. Record element dimensions & snapshot at target paper width (794px for A4/Auto, 816px for Letter)
+      const targetPaperPx = Math.round(widthMm * 3.7795); // ~794px or ~816px
+      const originalInlineWidth = element.style.width;
+      const originalMaxWidth = element.style.maxWidth;
+      const originalMinHeight = element.style.minHeight;
 
-      // 3. Snapshot with html2canvas at 3× for retina-quality text.
+      element.style.width = `${targetPaperPx}px`;
+      element.style.maxWidth = `${targetPaperPx}px`;
+      if (sizeConfig.isAuto) {
+        element.style.minHeight = 'auto';
+      }
+
+      const captureW = targetPaperPx;
+      const captureH = element.scrollHeight;
+
+      // 4. Snapshot with html2canvas at 3× resolution
       const canvas = await html2canvas(element, {
         scale: 3,
         useCORS: true,
         allowTaint: false,
         backgroundColor: '#ffffff',
         logging: false,
-        width: naturalW,
-        height: naturalH,
-        windowWidth: naturalW,
-        windowHeight: naturalH,
-        // Scroll the element into view so nothing is clipped
+        width: captureW,
+        height: captureH,
+        windowWidth: captureW,
         scrollX: -window.scrollX,
         scrollY: -window.scrollY,
         x: 0,
         y: 0,
       });
 
-      // 4. Build the PDF.
-      //    A4 = 210 × 297 mm; we keep the aspect ratio of the snapshot.
-      const A4_W_MM = 210;
-      const A4_H_MM = 297;
+      // Restore inline styles after capture
+      element.style.width = originalInlineWidth;
+      element.style.maxWidth = originalMaxWidth;
+      element.style.minHeight = originalMinHeight;
 
-      const pxPerMm = canvas.width / A4_W_MM; // px per mm at chosen scale
-      const contentH_mm = canvas.height / pxPerMm;
+      const pxPerMm = canvas.width / widthMm;
+      const imgHeightMm = widthMm * (canvas.height / canvas.width);
 
-      // How many A4 pages do we need?
-      const totalPages = Math.ceil(contentH_mm / A4_H_MM);
+      let pdf: jsPDF;
 
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
+      if (sizeConfig.isAuto) {
+        // Auto Mode: single dynamic-height PDF page if <= 594mm, else multi-page A4 fallback
+        if (imgHeightMm <= 594) {
+          pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: [widthMm, imgHeightMm],
+          });
+          const sliceData = canvas.toDataURL('image/png', 1.0);
+          pdf.addImage(sliceData, 'PNG', 0, 0, widthMm, imgHeightMm, undefined, 'FAST');
+        } else {
+          pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+          const pageH_px = 297 * pxPerMm;
+          const totalPages = Math.ceil(canvas.height / pageH_px);
 
-      for (let page = 0; page < totalPages; page++) {
-        if (page > 0) pdf.addPage();
+          for (let page = 0; page < totalPages; page++) {
+            if (page > 0) pdf.addPage('a4');
+            const srcY = page * pageH_px;
+            const srcH = Math.min(pageH_px, canvas.height - srcY);
 
-        // Slice of the canvas that corresponds to this A4 page.
-        const srcY = page * A4_H_MM * pxPerMm;
-        const srcH = Math.min(A4_H_MM * pxPerMm, canvas.height - srcY);
+            const pageCanvas = document.createElement('canvas');
+            pageCanvas.width = canvas.width;
+            pageCanvas.height = pageH_px;
+            const ctx = pageCanvas.getContext('2d')!;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+            ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
 
-        // Create a temporary canvas for this page slice.
-        const pageCanvas = document.createElement('canvas');
-        pageCanvas.width = canvas.width;
-        pageCanvas.height = srcH;
-        const ctx = pageCanvas.getContext('2d')!;
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-        ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+            const sliceData = pageCanvas.toDataURL('image/png', 1.0);
+            pdf.addImage(sliceData, 'PNG', 0, 0, widthMm, 297, undefined, 'FAST');
+          }
+        }
+      } else {
+        // Fixed A4 or Letter Mode:
+        pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: sizeConfig.jsPdfFormat,
+        });
 
-        const sliceData = pageCanvas.toDataURL('image/png', 1.0);
-        const sliceH_mm = srcH / pxPerMm;
+        if (imgHeightMm <= heightMm) {
+          // Single page fixed mode
+          const sliceData = canvas.toDataURL('image/png', 1.0);
+          pdf.addImage(sliceData, 'PNG', 0, 0, widthMm, imgHeightMm, undefined, 'FAST');
+        } else {
+          // Multi-page slicing for A4 or Letter
+          const pageH_px = heightMm * pxPerMm;
+          const totalPages = Math.ceil(canvas.height / pageH_px);
 
-        pdf.addImage(sliceData, 'PNG', 0, 0, A4_W_MM, sliceH_mm, undefined, 'FAST');
+          for (let page = 0; page < totalPages; page++) {
+            if (page > 0) pdf.addPage(sizeConfig.jsPdfFormat);
+
+            const srcY = page * pageH_px;
+            const srcH = Math.min(pageH_px, canvas.height - srcY);
+
+            const pageCanvas = document.createElement('canvas');
+            pageCanvas.width = canvas.width;
+            pageCanvas.height = pageH_px;
+            const ctx = pageCanvas.getContext('2d')!;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+            ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+
+            const sliceData = pageCanvas.toDataURL('image/png', 1.0);
+            pdf.addImage(sliceData, 'PNG', 0, 0, widthMm, heightMm, undefined, 'FAST');
+          }
+        }
       }
+
+      // Embed clickable PDF hyperlink annotation for the watermark
+      const watermarkEl = element.querySelector<HTMLElement>('[data-watermark-link="true"]');
+      if (watermarkEl && effectiveShowWatermark) {
+        const elRect = element.getBoundingClientRect();
+        const wmRect = watermarkEl.getBoundingClientRect();
+
+        const wmTopPx = wmRect.top - elRect.top;
+        const wmHeightPx = wmRect.height;
+        const wmLeftPx = wmRect.left - elRect.left;
+        const wmWidthPx = wmRect.width;
+
+        const targetPageH_mm = sizeConfig.isAuto && imgHeightMm <= 594 ? imgHeightMm : heightMm;
+        const wmTopMm = (wmTopPx / element.scrollHeight) * imgHeightMm;
+        const wmHeightMm = (wmHeightPx / element.scrollHeight) * imgHeightMm;
+        const wmLeftMm = Math.max(0, (wmLeftPx / element.scrollWidth) * widthMm);
+        const wmWidthMm = Math.min(widthMm, (wmWidthPx / element.scrollWidth) * widthMm);
+
+        const targetPage = Math.min(Math.ceil(wmTopMm / targetPageH_mm), Math.ceil(imgHeightMm / targetPageH_mm));
+        const wmYOnPage = wmTopMm % targetPageH_mm;
+
+        pdf.setPage(targetPage || 1);
+        const invoicelyUrl = "https://getinvoicely.online";
+        pdf.link(wmLeftMm, wmYOnPage, wmWidthMm, wmHeightMm, { url: invoicelyUrl });
+      }
+
+      // Step 1 Verification log as requested in user prompt
+      const finalPdfW = pdf.internal.pageSize.getWidth();
+      const finalPdfH = pdf.internal.pageSize.getHeight();
+      console.log(`[PDF EXPORT STEP 1 LOG]`, {
+        rawInvoicePageSize: displayInvoice?.page_size,
+        selectedPageSizeState: selectedPageSize,
+        resolvedPageSizeKey: effectiveSizeKey,
+        resolvedConfig: { widthMm, heightMm, isAuto: sizeConfig.isAuto },
+        canvasDimensions: { width: canvas.width, height: canvas.height },
+        elementScrollDimensions: { width: captureW, height: captureH },
+        jsPdfFormat: sizeConfig.isAuto && imgHeightMm <= 594 ? [widthMm, Number(imgHeightMm.toFixed(1))] : sizeConfig.jsPdfFormat,
+        pdfFinalDimensionsMm: { width: Number(finalPdfW.toFixed(1)), height: Number(finalPdfH.toFixed(1)) },
+      });
 
       return pdf;
     } catch (error) {
@@ -411,27 +593,35 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange }: InvoiceP
   };
 
   const handleDownloadPDF = async () => {
-    // Ensure we're on the Custom (live preview) view so invoiceRef is in the DOM
+    if (loading) return;
     const wasInPdfView = isPdfView;
-    if (isPdfView) {
-      setIsPdfView(false);
-      await new Promise((resolve) => setTimeout(resolve, 150)); // let React repaint
+    try {
+      setLoading(true);
+      // Ensure we're on the Custom (live preview) view so invoiceRef is in the DOM
+      if (isPdfView) {
+        setIsPdfView(false);
+        await new Promise((resolve) => setTimeout(resolve, 150)); // let React repaint
+      }
+
+      const pdf = await generatePDF();
+
+      // Restore previous view
+      if (wasInPdfView) setIsPdfView(true);
+
+      if (!pdf) return;
+
+      pdf.save(`Invoice-${displayInvoice?.invoiceNumber || 'invoice'}.pdf`);
+
+      toast({
+        title: 'Success',
+        description: 'Invoice PDF downloaded successfully',
+        variant: 'default',
+      });
+    } catch (err) {
+      console.error("PDF download error:", err);
+    } finally {
+      setLoading(false);
     }
-
-    const pdf = await generatePDF();
-
-    // Restore previous view
-    if (wasInPdfView) setIsPdfView(true);
-
-    if (!pdf) return;
-
-    pdf.save(`Invoice-${displayInvoice?.invoiceNumber || 'invoice'}.pdf`);
-
-    toast({
-      title: 'Success',
-      description: 'Invoice PDF downloaded successfully',
-      variant: 'default',
-    });
   };
 
   const handleSendByEmail = () => {
@@ -819,6 +1009,9 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange }: InvoiceP
     );
   };
 
+  const isFreeTier = userSubscription.tier !== "pro";
+  const effectiveShowWatermark = isFreeTier ? true : (displayInvoice?.show_watermark ?? true);
+
   return (
     <>
       <div className={containerClasses}>
@@ -840,22 +1033,49 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange }: InvoiceP
           )}
 
           {/* Single invoice render — the ONLY source of truth for PDF capture */}
-          <div
-            ref={invoiceRef}
-            className={`bg-white max-w-3xl w-full mx-auto pb-24 ${isPdfView ? 'shadow-2xl' : ''}`}
-            style={{ minWidth: '600px' }}
-          >
-            {selectedTemplate && (
-              <InvoiceLayout
-                layout={selectedTemplate.styles.layout}
-                businessDetails={businessDetails}
-                displayInvoice={displayInvoice}
-                calculatedInvoice={calculatedInvoice}
-                paymentDetails={paymentDetails}
-                isPro={userSubscription.tier === "pro"}
-              />
-            )}
-          </div>
+          {(() => {
+            const activePageSizeKey = invoice?.page_size || selectedPageSize || 'auto';
+            const activeSizeConfig = PAGE_SIZE_CONFIGS[activePageSizeKey] || PAGE_SIZE_CONFIGS.auto;
+            const previewWidthClass = activeSizeConfig.maxWClass;
+            const previewHeightClass = isPdfView
+              ? `${activeSizeConfig.minHClass} flex flex-col justify-between`
+              : 'h-fit flex flex-col justify-between';
+
+            return (
+              <div
+                ref={invoiceRef}
+                className={`bg-white ${previewWidthClass} ${previewHeightClass} w-full mx-auto p-6 sm:p-10 relative transition-all duration-200 ${isPdfView ? 'shadow-2xl' : ''}`}
+                style={{ minWidth: '600px' }}
+              >
+                {selectedTemplate && (
+                  <InvoiceLayout
+                    layout={selectedTemplate.styles.layout}
+                    businessDetails={businessDetails}
+                    displayInvoice={displayInvoice}
+                    calculatedInvoice={calculatedInvoice}
+                    paymentDetails={paymentDetails}
+                    isPro={userSubscription.tier === "pro"}
+                  />
+                )}
+
+                {/* Invoicely Watermark - Enforced for Free tier & configurable for Pro tier */}
+                {effectiveShowWatermark && (
+                  <a
+                    href="https://getinvoicely.online"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-watermark-link="true"
+                    className="pt-6 pb-4 mt-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-gray-500 select-none hover:text-amber-600 transition-colors cursor-pointer no-underline block text-center"
+                  >
+                    <span className="inline-flex items-center justify-center gap-2">
+                      <img src="/icon.png" alt="Invoicely Logo" className="h-4 w-4 object-contain opacity-80" />
+                      <span>Created with <strong className="font-semibold text-gray-600 dark:text-gray-300">Invoicely</strong></span>
+                    </span>
+                  </a>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Bottom Control Panel - Centered */}
           <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-invoice-darkBg border-t border-gray-200 dark:border-gray-800">
@@ -907,6 +1127,25 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange }: InvoiceP
                     <line x1="9" y1="21" x2="9" y2="9" />
                   </svg>
                 </Button>
+
+                {/* Page Size Selector */}
+                <div className="flex items-center gap-1">
+                  <select
+                    value={invoice?.page_size || selectedPageSize}
+                    onChange={(e) => {
+                      const newSize = e.target.value as 'auto' | 'a4' | 'letter';
+                      setSelectedPageSize(newSize);
+                      onPageSizeChange?.(newSize);
+                      try { localStorage.setItem("invoicely_last_page_size", newSize); } catch (_) {}
+                    }}
+                    className="h-9 px-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-200 outline-none focus:border-amber-500 cursor-pointer"
+                    title="PDF Export Page Size"
+                  >
+                    <option value="auto">Auto (Fit)</option>
+                    <option value="a4">A4 (210×297)</option>
+                    <option value="letter">Letter (8.5×11)</option>
+                  </select>
+                </div>
 
                 {/* Action Buttons */}
                 <Button

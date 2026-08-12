@@ -1,7 +1,6 @@
 import React, { useState, createContext, useContext } from "react";
 import { Outlet } from "react-router-dom";
 import DashboardSidebar from "@/components/DashboardSidebar";
-import ConditionalAd from "@/components/ConditionalAd";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import Logo from "@/components/Logo";
@@ -73,11 +72,6 @@ const DashboardLayout = () => {
               <Outlet />
             </div>
           </main>
-
-          {/* Conditional Ad - Only shown for free users */}
-          <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8">
-            <ConditionalAd adSlot="1234567890" className="max-w-7xl mx-auto" />
-          </div>
         </div>
       </div>
     </SidebarContext.Provider>

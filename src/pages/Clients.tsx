@@ -41,7 +41,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import ConditionalAd from "@/components/ConditionalAd";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface Client {
@@ -459,8 +458,6 @@ const Clients = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <ConditionalAd adSlot="1234567893" />
     </div>
   );
 };

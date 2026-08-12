@@ -27,7 +27,6 @@ import {
   Zap,
 } from "lucide-react";
 import CreateInvoiceButton from "@/components/CreateInvoiceButton";
-import ConditionalAd from "@/components/ConditionalAd";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Invoice {
@@ -562,9 +561,6 @@ const Dashboard = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Conditional Ad */}
-      <ConditionalAd adSlot="1234567891" />
     </div>
   );
 };

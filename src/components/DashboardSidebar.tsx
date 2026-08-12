@@ -3,6 +3,7 @@ import {
   LayoutGrid,
   Users,
   FileText,
+  RefreshCw,
   Settings,
   LogOut,
   X,
@@ -19,6 +20,7 @@ const menuItems = [
   { icon: LayoutGrid, label: "Dashboard", path: "/app" },
   { icon: Users, label: "Clients", path: "/app/clients" },
   { icon: FileText, label: "Invoices", path: "/app/invoices" },
+  { icon: RefreshCw, label: "Recurring", path: "/app/recurring" },
   { icon: Settings, label: "Settings", path: "/app/settings" },
 ];
 

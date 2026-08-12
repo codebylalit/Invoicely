@@ -3,12 +3,14 @@ import { useToast } from "@/hooks/use-toast";
 import { InvoiceDetails } from "./InvoiceDetails";
 import { InvoiceItems } from "./InvoiceItems";
 import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
-import { Banknote } from "lucide-react";
+import { Banknote, Sparkles, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { RecurringInvoiceSettings } from "./RecurringInvoiceSettings";
 import { CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface Invoice {
   id?: string;
@@ -35,6 +37,7 @@ interface Invoice {
   recurrence_start_date?: string;
   recurrence_end_date?: string;
   template_id?: number | null;
+  show_watermark?: boolean;
 }
 
 interface InvoiceItem {
@@ -76,10 +79,12 @@ interface Client {
 }
 
 interface InvoiceFormProps {
-  onGenerate: (invoice: Invoice) => void;
-  isLoading: boolean;
+  onGenerate?: (invoice: Invoice) => void;
+  isLoading?: boolean;
   invoiceDraft?: Invoice | null;
   onDraftChange?: (draft: Invoice | null) => void;
+  onSaved?: () => void;
+  initialInvoice?: Invoice | null;
 }
 
 const generateInvoiceNumber = () => {
@@ -254,25 +259,41 @@ const mockAiProcess = (prompt: string): Invoice => {
 export const InvoiceForm = ({
   onGenerate,
   isLoading,
-  invoiceDraft,
+  invoiceDraft: propInvoiceDraft,
   onDraftChange,
+  initialInvoice,
 }: InvoiceFormProps) => {
-  const [invoiceTitle, setInvoiceTitle] = useState("Invoice");
-  const [invoiceNumber, setInvoiceNumber] = useState(generateInvoiceNumber());
-  const [issuedDate, setIssuedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const activeDraft = propInvoiceDraft || initialInvoice || null;
+
+  const [invoiceTitle, setInvoiceTitle] = useState(() => activeDraft?.invoiceTitle || "Invoice");
+  const [invoiceNumber, setInvoiceNumber] = useState(() => activeDraft?.invoiceNumber || "");
+  const [issuedDate, setIssuedDate] = useState(() => activeDraft?.issuedDate || new Date().toISOString().split("T")[0]);
   const [dueDate, setDueDate] = useState(() => {
+    if (activeDraft?.dueDate) return activeDraft.dueDate;
     const date = new Date();
     date.setDate(date.getDate() + 30);
     return date.toISOString().split("T")[0];
   });
-  const [customerName, setCustomerName] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
-  const [customerDetails, setCustomerDetails] = useState("");
-  const [items, setItems] = useState<InvoiceItem[]>([
-    { id: "0", description: "", quantity: 1, unitPrice: 0, totalPrice: 0 },
-  ]);
+  const [customerName, setCustomerName] = useState(() => activeDraft?.name || "");
+  const [customerEmail, setCustomerEmail] = useState(() => activeDraft?.email || "");
+  const [customerDetails, setCustomerDetails] = useState(() => activeDraft?.details || "");
+  const [items, setItems] = useState<InvoiceItem[]>(() => {
+    if (activeDraft?.items && Array.isArray(activeDraft.items) && activeDraft.items.length > 0) {
+      return activeDraft.items.map((it: any, idx: number) => {
+        const q = Number(it.quantity) || 1;
+        const rate = Number(it.unitPrice ?? it.rate ?? it.price ?? 0);
+        const amt = Number(it.totalPrice ?? it.amount ?? (q * rate));
+        return {
+          id: String(it.id || idx),
+          description: it.description || it.name || "Services Rendered",
+          quantity: q,
+          unitPrice: rate,
+          totalPrice: amt,
+        };
+      });
+    }
+    return [{ id: "0", description: "", quantity: 1, unitPrice: 0, totalPrice: 0 }];
+  });
   const [taxes, setTaxes] = useState<TaxItem[]>([]);
   const [discounts, setDiscounts] = useState<DiscountItem[]>([]);
 
@@ -311,6 +332,9 @@ export const InvoiceForm = ({
   });
   const [promptText, setPromptText] = useState("");
   const [hasUsedPrompt, setHasUsedPrompt] = useState(false);
+  const [userSubscription, setUserSubscription] = useState({
+    tier: "free",
+  });
 
   const supabase = useSupabaseClient();
   const session = useSession();
@@ -327,13 +351,22 @@ export const InvoiceForm = ({
   const [recurrenceStartDate, setRecurrenceStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
   const [templateId, setTemplateId] = useState<number>(() => {
-    const saved = invoiceDraft?.template_id;
+    const saved = activeDraft?.template_id;
     return (typeof saved === 'number' && !isNaN(saved)) ? saved : 3;
+  });
+  const [showWatermark, setShowWatermark] = useState<boolean>(() => activeDraft?.show_watermark ?? true);
+  const [pageSize, setPageSize] = useState<'auto' | 'a4' | 'letter'>(() => {
+    if (activeDraft?.page_size) return activeDraft.page_size;
+    try {
+      const saved = localStorage.getItem("invoicely_last_page_size") as any;
+      if (saved === 'a4' || saved === 'letter' || saved === 'auto') return saved;
+    } catch (_) {}
+    return 'auto';
   });
 
   const generateCurrentInvoice = useCallback(() => {
     return {
-      id: invoiceDraft?.id,
+      id: activeDraft?.id,
       status: "draft",
       dueDate,
       name: customerName,
@@ -368,6 +401,8 @@ export const InvoiceForm = ({
       recurrence_start_date: isRecurring ? recurrenceStartDate : undefined,
       recurrence_end_date: isRecurring ? recurrenceEndDate || undefined : undefined,
       template_id: templateId,
+      show_watermark: userSubscription.tier === "pro" ? showWatermark : true,
+      page_size: pageSize,
     };
   }, [
     dueDate,
@@ -392,7 +427,10 @@ export const InvoiceForm = ({
     recurrenceStartDate,
     recurrenceEndDate,
     templateId,
-    invoiceDraft?.id,
+    showWatermark,
+    pageSize,
+    userSubscription.tier,
+    activeDraft?.id,
   ]);
 
   useEffect(() => {
@@ -403,10 +441,32 @@ export const InvoiceForm = ({
     }
   }, [session]);
 
-  // Pre-populate form fields when editing an existing invoice draft
+  // Pre-populate or reset form fields when activeDraft changes
   useEffect(() => {
-    if (invoiceDraft) {
-      let rawItems = invoiceDraft.items;
+    if (activeDraft) {
+      setInvoiceTitle(activeDraft.invoiceTitle || "Invoice");
+      setInvoiceNumber(activeDraft.invoiceNumber || generateInvoiceNumber());
+      setIssuedDate(activeDraft.issuedDate || new Date().toISOString().split("T")[0]);
+      setDueDate(activeDraft.dueDate || new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0]);
+      setCustomerName(activeDraft.name || "");
+      setCustomerEmail(activeDraft.email || "");
+      setCustomerDetails(activeDraft.details || "");
+      setNotes(activeDraft.notes || "");
+      setIsRecurring(activeDraft.is_recurring ?? false);
+      if (activeDraft.recurrence_frequency) setRecurrenceFrequency(activeDraft.recurrence_frequency as any);
+      if (activeDraft.recurrence_interval) setRecurrenceInterval(activeDraft.recurrence_interval);
+      if (activeDraft.recurrence_start_date) setRecurrenceStartDate(activeDraft.recurrence_start_date);
+      if (activeDraft.template_id !== undefined && activeDraft.template_id !== null) {
+        setTemplateId(Number(activeDraft.template_id) || 3);
+      }
+      if (activeDraft.show_watermark !== undefined) {
+        setShowWatermark(activeDraft.show_watermark);
+      }
+      if (activeDraft.page_size) {
+        setPageSize(activeDraft.page_size);
+      }
+
+      let rawItems = activeDraft.items;
       if (typeof rawItems === 'string') {
         try { rawItems = JSON.parse(rawItems); } catch (_) { rawItems = []; }
       }
@@ -425,29 +485,14 @@ export const InvoiceForm = ({
         });
         setItems(parsedItems);
       }
-      if (invoiceDraft.invoiceTitle) setInvoiceTitle(invoiceDraft.invoiceTitle);
-      if (invoiceDraft.invoiceNumber) setInvoiceNumber(invoiceDraft.invoiceNumber);
-      if (invoiceDraft.issuedDate) setIssuedDate(invoiceDraft.issuedDate);
-      if (invoiceDraft.dueDate) setDueDate(invoiceDraft.dueDate);
-      if (invoiceDraft.name) setCustomerName(invoiceDraft.name);
-      if (invoiceDraft.email) setCustomerEmail(invoiceDraft.email);
-      if (invoiceDraft.details) setCustomerDetails(invoiceDraft.details);
-      if (invoiceDraft.notes) setNotes(invoiceDraft.notes);
-      if (invoiceDraft.is_recurring !== undefined) setIsRecurring(invoiceDraft.is_recurring);
-      if (invoiceDraft.recurrence_frequency) setRecurrenceFrequency(invoiceDraft.recurrence_frequency as any);
-      if (invoiceDraft.recurrence_interval) setRecurrenceInterval(invoiceDraft.recurrence_interval);
-      if (invoiceDraft.recurrence_start_date) setRecurrenceStartDate(invoiceDraft.recurrence_start_date);
-      if (invoiceDraft.template_id !== undefined && invoiceDraft.template_id !== null) {
-        setTemplateId(Number(invoiceDraft.template_id) || 3);
-      }
     }
-  }, [invoiceDraft?.id, invoiceDraft?.invoiceNumber, invoiceDraft?.template_id]);
+  }, [activeDraft?.id, activeDraft?.invoiceNumber, activeDraft?.template_id, activeDraft?.page_size]);
 
   // Update the invoice preview whenever form state changes
   useEffect(() => {
     // Always update the preview whenever form state changes, regardless of hasUsedPrompt
     const currentInvoice = generateCurrentInvoice();
-    onGenerate(currentInvoice);
+    onGenerate?.(currentInvoice);
 
     // If we have draft saving functionality, update the draft
     if (onDraftChange) {
@@ -473,10 +518,6 @@ export const InvoiceForm = ({
     generateCurrentInvoice,
     onDraftChange,
   ]);
-
-  const [userSubscription, setUserSubscription] = useState({
-    tier: "free", // Default to free
-  });
 
   // Add this to your useEffect that fetches user data:
   useEffect(() => {
@@ -1020,6 +1061,60 @@ export const InvoiceForm = ({
           onEndDateChange={setRecurrenceEndDate}
           isProUser={userSubscription.tier === "pro"}
         />
+      </div>
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
+              <Sparkles size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Branding & Watermark
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Control the "Created with Invoicely" footer watermark on your invoice.
+              </p>
+            </div>
+          </div>
+
+          {userSubscription.tier === "pro" ? (
+            <div className="flex items-center gap-2">
+              <Switch
+                id="watermark-toggle"
+                checked={showWatermark}
+                onCheckedChange={setShowWatermark}
+              />
+              <Label htmlFor="watermark-toggle" className="text-sm font-medium cursor-pointer text-gray-800 dark:text-gray-200">
+                {showWatermark ? "Watermark On" : "Watermark Off"}
+              </Label>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Switch id="watermark-toggle" checked={true} disabled />
+              <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 text-xs">
+                Locked (Free)
+              </Badge>
+            </div>
+          )}
+        </div>
+
+        {userSubscription.tier !== "pro" && (
+          <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/60 rounded-md flex items-center justify-between text-xs text-amber-800 dark:text-amber-300">
+            <div className="flex items-center gap-2">
+              <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+              <span>Watermark is required on the Free plan. Upgrade to Pro to remove the Invoicely watermark.</span>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={goToSubscription}
+              className="h-7 text-xs border-amber-400 text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40"
+            >
+              Upgrade
+            </Button>
+          </div>
+        )}
       </div>
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
         <h2 className="text-lg font-semibold mb-4">Notes</h2>

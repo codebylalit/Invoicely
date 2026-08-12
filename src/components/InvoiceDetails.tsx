@@ -111,7 +111,6 @@ export const InvoiceDetails = ({
     );
 
     setClientSuggestions(filteredClients);
-    setShowSuggestions(filteredClients.length > 0);
   }, [customerName, clients]);
 
   // Handle client selection from the suggestions
@@ -240,11 +239,23 @@ export const InvoiceDetails = ({
                   className="invoice-input pl-10 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none focus-within:border-yellow-400"
                   placeholder="Client Name"
                   value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  onFocus={() =>
-                    customerName.trim() !== "" &&
-                    setShowSuggestions(clientSuggestions.length > 0)
-                  }
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setCustomerName(val);
+                    const matches = clients.filter((c) =>
+                      c.name.toLowerCase().includes(val.toLowerCase())
+                    );
+                    setClientSuggestions(matches);
+                    setShowSuggestions(val.trim().length > 0 && matches.length > 0);
+                  }}
+                  onFocus={() => {
+                    if (customerName.trim() !== "") {
+                      const matches = clients.filter((c) =>
+                        c.name.toLowerCase().includes(customerName.toLowerCase())
+                      );
+                      if (matches.length > 0) setShowSuggestions(true);
+                    }
+                  }}
                   onBlur={() => {
                     // Small delay to allow clicking on suggestions
                     setTimeout(() => setShowSuggestions(false), 200);

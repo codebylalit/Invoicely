@@ -101,6 +101,7 @@ const TRIGGER_LABELS: Record<string, string> = {
   invoice_sent: 'Invoice Sent',
   invoice_paid: 'Invoice Paid',
   invoice_overdue: 'Invoice Overdue',
+  pro_subscription_activated: 'Pro Plan Subscribed',
   feature_announcement: 'Feature Announcement',
   user_inactive: 'User Inactive (30d)',
 };
@@ -111,7 +112,8 @@ const TRIGGER_COLORS: Record<string, string> = {
   invoice_sent: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
   invoice_paid: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
   invoice_overdue: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
-  feature_announcement: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+  pro_subscription_activated: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300/50',
+  feature_announcement: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
   user_inactive: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
 };
 
@@ -432,6 +434,462 @@ const FeatureBroadcastModal = ({
   );
 };
 
+// ─── Backfill Email Modal (With Sent List & Resend) ───────────────────────────
+
+const BackfillEmailModal = ({
+  automation,
+  open,
+  onClose,
+  onSuccess,
+}: {
+  automation: EmailAutomation | null;
+  open: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}) => {
+  const [activeSubTab, setActiveSubTab] = useState<'pending' | 'sent'>('pending');
+  const [loading, setLoading] = useState(true);
+  const [missingUsers, setMissingUsers] = useState<Array<{ id: string; email: string; name: string; created_at?: string }>>([]);
+  const [sentLogs, setSentLogs] = useState<Array<EmailLog>>([]);
+  const [sending, setSending] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [manualEmail, setManualEmail] = useState('');
+  const [manualName, setManualName] = useState('');
+  const [sendingManual, setSendingManual] = useState(false);
+
+  const triggerEvent = automation?.trigger_event ?? 'user_registered';
+  const eventLabel = automation?.label ?? TRIGGER_LABELS[triggerEvent] ?? triggerEvent;
+
+  const handleManualSend = async () => {
+    if (!manualEmail.trim()) {
+      toast.error('Recipient email address is required');
+      return;
+    }
+    setSendingManual(true);
+    try {
+      const name = manualName.trim() || manualEmail.trim().split('@')[0];
+      const idempotencyKey = `manual_${triggerEvent}_${Date.now()}`;
+
+      const { data, error } = await supabase.functions.invoke('trigger-automation-email', {
+        body: {
+          triggerEvent,
+          idempotencyKey,
+          recipientEmail: manualEmail.trim(),
+          recipientName: name,
+          variables: {
+            userName: name,
+            userEmail: manualEmail.trim(),
+          },
+        },
+      });
+
+      if (error) throw error;
+      if (data?.success) {
+        toast.success(`Email sent directly to ${manualEmail.trim()}!`);
+        setManualEmail('');
+        setManualName('');
+        scanUsers();
+        onSuccess();
+      } else {
+        toast.error(data?.error ?? 'Send failed');
+      }
+    } catch (e: any) {
+      toast.error('Send failed: ' + (e.message || 'Unknown error'));
+    } finally {
+      setSendingManual(false);
+    }
+  };
+
+  const scanUsers = useCallback(async () => {
+    if (!open || !automation) return;
+    setLoading(true);
+    try {
+      // 1. Fetch profiles
+      let rawProfiles: any[] = [];
+      try {
+        const rpcRes = await supabase.rpc('get_all_profiles' as any);
+        if (rpcRes.data && Array.isArray(rpcRes.data)) {
+          rawProfiles = rpcRes.data;
+        } else {
+          const { data: pData } = await supabase.from('profiles').select('*');
+          rawProfiles = pData || [];
+        }
+      } catch {
+        const { data: pData } = await supabase.from('profiles').select('*');
+        rawProfiles = pData || [];
+      }
+
+      let targetProfiles = rawProfiles;
+      if (triggerEvent === 'pro_subscription_activated') {
+        targetProfiles = rawProfiles.filter(
+          (p) => p.tier && String(p.tier).toLowerCase().includes('pro')
+        );
+      }
+
+      // 2. Fetch email logs for this trigger event
+      const { data: logData } = await supabase
+        .from('email_logs')
+        .select('*')
+        .eq('trigger_event', triggerEvent)
+        .order('created_at', { ascending: false });
+
+      const logsList = (logData || []) as EmailLog[];
+      setSentLogs(logsList);
+
+      const sentKeys = new Set(logsList.map((l) => l.idempotency_key));
+
+      const missing = targetProfiles
+        .filter((p) => {
+          const uid = p.user_id || p.id;
+          if (!uid || !p.email) return false;
+          const key = `${triggerEvent}_${uid}`;
+          return !sentKeys.has(key);
+        })
+        .map((p) => ({
+          id: p.user_id || p.id,
+          email: p.email,
+          name: p.full_name || p.email.split('@')[0] || 'there',
+          created_at: p.created_at,
+        }));
+
+      setMissingUsers(missing);
+    } catch (e: any) {
+      toast.error('Failed to scan user database: ' + (e.message || 'Unknown error'));
+    } finally {
+      setLoading(false);
+    }
+  }, [open, automation, triggerEvent]);
+
+  useEffect(() => {
+    if (open) {
+      scanUsers();
+      setProgress(0);
+      setActiveSubTab('pending');
+    }
+  }, [open, scanUsers]);
+
+  const handleSingleResend = async (userEmail: string, userName?: string | null, logId?: string) => {
+    setResendingId(userEmail);
+    try {
+      if (logId) {
+        await supabase.from('email_logs').delete().eq('id', logId);
+      }
+      const idempotencyKey = `resend_${triggerEvent}_${Date.now()}`;
+
+      const { data, error } = await supabase.functions.invoke('trigger-automation-email', {
+        body: {
+          triggerEvent,
+          idempotencyKey,
+          recipientEmail: userEmail,
+          recipientName: userName || userEmail.split('@')[0],
+          variables: {
+            userName: userName || userEmail.split('@')[0],
+            userEmail: userEmail,
+          },
+        },
+      });
+
+      if (error) throw error;
+      if (data?.success) {
+        toast.success(`Email successfully resent to ${userEmail}`);
+        scanUsers();
+        onSuccess();
+      } else {
+        toast.error(data?.error ?? 'Resend failed');
+      }
+    } catch (e: any) {
+      toast.error('Resend failed: ' + (e.message || 'Unknown error'));
+    } finally {
+      setResendingId(null);
+    }
+  };
+
+  const handleStartBackfill = async () => {
+    if (missingUsers.length === 0 || !automation) return;
+    setSending(true);
+    setProgress(0);
+
+    let successCount = 0;
+    let skippedCount = 0;
+    let failedCount = 0;
+
+    for (let i = 0; i < missingUsers.length; i++) {
+      const user = missingUsers[i];
+      try {
+        const idempotencyKey = `${triggerEvent}_${user.id}`;
+        const { data, error } = await supabase.functions.invoke('trigger-automation-email', {
+          body: {
+            triggerEvent,
+            idempotencyKey,
+            recipientEmail: user.email,
+            recipientName: user.name,
+            variables: {
+              userName: user.name,
+              userEmail: user.email,
+            },
+          },
+        });
+
+        if (error) {
+          failedCount++;
+        } else if (data?.skipped) {
+          skippedCount++;
+        } else if (data?.success) {
+          successCount++;
+        } else {
+          failedCount++;
+        }
+      } catch {
+        failedCount++;
+      }
+
+      setProgress(i + 1);
+    }
+
+    setSending(false);
+    toast.success(`Backfill finished! Sent: ${successCount}, Skipped: ${skippedCount}, Failed: ${failedCount}`);
+    onSuccess();
+    scanUsers();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && !sending && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-amber-500" />
+            Recipients & Resend — {eventLabel}
+          </DialogTitle>
+        </DialogHeader>
+
+        {/* Quick Direct Send (Manual user send, e.g. Gopal Benu) */}
+        <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 space-y-2">
+          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+            ⚡ Quick Direct Send (Send to specific email, e.g. Gopal Benu)
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Input
+              placeholder="User Name (optional)"
+              value={manualName}
+              onChange={(e) => setManualName(e.target.value)}
+              className="text-xs h-8"
+            />
+            <Input
+              placeholder="user@example.com *"
+              type="email"
+              value={manualEmail}
+              onChange={(e) => setManualEmail(e.target.value)}
+              className="text-xs h-8"
+            />
+            <Button
+              size="sm"
+              disabled={sendingManual || !manualEmail.trim()}
+              onClick={handleManualSend}
+              className="h-8 px-3 text-xs bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold flex-shrink-0"
+            >
+              {sendingManual ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5 mr-1" />}
+              Send Email
+            </Button>
+          </div>
+        </div>
+
+        {/* View Sub-Tabs */}
+        <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-4 pt-1 text-xs">
+          <button
+            onClick={() => setActiveSubTab('pending')}
+            className={`pb-2 font-semibold transition-all border-b-2 ${
+              activeSubTab === 'pending'
+                ? 'border-amber-500 text-amber-600 dark:text-amber-400'
+                : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
+            }`}
+          >
+            Unsent / Pending ({missingUsers.length})
+          </button>
+          <button
+            onClick={() => setActiveSubTab('sent')}
+            className={`pb-2 font-semibold transition-all border-b-2 ${
+              activeSubTab === 'sent'
+                ? 'border-amber-500 text-amber-600 dark:text-amber-400'
+                : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
+            }`}
+          >
+            Already Sent Logs ({sentLogs.length})
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto space-y-4 py-2">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-10 space-y-3">
+              <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+              <p className="text-xs text-slate-500">Scanning user database and email logs...</p>
+            </div>
+          ) : activeSubTab === 'pending' ? (
+            /* PENDING TAB */
+            missingUsers.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 rounded-xl border border-dashed border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/20 text-center p-6">
+                <CheckCircle2 className="h-10 w-10 text-emerald-500 mb-2" />
+                <h3 className="font-semibold text-slate-800 dark:text-slate-100 text-sm">All set! No missing emails.</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm">
+                  Every target user in your database has already received this email. Switch to the <strong>Already Sent Logs</strong> tab to view or resend.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-xs">
+                  <span className="font-medium text-amber-900 dark:text-amber-200">
+                    Users needing email ({eventLabel}):
+                  </span>
+                  <span className="font-bold text-amber-700 dark:text-amber-300 text-sm bg-white dark:bg-amber-900/50 px-2.5 py-0.5 rounded-md">
+                    {missingUsers.length} users
+                  </span>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden max-h-60 overflow-y-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-slate-50 dark:bg-slate-900 sticky top-0 border-b border-slate-200 dark:border-slate-800">
+                      <tr>
+                        <th className="text-left p-2.5 font-semibold text-slate-500">User / Name</th>
+                        <th className="text-left p-2.5 font-semibold text-slate-500">Email</th>
+                        <th className="text-left p-2.5 font-semibold text-slate-500">Joined</th>
+                        <th className="p-2.5 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                      {missingUsers.map((u) => (
+                        <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                          <td className="p-2.5 font-medium text-slate-800 dark:text-slate-200">{u.name}</td>
+                          <td className="p-2.5 text-slate-500 dark:text-slate-400 font-mono">{u.email}</td>
+                          <td className="p-2.5 text-slate-400">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                          <td className="p-2.5 text-right">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={resendingId === u.email || sending}
+                              onClick={() => handleSingleResend(u.email, u.name)}
+                              className="h-6 px-2 text-[10px] gap-1 border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400"
+                            >
+                              {resendingId === u.email ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                              Send Now
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {sending && (
+                  <div className="space-y-2 pt-2">
+                    <div className="flex justify-between text-xs font-semibold">
+                      <span className="text-amber-600 dark:text-amber-400">Sending emails...</span>
+                      <span>{progress} / {missingUsers.length}</span>
+                    </div>
+                    <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-amber-500 transition-all duration-300"
+                        style={{ width: `${(progress / missingUsers.length) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          ) : (
+            /* SENT TAB WITH RESEND BUTTON */
+            sentLogs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 text-center p-6">
+                <Mail className="h-10 w-10 text-slate-300 mb-2" />
+                <p className="text-xs text-slate-500">No emails logged yet for this trigger event.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 text-xs">
+                  <span className="font-medium text-emerald-900 dark:text-emerald-200">
+                    Emails delivered / logged:
+                  </span>
+                  <span className="font-bold text-emerald-700 dark:text-emerald-300 text-sm bg-white dark:bg-emerald-900/50 px-2.5 py-0.5 rounded-md">
+                    {sentLogs.length} logs
+                  </span>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden max-h-60 overflow-y-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-slate-50 dark:bg-slate-900 sticky top-0 border-b border-slate-200 dark:border-slate-800">
+                      <tr>
+                        <th className="text-left p-2.5 font-semibold text-slate-500">Recipient</th>
+                        <th className="text-left p-2.5 font-semibold text-slate-500">Status</th>
+                        <th className="text-left p-2.5 font-semibold text-slate-500">Sent At</th>
+                        <th className="p-2.5 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                      {sentLogs.map((log) => (
+                        <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                          <td className="p-2.5">
+                            <p className="font-medium text-slate-800 dark:text-slate-200">{log.recipient_name || log.recipient_email}</p>
+                            <p className="text-[10px] text-slate-400 font-mono">{log.recipient_email}</p>
+                          </td>
+                          <td className="p-2.5">
+                            <StatusBadge status={log.status} />
+                          </td>
+                          <td className="p-2.5 text-slate-400">{fmtDate(log.created_at)}</td>
+                          <td className="p-2.5 text-right">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={resendingId === log.recipient_email}
+                              onClick={() => handleSingleResend(log.recipient_email, log.recipient_name, log.id)}
+                              className="h-6 px-2 text-[10px] gap-1 border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400"
+                            >
+                              {resendingId === log.recipient_email ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <RotateCcw className="h-3 w-3" />
+                              )}
+                              Resend
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )
+          )}
+        </div>
+
+        <DialogFooter className="border-t border-slate-100 dark:border-slate-800 pt-3">
+          <Button variant="outline" size="sm" onClick={onClose} disabled={sending}>
+            Close
+          </Button>
+          {activeSubTab === 'pending' && missingUsers.length > 0 && (
+            <Button
+              size="sm"
+              disabled={sending || loading}
+              onClick={handleStartBackfill}
+              className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold gap-1.5"
+            >
+              {sending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sending ({progress}/{missingUsers.length})
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Send Email to {missingUsers.length} Users
+                </>
+              )}
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // ─── Automations Tab ──────────────────────────────────────────────────────────
 
 const AutomationsTab = ({
@@ -451,6 +909,7 @@ const AutomationsTab = ({
   const [sendingTest, setSendingTest] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [broadcastOpen, setBroadcastOpen] = useState(false);
+  const [backfillTarget, setBackfillTarget] = useState<EmailAutomation | null>(null);
 
   const handleToggle = async (automation: EmailAutomation) => {
     setTogglingId(automation.id);
@@ -597,6 +1056,17 @@ const AutomationsTab = ({
 
                 {/* Actions */}
                 <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {(automation.trigger_event === 'user_registered' || automation.trigger_event === 'pro_subscription_activated') && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5 text-xs border-violet-300 text-violet-700 dark:border-violet-700 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 font-medium"
+                      onClick={() => setBackfillTarget(automation)}
+                    >
+                      <Users className="h-3.5 w-3.5" />
+                      Backfill Past Users
+                    </Button>
+                  )}
                   {automation.trigger_event === 'feature_announcement' ? (
                     <Button
                       size="sm"
@@ -665,6 +1135,12 @@ const AutomationsTab = ({
       <FeatureBroadcastModal
         open={broadcastOpen}
         onClose={() => setBroadcastOpen(false)}
+      />
+      <BackfillEmailModal
+        automation={backfillTarget}
+        open={!!backfillTarget}
+        onClose={() => setBackfillTarget(null)}
+        onSuccess={onRefresh}
       />
     </div>
   );
@@ -962,19 +1438,19 @@ const LogsTab = ({
                       <span className="text-xs text-slate-500 dark:text-slate-400">{fmtDate(log.created_at)}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {log.status === 'failed' && (
+                      {(log.status === 'failed' || log.status === 'sent') && (
                         <Button
                           size="sm"
                           variant="outline"
                           disabled={retryingId === log.id}
                           onClick={() => handleRetry(log)}
-                          className="gap-1 text-xs h-7"
+                          className="gap-1 text-xs h-7 border-slate-200 dark:border-slate-700 hover:border-amber-400"
                         >
                           {retryingId === log.id
                             ? <Loader2 className="h-3 w-3 animate-spin" />
-                            : <RotateCcw className="h-3 w-3" />
+                            : <RotateCcw className="h-3 w-3 text-amber-500" />
                           }
-                          Retry
+                          {log.status === 'failed' ? 'Retry' : 'Resend'}
                         </Button>
                       )}
                     </td>

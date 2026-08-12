@@ -4,9 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
-import { toast } from "@/components/ui/use-toast";
 import Subscription from "@/components/Subscription";
-import ConditionalAd from "@/components/ConditionalAd";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Sun, Moon, Loader2, Building2, CreditCard, Star, Palette, Sliders } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -672,8 +670,6 @@ const Settings = () => {
           </CardContent>
         </Card>
       )}
-
-      <ConditionalAd adSlot="1234567894" />
     </div>
   );
 };

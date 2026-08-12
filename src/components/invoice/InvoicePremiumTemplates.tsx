@@ -70,13 +70,13 @@ const fmtDate = (d?: string) => {
 
 // ─── 1. Minimal White ─────────────────────────────────────────────────────────
 export const MinimalWhiteTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => (
-  <div className="bg-white min-h-full font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+  <div className="bg-white w-full font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
     {/* Header */}
     <div className="px-12 pt-12 pb-8 border-b border-gray-100">
       <div className="flex items-start justify-between">
         <div>
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain mb-4" />
+            <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain mb-4" crossOrigin="anonymous" />
           ) : (
             <div className="text-xl font-bold text-gray-900 mb-4">{businessDetails.business_name || 'Your Company'}</div>
           )}
@@ -156,7 +156,7 @@ export const ModernSaasTemplate: React.FC<TemplateProps> = ({ businessDetails, d
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-12 object-contain" />
+            <img src={businessDetails.logo_url} alt="Logo" className="h-12 object-contain" crossOrigin="anonymous" />
           ) : (
             <div className="h-10 w-10 rounded-xl bg-violet-600 flex items-center justify-center text-white font-bold text-lg">
               {(businessDetails.business_name || 'C').charAt(0)}
@@ -244,13 +244,13 @@ export const ModernSaasTemplate: React.FC<TemplateProps> = ({ businessDetails, d
 
 // ─── 3. Stripe Inspired ───────────────────────────────────────────────────────
 export const StripeInspiredTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => (
-  <div className="bg-[#f6f9fc] min-h-full font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+  <div className="bg-[#f6f9fc] w-full font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
     <div className="max-w-2xl mx-auto py-12 px-6">
       {/* Header card */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-4">
         <div className="flex items-start justify-between mb-6">
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-8 object-contain" />
+            <img src={businessDetails.logo_url} alt="Logo" className="h-8 object-contain" crossOrigin="anonymous" />
           ) : (
             <p className="font-bold text-gray-900 text-lg">{businessDetails.business_name || 'Company'}</p>
           )}
@@ -328,12 +328,12 @@ export const StripeInspiredTemplate: React.FC<TemplateProps> = ({ businessDetail
 
 // ─── 4. Apple Minimal ─────────────────────────────────────────────────────────
 export const AppleMinimalTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => (
-  <div className="bg-white font-sans" style={{ fontFamily: "'SF Pro Display', 'Inter', system-ui, sans-serif" }}>
+  <div className="bg-white w-full font-sans" style={{ fontFamily: "'SF Pro Display', 'Inter', system-ui, sans-serif" }}>
     <div className="max-w-xl mx-auto px-8 py-12">
       {/* Logo centered */}
       {businessDetails.logo_url ? (
         <div className="flex justify-center mb-10">
-          <img src={businessDetails.logo_url} alt="Logo" className="h-12 object-contain" />
+          <img src={businessDetails.logo_url} alt="Logo" className="h-12 object-contain" crossOrigin="anonymous" />
         </div>
       ) : (
         <p className="text-center font-medium text-gray-900 mb-10 text-xl">{businessDetails.business_name}</p>
@@ -385,14 +385,14 @@ export const AppleMinimalTemplate: React.FC<TemplateProps> = ({ businessDetails,
 
 // ─── 5. Corporate Blue ────────────────────────────────────────────────────────
 export const CorporateBlueTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => (
-  <div className="bg-white font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+  <div className="bg-white w-full font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
     {/* Navy header */}
     <div className="bg-[#1e3a5f] text-white px-10 py-8">
       <div className="flex items-center justify-between">
         <div>
           {businessDetails.logo_url ? (
             <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-3">
-              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" />
+              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" crossOrigin="anonymous" />
             </div>
           ) : (
             <p className="text-xl font-bold mb-1">{businessDetails.business_name || 'Company'}</p>
@@ -482,7 +482,7 @@ export const CorporateBlueTemplate: React.FC<TemplateProps> = ({ businessDetails
 
 // ─── 6. Elegant Dark ──────────────────────────────────────────────────────────
 export const ElegantDarkTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => (
-  <div className="bg-gray-950 text-white font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+  <div className="bg-gray-950 w-full text-white font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
     {/* Gold accent line */}
     <div className="h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
 
@@ -491,7 +491,7 @@ export const ElegantDarkTemplate: React.FC<TemplateProps> = ({ businessDetails, 
       <div className="flex items-start justify-between mb-10">
         <div>
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain mb-4 opacity-90" />
+            <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain mb-4 opacity-90" crossOrigin="anonymous" />
           ) : (
             <p className="text-2xl font-light tracking-widest text-amber-400 mb-4">{businessDetails.business_name || 'COMPANY'}</p>
           )}
@@ -559,13 +559,13 @@ export const ElegantDarkTemplate: React.FC<TemplateProps> = ({ businessDetails, 
 
 // ─── 7. Luxury Black ──────────────────────────────────────────────────────────
 export const LuxuryBlackTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => (
-  <div className="bg-black text-white font-serif" style={{ fontFamily: "'Georgia', serif" }}>
+  <div className="bg-black w-full text-white font-serif" style={{ fontFamily: "'Georgia', serif" }}>
     <div className="px-14 py-14">
       {/* Monogram header */}
       <div className="flex items-center justify-between border-b border-gray-800 pb-10 mb-10">
         <div>
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-14 object-contain opacity-90" />
+            <img src={businessDetails.logo_url} alt="Logo" className="h-14 object-contain opacity-90" crossOrigin="anonymous" />
           ) : (
             <div>
               <div className="text-4xl font-bold tracking-widest text-white mb-1">
@@ -648,14 +648,14 @@ export const LuxuryBlackTemplate: React.FC<TemplateProps> = ({ businessDetails, 
 
 // ─── 8. Modern Purple ─────────────────────────────────────────────────────────
 export const ModernPurpleTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => (
-  <div className="bg-white font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+  <div className="bg-white w-full font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
     {/* Purple gradient header */}
     <div className="bg-gradient-to-br from-purple-700 to-indigo-600 px-10 py-10 text-white">
       <div className="flex items-start justify-between">
         <div>
           {businessDetails.logo_url ? (
             <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-4">
-              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" />
+              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" crossOrigin="anonymous" />
             </div>
           ) : (
             <p className="text-2xl font-bold text-white mb-1">{businessDetails.business_name || 'Company'}</p>
@@ -725,13 +725,13 @@ export const ModernPurpleTemplate: React.FC<TemplateProps> = ({ businessDetails,
 
 // ─── 9. Creative Agency ───────────────────────────────────────────────────────
 export const CreativeAgencyTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => (
-  <div className="bg-white font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
-    <div className="grid grid-cols-3 min-h-full">
+  <div className="bg-white w-full font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="grid grid-cols-3 w-full">
       {/* Left sidebar */}
       <div className="bg-[#ff6b35] text-white px-6 py-10 flex flex-col">
         {businessDetails.logo_url ? (
           <div className="bg-white/95 p-2 rounded-lg inline-block shadow-sm mb-6">
-            <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" />
+            <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" crossOrigin="anonymous" />
           </div>
         ) : (
           <p className="text-xl font-black mb-8 tracking-tight">{businessDetails.business_name || 'AGENCY'}</p>
@@ -812,7 +812,7 @@ export const CreativeAgencyTemplate: React.FC<TemplateProps> = ({ businessDetail
 
 // ─── 10. Freelancer ───────────────────────────────────────────────────────────
 export const FreelancerTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => (
-  <div className="bg-[#fafaf9] font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+  <div className="bg-[#fafaf9] w-full font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
     <div className="px-10 py-10">
       {/* Header: Name big + invoice info */}
       <div className="flex items-end justify-between mb-10">
@@ -870,7 +870,7 @@ export const FreelancerTemplate: React.FC<TemplateProps> = ({ businessDetails, d
         <div className="w-72 bg-white border border-gray-200 rounded-2xl p-6 space-y-3 text-sm">
           <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>${fmt(calculatedInvoice.subtotal)}</span></div>
           {(calculatedInvoice.discounts || []).map((d: any, i: number) => <div key={i} className="flex justify-between text-gray-500"><span>Discount{d.name ? ` (${d.name})` : ''}</span><span>-${fmt(d.amount)}</span></div>)}
-          {(calculatedInvoice.taxes || []).map((t: any, i: number) => <div key={i} className="flex justify-between text-gray-500"><span>Tax{t.name ? ` (${t.name})` : ''}</span><span>${fmt(t.amount)}</span></div>)}
+          {(calculatedInvoice.taxes || []).map((t: any, i: number) => <div key={i} className="flex justify-between text-gray-500"><span>Tax{t.name ? ` (${t.name})` : ''}</span><span>-${fmt(t.amount)}</span></div>)}
           <div className="flex justify-between font-bold text-gray-900 border-t border-gray-200 pt-3 text-base"><span>Total Due</span><span>${fmt(calculatedInvoice.total)}</span></div>
         </div>
       </div>
@@ -884,12 +884,12 @@ export const FreelancerTemplate: React.FC<TemplateProps> = ({ businessDetails, d
 
 // ─── 11. Startup ──────────────────────────────────────────────────────────────
 export const StartupTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => (
-  <div className="bg-white font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+  <div className="bg-white w-full font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
     <div className="border-b-4 border-[#00d084] px-10 pt-10 pb-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-9 object-contain" />
+            <img src={businessDetails.logo_url} alt="Logo" className="h-9 object-contain" crossOrigin="anonymous" />
           ) : (
             <div className="h-9 w-9 bg-[#00d084] rounded-lg flex items-center justify-center text-white font-black text-lg">
               {(businessDetails.business_name || 'S').charAt(0)}
@@ -959,14 +959,14 @@ export const StartupTemplate: React.FC<TemplateProps> = ({ businessDetails, disp
 
 // ─── 12. Finance ──────────────────────────────────────────────────────────────
 export const FinanceTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => (
-  <div className="bg-white font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+  <div className="bg-white w-full font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
     {/* Header */}
     <div className="bg-[#0f4c81] text-white px-10 py-8">
       <div className="flex items-start justify-between">
         <div>
           {businessDetails.logo_url ? (
             <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-3">
-              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" />
+              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" crossOrigin="anonymous" />
             </div>
           ) : (
             <p className="text-xl font-bold mb-1">{businessDetails.business_name}</p>
@@ -1238,7 +1238,7 @@ export const RetailTemplate: React.FC<TemplateProps> = ({ businessDetails, displ
       {/* Centered header */}
       <div className="text-center mb-8 pb-6 border-b-2 border-dashed border-gray-300">
         {businessDetails.logo_url ? (
-          <img src={businessDetails.logo_url} alt="Logo" className="h-14 object-contain mx-auto mb-3" />
+          <img src={businessDetails.logo_url} alt="Logo" className="h-14 object-contain mx-auto mb-3" crossOrigin="anonymous" />
         ) : (
           <p className="text-2xl font-bold text-gray-900 mb-1">{businessDetails.business_name || 'STORE NAME'}</p>
         )}
@@ -1304,7 +1304,7 @@ export const RestaurantTemplate: React.FC<TemplateProps> = ({ businessDetails, d
       {/* Logo + Name */}
       <div className="text-center mb-8">
         {businessDetails.logo_url ? (
-          <img src={businessDetails.logo_url} alt="Logo" className="h-16 object-contain mx-auto mb-3" />
+          <img src={businessDetails.logo_url} alt="Logo" className="h-16 object-contain mx-auto mb-3" crossOrigin="anonymous" />
         ) : (
           <p className="text-3xl font-bold tracking-widest text-yellow-400 mb-1">{businessDetails.business_name || 'Restaurant'}</p>
         )}
@@ -1386,7 +1386,7 @@ export const ConsultingTemplate: React.FC<TemplateProps> = ({ businessDetails, d
           <div className="flex items-start justify-between">
             <div>
               {businessDetails.logo_url ? (
-                <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain mb-3" />
+                <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain mb-3" crossOrigin="anonymous" />
               ) : (
                 <p className="text-2xl font-bold text-[#2c3e50] mb-1">{businessDetails.business_name || 'Consulting Firm'}</p>
               )}
@@ -1476,7 +1476,7 @@ export const GreenEcoTemplate: React.FC<TemplateProps> = ({ businessDetails, dis
         <div className="flex items-center gap-3">
           {businessDetails.logo_url ? (
             <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm">
-              <img src={businessDetails.logo_url} alt="Logo" className="h-9 object-contain" />
+              <img src={businessDetails.logo_url} alt="Logo" className="h-9 object-contain" crossOrigin="anonymous" />
             </div>
           ) : (
             <div className="flex items-center gap-2">
@@ -1568,7 +1568,7 @@ export const ProfessionalGrayTemplate: React.FC<TemplateProps> = ({ businessDeta
         <div>
           {businessDetails.logo_url ? (
             <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-3">
-              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" />
+              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" crossOrigin="anonymous" />
             </div>
           ) : (
             <p className="text-xl font-bold mb-1">{businessDetails.business_name || 'Company Name'}</p>
@@ -1662,7 +1662,7 @@ export const InternationalBusinessTemplate: React.FC<TemplateProps> = ({ busines
         <div>
           {businessDetails.logo_url ? (
             <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-4">
-              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" />
+              <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" crossOrigin="anonymous" />
             </div>
           ) : (
             <p className="text-2xl font-bold text-white mb-2">{businessDetails.business_name || 'Global Company'}</p>
