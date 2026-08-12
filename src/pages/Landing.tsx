@@ -234,8 +234,8 @@ const Landing = () => {
       <div className="fixed top-4 inset-x-0 z-50 flex justify-center px-4">
         <header
           className={`w-full max-w-4xl flex items-center justify-between gap-2 px-3 py-2.5 rounded-full border transition-all duration-300 ${scrolled
-              ? "bg-white/95 backdrop-blur-2xl border-stone-200 shadow-xl shadow-stone-200/70"
-              : "bg-white/80 backdrop-blur-xl border-stone-200/60 shadow-lg shadow-stone-200/40"
+            ? "bg-white/95 backdrop-blur-2xl border-stone-200 shadow-xl shadow-stone-200/70"
+            : "bg-white/80 backdrop-blur-xl border-stone-200/60 shadow-lg shadow-stone-200/40"
             }`}
         >
           {/* Logo */}
@@ -460,7 +460,7 @@ const Landing = () => {
               </div>
               <div className="flex-1 mx-3 bg-white border border-stone-200 rounded-md px-3 py-1 text-xs text-stone-400 text-center font-mono flex items-center justify-center gap-1.5">
                 <Lock className="h-2.5 w-2.5 text-emerald-500" aria-hidden="true" />
-                app.invoicely.me/dashboard
+                getinvoicely.online/app
               </div>
             </div>
             {/* Video */}
@@ -727,8 +727,8 @@ const Landing = () => {
               <div
                 key={t.name}
                 className={`p-7 bg-white rounded-3xl border shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between relative overflow-hidden ${i === 1
-                    ? "md:mt-6 border-amber-200 shadow-amber-50"
-                    : "border-stone-200/80"
+                  ? "md:mt-6 border-amber-200 shadow-amber-50"
+                  : "border-stone-200/80"
                   }`}
               >
                 {/* Large decorative quote mark */}
