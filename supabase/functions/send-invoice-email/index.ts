@@ -15,7 +15,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json()
-    const { to, subject, message, invoiceNumber, amount, dueDate, clientName, businessName, payUrl, items, pdfBase64 } = body
+    const { to, subject, message, invoiceNumber, amount, dueDate, clientName, businessName, payUrl, items, pdfBase64, senderEmail, replyTo } = body
 
     if (!to || !to.length) {
       throw new Error("Recipient email 'to' is required")
@@ -41,6 +41,7 @@ serve(async (req) => {
 
     const emailResponse = await resend.emails.send({
       from: "Invoicely <no-reply@getinvoicely.online>",
+      reply_to: replyTo || senderEmail || "lalitkumarnamdev4645@gmail.com",
       to: Array.isArray(to) ? to : [to],
       subject: subject || `Invoice #${invoiceNumber || ''} from ${businessName || 'Invoicely'}`,
       html: `

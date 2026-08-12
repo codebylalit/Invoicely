@@ -758,6 +758,7 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
             clientName: displayInvoice?.name || 'Valued Customer',
             businessName: businessDetails.business_name || 'Invoicely',
             payUrl,
+            senderEmail: session?.user?.email,
             items: displayInvoice?.items || [],
             pdfBase64,
           }

@@ -125,6 +125,7 @@ serve(async (req) => {
     try {
       const emailResponse = await resend.emails.send({
         from: 'Invoicely <no-reply@getinvoicely.online>',
+        reply_to: variables.replyTo ?? 'lalitkumarnamdev4645@gmail.com',
         to: [recipientEmail],
         subject: resolvedSubject,
         html: resolvedBody,

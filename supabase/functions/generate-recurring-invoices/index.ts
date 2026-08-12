@@ -114,8 +114,19 @@ serve(async (req) => {
             `).join('')
           : `<tr><td colspan="4" style="padding:10px;color:#64748b">Recurring Subscription / Services</td></tr>`
 
+        let ownerEmail = "lalitkumarnamdev4645@gmail.com";
+        if (invoice.user_id) {
+          const { data: ownerProfile } = await supabaseClient
+            .from("profiles")
+            .select("email")
+            .eq("user_id", invoice.user_id)
+            .maybeSingle();
+          if (ownerProfile?.email) ownerEmail = ownerProfile.email;
+        }
+
         await resend.emails.send({
           from: "Invoicely <no-reply@getinvoicely.online>",
+          reply_to: ownerEmail,
           to: clientEmail,
           subject: `Invoice #${newInvoice.invoice_number} from ${businessName} — Payment Due`,
           html: `
