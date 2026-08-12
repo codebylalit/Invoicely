@@ -186,6 +186,34 @@ const Dashboard = () => {
               ""
           );
         }
+
+        // ── Ensure welcome email is triggered once for new users (Google OAuth + Email Signups)
+        if (session?.user?.email) {
+          const emailKey = `welcome_sent_${session.user.id}`;
+          if (!localStorage.getItem(emailKey)) {
+            localStorage.setItem(emailKey, "true");
+            supabase.functions
+              .invoke("trigger-automation-email", {
+                body: {
+                  triggerEvent: "user_registered",
+                  idempotencyKey: `user_registered_${session.user.id}`,
+                  recipientEmail: session.user.email,
+                  recipientName:
+                    session.user.user_metadata?.full_name ||
+                    session.user.user_metadata?.name ||
+                    session.user.email.split("@")[0],
+                  variables: {
+                    userName:
+                      session.user.user_metadata?.full_name ||
+                      session.user.user_metadata?.name ||
+                      session.user.email.split("@")[0],
+                    userEmail: session.user.email,
+                  },
+                },
+              })
+              .catch((e) => console.warn("[automation] Welcome email trigger warn:", e));
+          }
+        }
       } catch (err) {
         console.error("Dashboard load error:", err);
       } finally {
