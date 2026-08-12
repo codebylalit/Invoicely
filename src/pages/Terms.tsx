@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Terms = () => {
     const navigate = useNavigate();
@@ -78,7 +78,14 @@ const Terms = () => {
                         <section>
                             <h2 className="text-xl font-semibold text-[#2D2D2D] mb-4">8. Contact Information</h2>
                             <p>
-                                For any questions regarding these terms, please contact us at support@invoicely.me
+                                For any questions regarding these terms, please visit our{" "}
+                                <Link to="/contact" className="text-amber-600 hover:underline font-medium">
+                                    Contact Page
+                                </Link>{" "}
+                                or email us at{" "}
+                                <a href="mailto:support@getinvoicely.online" className="text-amber-600 hover:underline">
+                                    support@getinvoicely.online
+                                </a>.
                             </p>
                         </section>
                     </CardContent>

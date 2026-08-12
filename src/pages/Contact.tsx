@@ -38,7 +38,7 @@ const Contact = () => {
       setSubmitted(true);
       setFormData({ name: "", email: "", subject: "", message: "" });
     } catch (err: any) {
-      setError("Something went wrong. Please try again or email us directly at support@invoicely.me");
+      setError("Something went wrong. Please try again or email us directly at support@getinvoicely.online");
       console.error("Contact form error:", err);
     } finally {
       setLoading(false);
@@ -185,8 +185,8 @@ const Contact = () => {
 
                 <p className="text-center text-xs text-slate-400">
                   Or email us directly at{" "}
-                  <a href="mailto:support@invoicely.me" className="text-amber-500 hover:underline">
-                    support@invoicely.me
+                  <a href="mailto:support@getinvoicely.online" className="text-amber-500 hover:underline">
+                    support@getinvoicely.online
                   </a>
                 </p>
               </form>

@@ -3,6 +3,12 @@
 -- Migration: 20260812130000_admin_rpc_functions
 -- ─────────────────────────────────────────────────────────────────────────────
 
+-- Drop old versions first to avoid return-type change errors
+DROP FUNCTION IF EXISTS public.get_all_profiles();
+DROP FUNCTION IF EXISTS public.get_all_invoices();
+DROP FUNCTION IF EXISTS public.get_all_clients();
+DROP FUNCTION IF EXISTS public.get_all_business_details();
+
 -- ── 1. get_all_profiles ──────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.get_all_profiles()
 RETURNS TABLE (
@@ -20,15 +26,20 @@ AS $$
 BEGIN
   RETURN QUERY
   SELECT 
-    COALESCE(p.id, u.id) AS id,
+    COALESCE(p.user_id, u.id) AS id,
     u.id AS user_id,
     COALESCE(u.email, p.email) AS email,
-    COALESCE(NULLIF(p.full_name, ''), NULLIF(u.raw_user_meta_data->>'full_name', ''), NULLIF(u.raw_user_meta_data->>'name', ''), split_part(u.email, '@', 1)) AS full_name,
+    COALESCE(
+      NULLIF(p.full_name, ''), 
+      NULLIF(u.raw_user_meta_data->>'full_name', ''), 
+      NULLIF(u.raw_user_meta_data->>'name', ''), 
+      split_part(u.email, '@', 1)
+    ) AS full_name,
     COALESCE(p.tier, 'free') AS tier,
     u.created_at AS created_at,
     COALESCE(p.updated_at, u.created_at) AS updated_at
   FROM auth.users u
-  LEFT JOIN public.profiles p ON p.user_id = u.id OR p.id = u.id
+  LEFT JOIN public.profiles p ON p.user_id = u.id
   ORDER BY u.created_at DESC;
 END;
 $$;

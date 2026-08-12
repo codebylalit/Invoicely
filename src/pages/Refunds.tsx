@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Refunds = () => {
     const navigate = useNavigate();
@@ -56,7 +56,16 @@ const Refunds = () => {
                                 To request a refund:
                             </p>
                             <ol className="list-decimal pl-6 space-y-2 mt-2">
-                                <li>Contact our support team at support@invoicely.me</li>
+                                <li>
+                                    Submit a message on our{" "}
+                                    <Link to="/contact" className="text-amber-600 hover:underline font-medium">
+                                        Contact Page
+                                    </Link>{" "}
+                                    or email us at{" "}
+                                    <a href="mailto:support@getinvoicely.online" className="text-amber-600 hover:underline">
+                                        support@getinvoicely.online
+                                    </a>
+                                </li>
                                 <li>Provide your account details and reason for the refund request</li>
                                 <li>Our team will review your request within 5 business days</li>
                                 <li>If approved, the refund will be processed to your original payment method</li>
@@ -73,7 +82,14 @@ const Refunds = () => {
                         <section>
                             <h2 className="text-xl font-semibold text-[#2D2D2D] mb-4">5. Contact Us</h2>
                             <p>
-                                For any questions about cancellations or refunds, please contact our support team at support@invoicely.me
+                                For any questions about cancellations or refunds, please visit our{" "}
+                                <Link to="/contact" className="text-amber-600 hover:underline font-medium">
+                                    Contact Page
+                                </Link>{" "}
+                                or email our support team at{" "}
+                                <a href="mailto:support@getinvoicely.online" className="text-amber-600 hover:underline">
+                                    support@getinvoicely.online
+                                </a>.
                             </p>
                         </section>
                     </CardContent>

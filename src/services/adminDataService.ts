@@ -54,7 +54,13 @@ export const fetchLiveAdminData = async (
     client.rpc('get_all_business_details' as any)
   ]);
 
-  const rawProfiles: any[] = Array.isArray(profilesRes.data) ? profilesRes.data : [];
+  let rawProfiles: any[] = Array.isArray(profilesRes.data) ? profilesRes.data : [];
+  if (rawProfiles.length === 0) {
+    const { data: directProfiles } = await client.from('profiles').select('*');
+    if (directProfiles && directProfiles.length > 0) {
+      rawProfiles = directProfiles;
+    }
+  }
   const rawInvoices: any[] = Array.isArray(invoicesRes.data) ? invoicesRes.data : [];
   const rawClients: any[] = Array.isArray(clientsRes.data) ? clientsRes.data : [];
   const rawBusiness: any[] = Array.isArray(businessRes.data) ? businessRes.data : [];

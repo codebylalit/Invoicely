@@ -2,16 +2,16 @@ import React from "react";
 
 const faqs = [
     {
-        question: "What is Invoicely.me?",
-        answer: "Invoicely.me is an online tool that helps you create, send, and manage invoices easily."
+        question: "What is Invoicely?",
+        answer: "Invoicely is an online platform that helps you create, send, and manage professional invoices easily."
     },
     {
-        question: "Who can use Invoicely.me?",
-        answer: "Freelancers, small businesses, and anyone who needs to send invoices can use our platform."
+        question: "Who can use Invoicely?",
+        answer: "Freelancers, small businesses, and agencies who need to generate and track invoices."
     },
     {
         question: "Is there a free plan?",
-        answer: "Yes! Our free plan lets you create basic invoices and manage up to 10 clients."
+        answer: "Yes! Our free plan lets you create basic invoices and manage clients."
     },
     {
         question: "How does the AI-powered invoice generation work?",
@@ -39,7 +39,7 @@ const faqs = [
     },
     {
         question: "How do I contact support?",
-        answer: "Email us at support@invoicely.me or use our contact form for assistance."
+        answer: "You can reach out via our Contact Page at /contact or email us directly at support@getinvoicely.online."
     },
 ];
 
