@@ -127,7 +127,15 @@ const CreateInvoiceDialog = () => {
           </div>
 
           <div className="flex-1 md:pl-4 overflow-y-auto">
-            <InvoicePreview invoice={invoiceDraft} showSendByEmail />
+            <InvoicePreview
+              invoice={invoiceDraft}
+              showSendByEmail
+              onTemplateChange={(templateId) =>
+                setInvoiceDraft((prev) =>
+                  prev ? { ...prev, template_id: templateId } : prev,
+                )
+              }
+            />
           </div>
         </div>
       </DialogContent>

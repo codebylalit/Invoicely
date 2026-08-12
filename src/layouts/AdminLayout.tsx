@@ -18,7 +18,8 @@ import {
   Zap,
   Sparkles,
   Activity,
-  MessageSquare
+  MessageSquare,
+  Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,6 +88,12 @@ export const AdminLayout: React.FC = () => {
       icon: MessageSquare
     },
     {
+      name: 'Email',
+      path: '/admin/email',
+      exact: false,
+      icon: Mail
+    },
+    {
       name: 'Settings',
       path: '/admin/settings',
       exact: false,
@@ -109,8 +116,8 @@ export const AdminLayout: React.FC = () => {
           {/* Brand Header */}
           <div className="flex items-center justify-between px-2 py-3 mb-6">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-bold text-lg shadow-md shadow-amber-500/20">
-                <Sparkles className="h-5 w-5 stroke-[2.5]" />
+              <div className="h-9 w-9 flex-shrink-0">
+                <img src="/icon.png" alt="Invoicely" className="w-full h-full object-contain" draggable={false} />
               </div>
               <div>
                 <h1 className="font-bold text-base tracking-tight leading-none text-slate-900 dark:text-white">

@@ -61,6 +61,13 @@ const fmt = (v: number) => {
   return v.toFixed(2);
 };
 
+/** Format an ISO date string for display inside invoice templates. */
+const fmtDate = (d?: string) => {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return isNaN(dt.getTime()) ? d : dt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
+};
+
 // ─── 1. Minimal White ─────────────────────────────────────────────────────────
 export const MinimalWhiteTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => (
   <div className="bg-white min-h-full font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -79,8 +86,8 @@ export const MinimalWhiteTemplate: React.FC<TemplateProps> = ({ businessDetails,
         <div className="text-right">
           <StatusBadge status={displayInvoice.status} />
           <div className="mt-4 space-y-1 text-sm text-gray-500">
-            <p><span className="text-gray-400">Issued</span> · {displayInvoice.issuedDate || '—'}</p>
-            <p><span className="text-gray-400">Due</span> · {displayInvoice.dueDate || '—'}</p>
+            <p><span className="text-gray-400">Issued</span> · {fmtDate(displayInvoice.issuedDate)}</p>
+            <p><span className="text-gray-400">Due</span> · {fmtDate(displayInvoice.dueDate)}</p>
           </div>
         </div>
       </div>
@@ -169,8 +176,8 @@ export const ModernSaasTemplate: React.FC<TemplateProps> = ({ businessDetails, d
 
       {/* Meta row */}
       <div className="flex gap-6 text-sm text-gray-500 border-y border-gray-100 py-4">
-        <div><span className="text-gray-400 text-xs uppercase tracking-wide block mb-0.5">Issue Date</span>{displayInvoice.issuedDate || '—'}</div>
-        <div className="border-l border-gray-200 pl-6"><span className="text-gray-400 text-xs uppercase tracking-wide block mb-0.5">Due Date</span>{displayInvoice.dueDate || '—'}</div>
+        <div><span className="text-gray-400 text-xs uppercase tracking-wide block mb-0.5">Issue Date</span>{fmtDate(displayInvoice.issuedDate)}</div>
+        <div className="border-l border-gray-200 pl-6"><span className="text-gray-400 text-xs uppercase tracking-wide block mb-0.5">Due Date</span>{fmtDate(displayInvoice.dueDate)}</div>
         <div className="border-l border-gray-200 pl-6 ml-auto text-right">
           <span className="text-gray-400 text-xs uppercase tracking-wide block mb-0.5">Bill To</span>
           <span className="font-semibold text-gray-800">{displayInvoice.name || '—'}</span>
@@ -262,8 +269,8 @@ export const StripeInspiredTemplate: React.FC<TemplateProps> = ({ businessDetail
 
         {/* Meta */}
         <div className="grid grid-cols-3 gap-4 text-sm">
-          <div><p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Issue Date</p><p className="text-gray-700">{displayInvoice.issuedDate || '—'}</p></div>
-          <div><p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Due Date</p><p className="text-gray-700">{displayInvoice.dueDate || '—'}</p></div>
+          <div><p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Issue Date</p><p className="text-gray-700">{fmtDate(displayInvoice.issuedDate)}</p></div>
+          <div><p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Due Date</p><p className="text-gray-700">{fmtDate(displayInvoice.dueDate)}</p></div>
           <div><p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Bill To</p><p className="text-gray-700 font-medium">{displayInvoice.name || '—'}</p></div>
         </div>
       </div>
@@ -342,8 +349,8 @@ export const AppleMinimalTemplate: React.FC<TemplateProps> = ({ businessDetails,
       {/* Invoice details pill */}
       <div className="bg-gray-50 rounded-2xl p-5 mb-8 text-sm text-gray-700 space-y-3">
         <div className="flex justify-between"><span className="text-gray-400">Invoice</span><span className="font-medium">#{displayInvoice.invoiceNumber || '—'}</span></div>
-        <div className="flex justify-between border-t border-gray-200 pt-3"><span className="text-gray-400">Issued</span><span>{displayInvoice.issuedDate || '—'}</span></div>
-        <div className="flex justify-between border-t border-gray-200 pt-3"><span className="text-gray-400">Due</span><span>{displayInvoice.dueDate || '—'}</span></div>
+        <div className="flex justify-between border-t border-gray-200 pt-3"><span className="text-gray-400">Issued</span><span>{fmtDate(displayInvoice.issuedDate)}</span></div>
+        <div className="flex justify-between border-t border-gray-200 pt-3"><span className="text-gray-400">Due</span><span>{fmtDate(displayInvoice.dueDate)}</span></div>
         <div className="flex justify-between border-t border-gray-200 pt-3"><span className="text-gray-400">Billed to</span><span className="font-medium">{displayInvoice.name || '—'}</span></div>
       </div>
 
@@ -403,8 +410,8 @@ export const CorporateBlueTemplate: React.FC<TemplateProps> = ({ businessDetails
 
     {/* Blue accent strip */}
     <div className="bg-[#2563eb] px-10 py-3 flex justify-between text-white text-sm">
-      <span><span className="opacity-70">ISSUE DATE</span> · <strong>{displayInvoice.issuedDate || '—'}</strong></span>
-      <span><span className="opacity-70">DUE DATE</span> · <strong>{displayInvoice.dueDate || '—'}</strong></span>
+      <span><span className="opacity-70">ISSUE DATE</span> · <strong>{fmtDate(displayInvoice.issuedDate)}</strong></span>
+      <span><span className="opacity-70">DUE DATE</span> · <strong>{fmtDate(displayInvoice.dueDate)}</strong></span>
     </div>
 
     {/* Parties */}
@@ -503,8 +510,8 @@ export const ElegantDarkTemplate: React.FC<TemplateProps> = ({ businessDetails, 
 
       {/* Meta */}
       <div className="grid grid-cols-4 gap-6 mb-10">
-        <div><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">Issued</p><p className="text-sm text-gray-300">{displayInvoice.issuedDate || '—'}</p></div>
-        <div><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">Due</p><p className="text-sm text-gray-300">{displayInvoice.dueDate || '—'}</p></div>
+        <div><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">Issued</p><p className="text-sm text-gray-300">{fmtDate(displayInvoice.issuedDate)}</p></div>
+        <div><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">Due</p><p className="text-sm text-gray-300">{fmtDate(displayInvoice.dueDate)}</p></div>
         <div><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">From</p><p className="text-sm text-gray-300">{businessDetails.business_name || '—'}</p></div>
         <div className="text-right"><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">Billed To</p><p className="text-sm text-gray-300 font-semibold">{displayInvoice.name || '—'}</p><p className="text-xs text-gray-500">{displayInvoice.email}</p></div>
       </div>
@@ -592,8 +599,8 @@ export const LuxuryBlackTemplate: React.FC<TemplateProps> = ({ businessDetails, 
 
       {/* Dates row */}
       <div className="flex gap-12 mb-12 text-sm">
-        <div><p className="text-xs tracking-widest text-gray-600 uppercase mb-1">Date Issued</p><p className="text-gray-400">{displayInvoice.issuedDate || '—'}</p></div>
-        <div><p className="text-xs tracking-widest text-gray-600 uppercase mb-1">Due Date</p><p className="text-gray-400">{displayInvoice.dueDate || '—'}</p></div>
+        <div><p className="text-xs tracking-widest text-gray-600 uppercase mb-1">Date Issued</p><p className="text-gray-400">{fmtDate(displayInvoice.issuedDate)}</p></div>
+        <div><p className="text-xs tracking-widest text-gray-600 uppercase mb-1">Due Date</p><p className="text-gray-400">{fmtDate(displayInvoice.dueDate)}</p></div>
         <div className="ml-auto"><StatusBadge status={displayInvoice.status} variant="dark" /></div>
       </div>
 
@@ -660,7 +667,7 @@ export const ModernPurpleTemplate: React.FC<TemplateProps> = ({ businessDetails,
           <p className="text-purple-200 text-xs uppercase tracking-widest mb-1">{displayInvoice.invoiceTitle || 'Invoice'}</p>
           <p className="text-3xl font-bold text-white">#{displayInvoice.invoiceNumber || '—'}</p>
           <div className="mt-3 flex justify-end"><StatusBadge status={displayInvoice.status} variant="dark" /></div>
-          <p className="text-purple-200 text-xs mt-3">Issued: {displayInvoice.issuedDate} · Due: {displayInvoice.dueDate}</p>
+          <p className="text-purple-200 text-xs mt-3">Issued: {fmtDate(displayInvoice.issuedDate)} · Due: {fmtDate(displayInvoice.dueDate)}</p>
         </div>
       </div>
     </div>
@@ -739,11 +746,11 @@ export const CreativeAgencyTemplate: React.FC<TemplateProps> = ({ businessDetail
         </div>
         <div className="mb-4">
           <p className="text-orange-200 text-xs uppercase tracking-widest mb-1">Issued</p>
-          <p className="text-sm text-white">{displayInvoice.issuedDate || '—'}</p>
+          <p className="text-sm text-white">{fmtDate(displayInvoice.issuedDate)}</p>
         </div>
         <div className="mb-8">
           <p className="text-orange-200 text-xs uppercase tracking-widest mb-1">Due</p>
-          <p className="text-sm text-white">{displayInvoice.dueDate || '—'}</p>
+          <p className="text-sm text-white">{fmtDate(displayInvoice.dueDate)}</p>
         </div>
         <div className="mb-8">
           <p className="text-orange-200 text-xs uppercase tracking-widest mb-2">From</p>
@@ -811,7 +818,7 @@ export const FreelancerTemplate: React.FC<TemplateProps> = ({ businessDetails, d
       <div className="flex items-end justify-between mb-10">
         <div>
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-12 object-contain mb-2" />
+            <img src={businessDetails.logo_url} alt="Logo" className="h-12 object-contain mb-2" crossOrigin="anonymous" />
           ) : (
             <p className="text-3xl font-bold text-gray-900">{businessDetails.business_name || 'Your Name'}</p>
           )}
@@ -829,9 +836,9 @@ export const FreelancerTemplate: React.FC<TemplateProps> = ({ businessDetails, d
       {/* Status + Dates */}
       <div className="flex items-center gap-4 mb-8">
         <StatusBadge status={displayInvoice.status} />
-        <span className="text-sm text-gray-400">Issued {displayInvoice.issuedDate || '—'}</span>
+        <span className="text-sm text-gray-400">Issued {fmtDate(displayInvoice.issuedDate)}</span>
         <span className="text-sm text-gray-400">·</span>
-        <span className="text-sm text-gray-400">Due {displayInvoice.dueDate || '—'}</span>
+        <span className="text-sm text-gray-400">Due {fmtDate(displayInvoice.dueDate)}</span>
       </div>
 
       {/* Client card */}
@@ -852,7 +859,7 @@ export const FreelancerTemplate: React.FC<TemplateProps> = ({ businessDetails, d
             </div>
             <div className="flex items-center gap-6 text-sm text-gray-500">
               <span>{item.quantity} × ${fmt(item.unitPrice)}</span>
-              <span className="font-bold text-gray-900 w-24 text-right">${fmt(item.totalPrice)}</span>
+              <span className="font-bold text-gray-900 w-24 text-right">${fmt(item.totalPrice ?? item.quantity * item.unitPrice)}</span>
             </div>
           </div>
         ))}
@@ -862,7 +869,8 @@ export const FreelancerTemplate: React.FC<TemplateProps> = ({ businessDetails, d
       <div className="flex justify-end mb-8">
         <div className="w-72 bg-white border border-gray-200 rounded-2xl p-6 space-y-3 text-sm">
           <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>${fmt(calculatedInvoice.subtotal)}</span></div>
-          {(calculatedInvoice.taxes || []).map((t: any, i: number) => <div key={i} className="flex justify-between text-gray-500"><span>Tax</span><span>${fmt(t.amount)}</span></div>)}
+          {(calculatedInvoice.discounts || []).map((d: any, i: number) => <div key={i} className="flex justify-between text-gray-500"><span>Discount{d.name ? ` (${d.name})` : ''}</span><span>-${fmt(d.amount)}</span></div>)}
+          {(calculatedInvoice.taxes || []).map((t: any, i: number) => <div key={i} className="flex justify-between text-gray-500"><span>Tax{t.name ? ` (${t.name})` : ''}</span><span>${fmt(t.amount)}</span></div>)}
           <div className="flex justify-between font-bold text-gray-900 border-t border-gray-200 pt-3 text-base"><span>Total Due</span><span>${fmt(calculatedInvoice.total)}</span></div>
         </div>
       </div>
@@ -901,8 +909,8 @@ export const StartupTemplate: React.FC<TemplateProps> = ({ businessDetails, disp
     </div>
 
     <div className="px-10 py-6 grid grid-cols-3 gap-6 bg-gray-50 border-b border-gray-200 text-sm">
-      <div><p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Issued</p><p className="font-medium text-gray-700">{displayInvoice.issuedDate || '—'}</p></div>
-      <div><p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Due</p><p className="font-medium text-gray-700">{displayInvoice.dueDate || '—'}</p></div>
+      <div><p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Issued</p><p className="font-medium text-gray-700">{fmtDate(displayInvoice.issuedDate)}</p></div>
+      <div><p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Due</p><p className="font-medium text-gray-700">{fmtDate(displayInvoice.dueDate)}</p></div>
       <div className="text-right"><p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Bill To</p><p className="font-semibold text-gray-900">{displayInvoice.name || '—'}</p><p className="text-gray-400 text-xs">{displayInvoice.email}</p></div>
     </div>
 
@@ -975,8 +983,8 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ businessDetails, disp
 
     {/* Info bar */}
     <div className="bg-[#1a6fa8] text-white px-10 py-3 text-xs flex gap-8">
-      <span>ISSUE DATE: <strong>{displayInvoice.issuedDate || '—'}</strong></span>
-      <span>DUE DATE: <strong>{displayInvoice.dueDate || '—'}</strong></span>
+      <span>ISSUE DATE: <strong>{fmtDate(displayInvoice.issuedDate)}</strong></span>
+      <span>DUE DATE: <strong>{fmtDate(displayInvoice.dueDate)}</strong></span>
       <span className="ml-auto"><StatusBadge status={displayInvoice.status} variant="dark" /></span>
     </div>
 
@@ -1066,8 +1074,8 @@ export const HealthcareTemplate: React.FC<TemplateProps> = ({ businessDetails, d
     </div>
 
     <div className="px-10 py-6 grid grid-cols-2 gap-8 bg-teal-50 border-b border-teal-100">
-      <div><p className="text-xs text-teal-400 uppercase tracking-widest mb-1">Date of Service</p><p className="text-sm font-medium text-gray-700">{displayInvoice.issuedDate || '—'}</p></div>
-      <div className="text-right"><p className="text-xs text-teal-400 uppercase tracking-widest mb-1">Payment Due</p><p className="text-sm font-medium text-gray-700">{displayInvoice.dueDate || '—'}</p></div>
+      <div><p className="text-xs text-teal-400 uppercase tracking-widest mb-1">Date of Service</p><p className="text-sm font-medium text-gray-700">{fmtDate(displayInvoice.issuedDate)}</p></div>
+      <div className="text-right"><p className="text-xs text-teal-400 uppercase tracking-widest mb-1">Payment Due</p><p className="text-sm font-medium text-gray-700">{fmtDate(displayInvoice.dueDate)}</p></div>
     </div>
 
     <div className="px-10 py-6 grid grid-cols-2 gap-8 border-b border-gray-200">
@@ -1175,8 +1183,8 @@ export const ConstructionTemplate: React.FC<TemplateProps> = ({ businessDetails,
     </div>
 
     <div className="px-10 py-4 flex gap-8 bg-gray-50 border-b border-gray-200 text-sm">
-      <div><span className="text-gray-400">Date:</span> <strong>{displayInvoice.issuedDate || '—'}</strong></div>
-      <div><span className="text-gray-400">Due:</span> <strong>{displayInvoice.dueDate || '—'}</strong></div>
+      <div><span className="text-gray-400">Date:</span> <strong>{fmtDate(displayInvoice.issuedDate)}</strong></div>
+      <div><span className="text-gray-400">Due:</span> <strong>{fmtDate(displayInvoice.dueDate)}</strong></div>
       <div className="ml-auto"><StatusBadge status={displayInvoice.status} /></div>
     </div>
 
@@ -1242,7 +1250,7 @@ export const RetailTemplate: React.FC<TemplateProps> = ({ businessDetails, displ
       <div className="text-center mb-6">
         <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">{displayInvoice.invoiceTitle || 'Sales Invoice'}</p>
         <p className="text-xl font-bold text-gray-900">#{displayInvoice.invoiceNumber || '—'}</p>
-        <p className="text-sm text-gray-400 mt-1">{displayInvoice.issuedDate} · Due: {displayInvoice.dueDate}</p>
+        <p className="text-sm text-gray-400 mt-1">{fmtDate(displayInvoice.issuedDate)} · Due: {fmtDate(displayInvoice.dueDate)}</p>
         <div className="flex justify-center mt-2"><StatusBadge status={displayInvoice.status} /></div>
       </div>
 
@@ -1314,7 +1322,7 @@ export const RestaurantTemplate: React.FC<TemplateProps> = ({ businessDetails, d
       {/* Invoice ref */}
       <div className="text-center mb-8">
         <p className="text-amber-400 text-xs uppercase tracking-widest">{displayInvoice.invoiceTitle || 'Invoice'} · #{displayInvoice.invoiceNumber || '—'}</p>
-        <p className="text-amber-300/60 text-xs mt-1">{displayInvoice.issuedDate} · Due: {displayInvoice.dueDate}</p>
+        <p className="text-amber-300/60 text-xs mt-1">{fmtDate(displayInvoice.issuedDate)} · Due: {fmtDate(displayInvoice.dueDate)}</p>
         <div className="flex justify-center mt-2"><StatusBadge status={displayInvoice.status} variant="dark" /></div>
       </div>
 
@@ -1391,8 +1399,8 @@ export const ConsultingTemplate: React.FC<TemplateProps> = ({ businessDetails, d
               <p className="text-xs uppercase tracking-widest text-gray-400 mb-1">{displayInvoice.invoiceTitle || 'Professional Invoice'}</p>
               <p className="text-3xl font-light text-[#2c3e50]">#{displayInvoice.invoiceNumber || '—'}</p>
               <div className="mt-2"><StatusBadge status={displayInvoice.status} /></div>
-              <p className="text-xs text-gray-400 mt-2">Issued: {displayInvoice.issuedDate}</p>
-              <p className="text-xs text-gray-400">Due: {displayInvoice.dueDate}</p>
+              <p className="text-xs text-gray-400 mt-2">Issued: {fmtDate(displayInvoice.issuedDate)}</p>
+              <p className="text-xs text-gray-400">Due: {fmtDate(displayInvoice.dueDate)}</p>
             </div>
           </div>
         </div>
@@ -1490,7 +1498,7 @@ export const GreenEcoTemplate: React.FC<TemplateProps> = ({ businessDetails, dis
     {/* Leaf-green strip */}
     <div className="bg-[#40916c] text-white px-10 py-3 text-xs flex justify-between">
       <span>🌿 <strong>{businessDetails.business_name}</strong> is committed to sustainable business practices</span>
-      <span>Issued: {displayInvoice.issuedDate} · Due: {displayInvoice.dueDate}</span>
+      <span>Issued: {fmtDate(displayInvoice.issuedDate)} · Due: {fmtDate(displayInvoice.dueDate)}</span>
     </div>
 
     <div className="px-10 py-6 grid grid-cols-2 gap-8 border-b border-gray-200">
@@ -1577,8 +1585,8 @@ export const ProfessionalGrayTemplate: React.FC<TemplateProps> = ({ businessDeta
     </div>
 
     <div className="bg-[#4b5563] text-white px-10 py-3 text-xs flex gap-8">
-      <span className="text-gray-300">ISSUED: <strong className="text-white">{displayInvoice.issuedDate || '—'}</strong></span>
-      <span className="text-gray-300">DUE: <strong className="text-white">{displayInvoice.dueDate || '—'}</strong></span>
+      <span className="text-gray-300">ISSUED: <strong className="text-white">{fmtDate(displayInvoice.issuedDate)}</strong></span>
+      <span className="text-gray-300">DUE: <strong className="text-white">{fmtDate(displayInvoice.dueDate)}</strong></span>
     </div>
 
     <div className="px-10 py-8 grid grid-cols-2 gap-12 bg-white border-b border-gray-200">
@@ -1675,8 +1683,8 @@ export const InternationalBusinessTemplate: React.FC<TemplateProps> = ({ busines
 
     {/* Blue strip with dates */}
     <div className="bg-[#283593] text-blue-200 px-10 py-3 text-xs flex gap-8 border-t border-blue-800">
-      <span>DATE OF ISSUE: <strong className="text-white">{displayInvoice.issuedDate || '—'}</strong></span>
-      <span>PAYMENT DUE: <strong className="text-white">{displayInvoice.dueDate || '—'}</strong></span>
+      <span>DATE OF ISSUE: <strong className="text-white">{fmtDate(displayInvoice.issuedDate)}</strong></span>
+      <span>PAYMENT DUE: <strong className="text-white">{fmtDate(displayInvoice.dueDate)}</strong></span>
     </div>
 
     <div className="px-10 py-8 grid grid-cols-2 gap-12 border-b border-gray-200">

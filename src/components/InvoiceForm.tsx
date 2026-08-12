@@ -11,6 +11,7 @@ import { CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 interface Invoice {
+  id?: string;
   status: string;
   dueDate: string;
   name: string;
@@ -29,6 +30,11 @@ interface Invoice {
   discounts: DiscountItem[];
   showPaymentMethods?: boolean;
   is_recurring: boolean;
+  recurrence_frequency?: 'weekly' | 'monthly' | 'custom';
+  recurrence_interval?: number;
+  recurrence_start_date?: string;
+  recurrence_end_date?: string;
+  template_id?: number | null;
 }
 
 interface InvoiceItem {
@@ -320,9 +326,14 @@ export const InvoiceForm = ({
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [recurrenceStartDate, setRecurrenceStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [recurrenceEndDate, setRecurrenceEndDate] = useState('');
+  const [templateId, setTemplateId] = useState<number>(() => {
+    const saved = invoiceDraft?.template_id;
+    return (typeof saved === 'number' && !isNaN(saved)) ? saved : 3;
+  });
 
   const generateCurrentInvoice = useCallback(() => {
     return {
+      id: invoiceDraft?.id,
       status: "draft",
       dueDate,
       name: customerName,
@@ -356,6 +367,7 @@ export const InvoiceForm = ({
       recurrence_interval: isRecurring ? recurrenceInterval : undefined,
       recurrence_start_date: isRecurring ? recurrenceStartDate : undefined,
       recurrence_end_date: isRecurring ? recurrenceEndDate || undefined : undefined,
+      template_id: templateId,
     };
   }, [
     dueDate,
@@ -379,6 +391,8 @@ export const InvoiceForm = ({
     recurrenceInterval,
     recurrenceStartDate,
     recurrenceEndDate,
+    templateId,
+    invoiceDraft?.id,
   ]);
 
   useEffect(() => {
@@ -423,8 +437,11 @@ export const InvoiceForm = ({
       if (invoiceDraft.recurrence_frequency) setRecurrenceFrequency(invoiceDraft.recurrence_frequency as any);
       if (invoiceDraft.recurrence_interval) setRecurrenceInterval(invoiceDraft.recurrence_interval);
       if (invoiceDraft.recurrence_start_date) setRecurrenceStartDate(invoiceDraft.recurrence_start_date);
+      if (invoiceDraft.template_id !== undefined && invoiceDraft.template_id !== null) {
+        setTemplateId(Number(invoiceDraft.template_id) || 3);
+      }
     }
-  }, [invoiceDraft?.id, invoiceDraft?.invoiceNumber]);
+  }, [invoiceDraft?.id, invoiceDraft?.invoiceNumber, invoiceDraft?.template_id]);
 
   // Update the invoice preview whenever form state changes
   useEffect(() => {
@@ -651,6 +668,7 @@ export const InvoiceForm = ({
       const currentInvoice = {
         ...generatedInvoice,
         showPaymentMethods: showPaymentInInvoice,
+        template_id: templateId,
       };
 
       onGenerate(currentInvoice);

@@ -31,6 +31,7 @@ import AdminRevenue from "./pages/admin/AdminRevenue";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminFeatures from "./pages/admin/AdminFeatures";
 import AdminInquiries from "./pages/admin/AdminInquiries";
+import AdminEmailAutomation from "./pages/admin/AdminEmailAutomation";
 
 const queryClient = new QueryClient();
 
@@ -154,6 +155,7 @@ const App = () => {
                 <Route path="revenue" element={<AdminRevenue />} />
                 <Route path="features" element={<AdminFeatures />} />
                 <Route path="inquiries" element={<AdminInquiries />} />
+                <Route path="email" element={<AdminEmailAutomation />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
 

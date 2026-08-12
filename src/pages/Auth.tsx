@@ -37,10 +37,29 @@ const Auth = () => {
           },
         });
         if (error) throw error;
+        // ── Trigger welcome email automation ─────────────────────────────────
+        try {
+          await supabase.functions.invoke('trigger-automation-email', {
+            body: {
+              triggerEvent: 'user_registered',
+              idempotencyKey: `user_registered_${email.toLowerCase().trim()}`,
+              recipientEmail: email.toLowerCase().trim(),
+              recipientName: email.split('@')[0],
+              variables: {
+                userName: email.split('@')[0],
+                userEmail: email.toLowerCase().trim(),
+              },
+            },
+          });
+        } catch (autoErr) {
+          // Non-blocking — don't fail registration if email fails
+          console.warn('[automation] welcome email failed:', autoErr);
+        }
         toast({
           title: "Account Created! 🎉",
           description: "Please check your email to confirm your account.",
         });
+
       }
     } catch (error: any) {
       toast({

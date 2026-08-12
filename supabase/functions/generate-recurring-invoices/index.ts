@@ -149,8 +149,77 @@ serve(async (req) => {
       }
     }
 
+    // ── Overdue Invoice Detection ─────────────────────────────────────────
+    // Find invoices that are past their due date and still pending/draft
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const { data: overdueInvoices, error: overdueErr } = await supabaseClient
+      .from('invoices')
+      .select('id, invoice_number, user_id, total, due_date, status')
+      .lt('due_date', today.toISOString())
+      .in('status', ['pending', 'Pending', 'draft', 'Draft'])
+      .not('due_date', 'is', null)
+
+    if (!overdueErr && overdueInvoices && overdueInvoices.length > 0) {
+      for (const inv of overdueInvoices) {
+        // Fetch owner profile to get their email
+        const { data: profile } = await supabaseClient
+          .from('profiles')
+          .select('email, full_name')
+          .eq('id', inv.user_id)
+          .maybeSingle()
+
+        const ownerEmail = profile?.email ?? null
+        if (!ownerEmail) continue
+
+        const idempotencyKey = `invoice_overdue_${inv.id}`
+
+        // Update invoice status to overdue
+        await supabaseClient
+          .from('invoices')
+          .update({ status: 'overdue' })
+          .eq('id', inv.id)
+
+        // Trigger overdue automation
+        try {
+          const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+          const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+          await fetch(`${supabaseUrl}/functions/v1/trigger-automation-email`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${serviceKey}`,
+              'apikey': serviceKey,
+            },
+            body: JSON.stringify({
+              triggerEvent: 'invoice_overdue',
+              idempotencyKey,
+              recipientEmail: ownerEmail,
+              recipientName: profile?.full_name ?? ownerEmail.split('@')[0],
+              variables: {
+                userName: profile?.full_name ?? ownerEmail.split('@')[0],
+                userEmail: ownerEmail,
+                invoiceNumber: inv.invoice_number ?? '',
+                invoiceAmount: `₹${Number(inv.total ?? 0).toFixed(2)}`,
+                invoiceDueDate: inv.due_date
+                  ? new Date(inv.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                  : '',
+              },
+            }),
+          })
+        } catch (autoErr) {
+          console.warn(`[automation] invoice_overdue email failed for ${inv.id}:`, autoErr)
+        }
+      }
+    }
+
     return new Response(
-      JSON.stringify({ message: 'Recurring invoices processed successfully', count: recurringInvoices?.length ?? 0 }),
+      JSON.stringify({
+        message: 'Recurring invoices processed successfully',
+        recurringCount: recurringInvoices?.length ?? 0,
+        overdueCount: overdueInvoices?.length ?? 0,
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {
@@ -161,6 +230,8 @@ serve(async (req) => {
     )
   }
 })
+
+
 
 function calculateNextRecurrenceDate(
   frequency: string,

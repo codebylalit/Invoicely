@@ -24,8 +24,7 @@ import {
   MessageSquare,
   ChevronLeft,
 } from "lucide-react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { renderInvoiceElementToPdf } from "@/utils/pdfUtils";
 
 // Initialize standalone Supabase client for unauthenticated access
 const supabaseUrl = "https://mrmjkdxerrpwrrmmymmv.supabase.co";
@@ -42,7 +41,14 @@ const ConfettiOverlay = () => {
         const left = Math.random() * 100;
         const delay = Math.random() * 2;
         const duration = 2.5 + Math.random() * 2;
-        const colors = ["#eab308", "#22c55e", "#3b82f6", "#ec4899", "#8b5cf6", "#f97316"];
+        const colors = [
+          "#eab308",
+          "#22c55e",
+          "#3b82f6",
+          "#ec4899",
+          "#8b5cf6",
+          "#f97316",
+        ];
         const color = colors[i % colors.length];
 
         return (
@@ -85,7 +91,10 @@ const fmtDate = (d?: string) => {
   });
 };
 
-const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; icon: React.ReactNode }> = {
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; bg: string; text: string; icon: React.ReactNode }
+> = {
   paid: {
     label: "PAID",
     bg: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400",
@@ -174,7 +183,11 @@ const PublicInvoicePay = () => {
   // Load Razorpay checkout script
   const loadRazorpayScript = (): Promise<void> => {
     return new Promise((resolve, reject) => {
-      if (document.querySelector("script[src='https://checkout.razorpay.com/v1/checkout.js']")) {
+      if (
+        document.querySelector(
+          "script[src='https://checkout.razorpay.com/v1/checkout.js']",
+        )
+      ) {
         resolve();
         return;
       }
@@ -193,16 +206,23 @@ const PublicInvoicePay = () => {
     setPaying(true);
     try {
       // 1. Invoke create-razorpay-order Edge Function
-      const { data, error: fnErr } = await supabase.functions.invoke("create-razorpay-order", {
-        body: {
-          plan: `Invoice #${invoice.invoice_number}`,
-          userId: invoice.user_id,
-          amount: Number(invoice.total) || 0,
+      const { data, error: fnErr } = await supabase.functions.invoke(
+        "create-razorpay-order",
+        {
+          body: {
+            plan: `Invoice #${invoice.invoice_number}`,
+            userId: invoice.user_id,
+            amount: Number(invoice.total) || 0,
+          },
         },
-      });
+      );
 
       if (fnErr || !data?.orderId) {
-        throw new Error(fnErr?.message || data?.error || "Could not initialize payment order.");
+        throw new Error(
+          fnErr?.message ||
+            data?.error ||
+            "Could not initialize payment order.",
+        );
       }
 
       await loadRazorpayScript();
@@ -224,10 +244,42 @@ const PublicInvoicePay = () => {
 
             setInvoice((prev: any) => ({ ...prev, status: "Paid" }));
             setJustPaid(true);
+
+            // ── Trigger invoice_paid automation for the invoice owner ─────────
+            try {
+              // Fetch owner's email from profiles or use user_id to look up auth
+              const { data: ownerProfile } = await supabase
+                .from('profiles')
+                .select('email, full_name')
+                .eq('id', invoice.user_id)
+                .maybeSingle();
+
+              const ownerEmail = ownerProfile?.email ?? null;
+              if (ownerEmail) {
+                await supabase.functions.invoke('trigger-automation-email', {
+                  body: {
+                    triggerEvent: 'invoice_paid',
+                    idempotencyKey: `invoice_paid_${invoice.id}`,
+                    recipientEmail: ownerEmail,
+                    recipientName: ownerProfile?.full_name ?? ownerEmail.split('@')[0],
+                    variables: {
+                      userName: ownerProfile?.full_name ?? ownerEmail.split('@')[0],
+                      userEmail: ownerEmail,
+                      invoiceNumber: invoice.invoice_number ?? '',
+                      invoiceAmount: `₹${Number(invoice.total ?? 0).toFixed(2)}`,
+                      invoiceDueDate: invoice.due_date ?? '',
+                    },
+                  },
+                });
+              }
+            } catch (autoErr) {
+              console.warn('[automation] invoice_paid email failed:', autoErr);
+            }
           } catch (e) {
             console.error("Failed to mark invoice paid:", e);
           }
         },
+
         prefill: {
           name: invoice.client_name || "",
           email: invoice.client_email || "",
@@ -241,7 +293,9 @@ const PublicInvoicePay = () => {
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err: any) {
-      alert(`Payment Error: ${err.message || "Could not launch payment modal"}`);
+      alert(
+        `Payment Error: ${err.message || "Could not launch payment modal"}`,
+      );
     } finally {
       setPaying(false);
     }
@@ -252,16 +306,10 @@ const PublicInvoicePay = () => {
     if (!printRef.current) return;
     setDownloading(true);
     try {
-      const canvas = await html2canvas(printRef.current, {
+      const pdf = await renderInvoiceElementToPdf(printRef.current, {
         scale: 2,
-        useCORS: true,
-        logging: false,
+        backgroundColor: "#ffffff",
       });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Invoice_${invoice.invoice_number || "Payment"}.pdf`);
     } catch (e) {
       alert("Failed to generate PDF. Please try browser print instead.");
@@ -295,7 +343,9 @@ const PublicInvoicePay = () => {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
         <div className="h-12 w-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-slate-500 font-medium text-sm">Loading invoice portal…</p>
+        <p className="text-slate-500 font-medium text-sm">
+          Loading invoice portal…
+        </p>
       </div>
     );
   }
@@ -307,9 +357,12 @@ const PublicInvoicePay = () => {
           <div className="h-14 w-14 bg-red-100 dark:bg-red-950/40 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="h-7 w-7" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Invoice Not Available</h2>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+            Invoice Not Available
+          </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-            {error || "The invoice you are trying to view does not exist or has been deleted."}
+            {error ||
+              "The invoice you are trying to view does not exist or has been deleted."}
           </p>
           <Link to="/">
             <Button variant="outline" className="w-full">
@@ -382,7 +435,8 @@ const PublicInvoicePay = () => {
               Payment Successful! 🎉
             </h2>
             <p className="text-sm text-emerald-700 dark:text-emerald-300 max-w-sm mx-auto">
-              Thank you for your payment. Your receipt has been generated and updated below.
+              Thank you for your payment. Your receipt has been generated and
+              updated below.
             </p>
           </div>
         )}
@@ -405,7 +459,8 @@ const PublicInvoicePay = () => {
                   {fmtCurrency(Number(invoice.total) || 0)}
                 </p>
                 <p className="text-xs text-slate-400 mt-2">
-                  Invoice #{invoice.invoice_number} · Due {fmtDate(invoice.due_date)}
+                  Invoice #{invoice.invoice_number} · Due{" "}
+                  {fmtDate(invoice.due_date)}
                 </p>
               </div>
 
@@ -424,7 +479,9 @@ const PublicInvoicePay = () => {
                   <div className="bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 p-4 rounded-xl text-center">
                     <CheckCircle2 className="h-6 w-6 text-emerald-600 mx-auto mb-1" />
                     <p className="font-bold text-sm">Invoice Settled</p>
-                    <p className="text-xs opacity-80 mt-0.5">No action required</p>
+                    <p className="text-xs opacity-80 mt-0.5">
+                      No action required
+                    </p>
                   </div>
                 )}
                 <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400">
@@ -437,7 +494,10 @@ const PublicInvoicePay = () => {
         </Card>
 
         {/* ── Printable Invoice Document ──────────────────────────────────────── */}
-        <div ref={printRef} className="bg-white text-slate-900 rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-10 space-y-8">
+        <div
+          ref={printRef}
+          className="invoice-print-root bg-white text-slate-900 rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-10 space-y-8"
+        >
           {/* Document Header */}
           <div className="flex flex-col sm:flex-row justify-between gap-6 pb-6 border-b border-slate-200">
             <div>
@@ -453,10 +513,16 @@ const PublicInvoicePay = () => {
                 </h2>
               )}
               <p className="text-sm text-slate-500">{businessDetails?.email}</p>
-              <p className="text-sm text-slate-500">{businessDetails?.phone_number}</p>
-              <p className="text-sm text-slate-500">{businessDetails?.address}</p>
+              <p className="text-sm text-slate-500">
+                {businessDetails?.phone_number}
+              </p>
+              <p className="text-sm text-slate-500">
+                {businessDetails?.address}
+              </p>
               {businessDetails?.vat_number && (
-                <p className="text-xs text-slate-400 mt-1">Tax ID: {businessDetails.vat_number}</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Tax ID: {businessDetails.vat_number}
+                </p>
               )}
             </div>
 
@@ -464,10 +530,19 @@ const PublicInvoicePay = () => {
               <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-1">
                 {invoice.invoice_title || "INVOICE"}
               </p>
-              <p className="text-2xl font-bold text-slate-900 mb-2">#{invoice.invoice_number}</p>
+              <p className="text-2xl font-bold text-slate-900 mb-2">
+                #{invoice.invoice_number}
+              </p>
               <div className="text-sm text-slate-500 space-y-0.5">
-                <p>Issued: <strong>{fmtDate(invoice.issued_date || invoice.created_at)}</strong></p>
-                <p>Due Date: <strong>{fmtDate(invoice.due_date)}</strong></p>
+                <p>
+                  Issued:{" "}
+                  <strong>
+                    {fmtDate(invoice.issued_date || invoice.created_at)}
+                  </strong>
+                </p>
+                <p>
+                  Due Date: <strong>{fmtDate(invoice.due_date)}</strong>
+                </p>
               </div>
             </div>
           </div>
@@ -475,14 +550,22 @@ const PublicInvoicePay = () => {
           {/* From / Bill To Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-sm">
             <div>
-              <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-2">From</p>
-              <p className="font-bold text-slate-900">{businessDetails?.business_name || "Seller"}</p>
+              <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-2">
+                From
+              </p>
+              <p className="font-bold text-slate-900">
+                {businessDetails?.business_name || "Seller"}
+              </p>
               <p className="text-slate-500">{businessDetails?.email}</p>
               <p className="text-slate-500">{businessDetails?.address}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-2">Billed To</p>
-              <p className="font-bold text-slate-900">{invoice.client_name || "Client"}</p>
+              <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-2">
+                Billed To
+              </p>
+              <p className="font-bold text-slate-900">
+                {invoice.client_name || "Client"}
+              </p>
               <p className="text-slate-500">{invoice.client_email}</p>
               <p className="text-slate-500">{invoice.details}</p>
             </div>
@@ -506,11 +589,17 @@ const PublicInvoicePay = () => {
                       <td className="py-3 text-slate-800">
                         <p className="font-medium">{item.description}</p>
                         {item.additionalInfo && (
-                          <p className="text-xs text-slate-400">{item.additionalInfo}</p>
+                          <p className="text-xs text-slate-400">
+                            {item.additionalInfo}
+                          </p>
                         )}
                       </td>
-                      <td className="py-3 text-center text-slate-500">{item.quantity}</td>
-                      <td className="py-3 text-right text-slate-500">${item.unitPrice?.toFixed(2)}</td>
+                      <td className="py-3 text-center text-slate-500">
+                        {item.quantity}
+                      </td>
+                      <td className="py-3 text-right text-slate-500">
+                        ${item.unitPrice?.toFixed(2)}
+                      </td>
                       <td className="py-3 text-right font-semibold text-slate-900">
                         ${item.totalPrice?.toFixed(2)}
                       </td>
@@ -518,7 +607,10 @@ const PublicInvoicePay = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="text-center py-6 text-slate-400 italic">
+                    <td
+                      colSpan={4}
+                      className="text-center py-6 text-slate-400 italic"
+                    >
                       No items specified
                     </td>
                   </tr>
@@ -532,11 +624,20 @@ const PublicInvoicePay = () => {
             <div className="w-72 space-y-2 text-sm">
               <div className="flex justify-between text-slate-500">
                 <span>Subtotal</span>
-                <span>${(Number(invoice.subtotal) || Number(invoice.total) || 0).toFixed(2)}</span>
+                <span>
+                  $
+                  {(
+                    Number(invoice.subtotal) ||
+                    Number(invoice.total) ||
+                    0
+                  ).toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between font-bold text-slate-900 text-lg border-t-2 border-slate-900 pt-3">
                 <span>Total Amount</span>
-                <span className="text-amber-600">${(Number(invoice.total) || 0).toFixed(2)}</span>
+                <span className="text-amber-600">
+                  ${(Number(invoice.total) || 0).toFixed(2)}
+                </span>
               </div>
             </div>
           </div>
@@ -544,7 +645,9 @@ const PublicInvoicePay = () => {
           {/* Notes / Terms */}
           {invoice.notes && (
             <div className="pt-4 border-t border-slate-100 text-sm">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Notes & Terms</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
+                Notes & Terms
+              </p>
               <p className="text-slate-600 italic">{invoice.notes}</p>
             </div>
           )}
@@ -568,9 +671,16 @@ const PublicInvoicePay = () => {
             {comments.length > 0 && (
               <div className="space-y-3 mb-4">
                 {comments.map((c) => (
-                  <div key={c.id} className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-sm">
-                    <p className="font-semibold text-xs text-slate-500 mb-1">{c.sender}</p>
-                    <p className="text-slate-800 dark:text-slate-200">{c.text}</p>
+                  <div
+                    key={c.id}
+                    className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-sm"
+                  >
+                    <p className="font-semibold text-xs text-slate-500 mb-1">
+                      {c.sender}
+                    </p>
+                    <p className="text-slate-800 dark:text-slate-200">
+                      {c.text}
+                    </p>
                   </div>
                 ))}
               </div>

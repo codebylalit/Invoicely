@@ -9,53 +9,26 @@ interface LogoProps {
   href?: string;
 }
 
-export const LogoIcon: React.FC<{ size?: "sm" | "md" | "lg" }> = ({ size = "md" }) => {
+export const LogoIcon: React.FC<{ size?: "sm" | "md" | "lg"; className?: string }> = ({
+  size = "md",
+  className = "",
+}) => {
   const dimensions = {
     sm: "h-7 w-7",
     md: "h-9 w-9",
     lg: "h-11 w-11",
   }[size];
 
-  const svgSizes = {
-    sm: 18,
-    md: 22,
-    lg: 26,
-  }[size];
-
   return (
     <div
-      className={`${dimensions} rounded-xl bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 flex items-center justify-center shadow-md shadow-amber-500/20 text-slate-950 font-black flex-shrink-0 transition-transform duration-200 hover:scale-105`}
+      className={`${dimensions} flex-shrink-0 transition-transform duration-200 hover:scale-105 ${className}`}
     >
-      <svg
-        width={svgSizes}
-        height={svgSizes}
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="text-slate-950"
-      >
-        <path
-          d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M14 2V8H20"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M16 13L11 18L8 15"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <img
+        src="/icon.png"
+        alt="Invoicely"
+        className="w-full h-full object-contain"
+        draggable={false}
+      />
     </div>
   );
 };

@@ -158,6 +158,7 @@ const formatInvoiceForPreview = (invoice: any) => {
     invoiceNumber: invoice.invoice_number,
     issuedDate: invoice.issued_date || invoice.created_at,
     dueDate: invoice.due_date,
+    template_id: invoice.template_id ?? null,
     name: invoice.client_name,
     details: invoice.details,
     email: invoice.client_email,
@@ -225,6 +226,7 @@ const Invoices = () => {
     const initialDraft: Invoice = {
       id: inv.id,
       invoiceNumber: inv.invoice_number || "",
+      template_id: inv.template_id ?? null,
       name: inv.client_name || "",
       email: inv.client_email || "",
       issuedDate: inv.issued_date ? new Date(inv.issued_date).toISOString().split('T')[0] : (inv.created_at ? new Date(inv.created_at).toISOString().split('T')[0] : ""),
@@ -493,7 +495,20 @@ const Invoices = () => {
               )}
             </div>
             <div className="flex-1 md:pl-4 overflow-y-auto">
-              {previewDraft && <InvoicePreview invoice={previewDraft} showSendByEmail />}
+              {previewDraft && (
+                <InvoicePreview
+                  invoice={previewDraft}
+                  showSendByEmail
+                  onTemplateChange={(templateId) => {
+                    setEditingInvoice((prev) =>
+                      prev ? { ...prev, template_id: templateId } : prev,
+                    );
+                    setPreviewDraft((prev) =>
+                      prev ? { ...prev, template_id: templateId } : prev,
+                    );
+                  }}
+                />
+              )}
             </div>
           </div>
         </DialogContent>

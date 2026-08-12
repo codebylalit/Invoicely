@@ -20,6 +20,8 @@ import EmailModal from './invoice/EmailModal';
 interface InvoicePreviewProps {
   invoice: Invoice | null;
   showSendByEmail?: boolean;
+  /** Called whenever the user picks a different template, so the parent can persist the id */
+  onTemplateChange?: (templateId: number) => void;
 }
 
 interface EmailFormData {
@@ -34,7 +36,7 @@ function formatDateSafe(dateStr) {
   return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString();
 }
 
-const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
+const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange }: InvoicePreviewProps) => {
   const { toast } = useToast();
   const supabase = useSupabaseClient();
   const session = useSession();
@@ -70,8 +72,15 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
     paymentLink: "",
   });
 
+  // Resolve the initial template from the invoice's saved template_id.
+  // Falls back to template id=3 (Apple Minimal) for new/legacy invoices.
+  const resolveTemplate = (templateId?: number | null) =>
+    invoiceTemplates.find(t => t.id === (templateId ?? 3)) ||
+    invoiceTemplates.find(t => t.id === 3) ||
+    invoiceTemplates[0];
+
   const [selectedTemplate, setSelectedTemplate] =
-    useState<InvoiceTemplate | null>(invoiceTemplates.find(t => t.id === 3) || null);
+    useState<InvoiceTemplate | null>(() => resolveTemplate(invoice?.template_id));
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
   const navigate = useNavigate();
@@ -209,6 +218,14 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
   }, [paymentDetails]);
 
 
+  /** Re-sync the selected template whenever the invoice changes (e.g. user closes and reopens invoice) */
+  useEffect(() => {
+    if (invoice?.template_id !== undefined && invoice?.template_id !== null) {
+      const t = invoiceTemplates.find(tmpl => tmpl.id === Number(invoice.template_id));
+      if (t) setSelectedTemplate(t);
+    }
+  }, [invoice?.id, invoice?.template_id]);
+
   const handleSelectTemplate = (template: InvoiceTemplate) => {
     // Check if user is trying to use a premium template while on free tier
     if (userSubscription.tier !== "pro" && template.id > 3) {
@@ -223,6 +240,8 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
 
     setSelectedTemplate(template);
     setIsTemplateModalOpen(false);
+    // Notify parent so the template_id is persisted with the invoice
+    onTemplateChange?.(template.id);
     toast({
       title: "Template Selected",
       description: `${template.name} template applied to your invoice`,
@@ -244,124 +263,112 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
     }
   }, [displayInvoice?.email]);
 
+  /** Wait for all web fonts in the document to be ready */
+  const waitForFonts = () => document.fonts?.ready ?? Promise.resolve();
+
+  /** Wait for all <img> elements inside a container to finish loading */
+  const waitForImages = (el: HTMLElement): Promise<void[]> => {
+    const imgs = Array.from(el.querySelectorAll<HTMLImageElement>('img'));
+    return Promise.all(
+      imgs.map(
+        (img) =>
+          new Promise<void>((resolve) => {
+            if (img.complete && img.naturalWidth > 0) {
+              resolve();
+            } else {
+              img.onload = () => resolve();
+              img.onerror = () => resolve(); // still resolve so we don't hang
+            }
+          })
+      )
+    );
+  };
+
   const generatePDF = async () => {
-    const sourceElement = invoiceRef.current;
-    if (!sourceElement) {
-      console.error("Preview element not found");
-      return null;
-    }
+    // We capture the ACTUAL visible invoice, not a hidden clone.
+    const element = invoiceRef.current;
+    if (!element) return null;
 
     try {
       setLoading(true);
       toast({
-        title: "PDF Generation",
-        description: "Your invoice PDF is being prepared",
+        title: 'PDF Generation',
+        description: 'Preparing your invoice PDF…',
       });
 
-      // Create a hidden, fixed-width A4 container (800px width) in document body
-      // This guarantees standard desktop rendering regardless of screen/device size or viewport width
-      const container = document.createElement("div");
-      container.style.position = "absolute";
-      container.style.top = "-9999px";
-      container.style.left = "-9999px";
-      container.style.width = "800px";
-      container.style.backgroundColor = "#FFFFFF";
-      container.style.color = "#0f172a";
+      // 1. Make sure fonts and images are fully loaded before we snapshot.
+      await waitForFonts();
+      await waitForImages(element);
 
-      // Clone the source preview element into the container
-      const clone = sourceElement.cloneNode(true) as HTMLElement;
-      clone.classList.remove("dark");
-      clone.style.backgroundColor = "#FFFFFF";
-      clone.style.color = "#0f172a";
-      clone.style.width = "800px";
-      clone.style.maxWidth = "800px";
-      clone.style.padding = "24px";
-      clone.style.margin = "0px";
+      // 2. Record the element's natural dimensions.
+      const rect = element.getBoundingClientRect();
+      const naturalW = element.scrollWidth;   // full content width (handles overflow)
+      const naturalH = element.scrollHeight;  // full content height
 
-      // Force explicit white text on dark cards inside clone tree
-      const darkCards = clone.querySelectorAll(".bg-gray-900, .bg-slate-900, .bg-\\[\\#0f172a\\], .bg-\\[\\#18181b\\], .bg-black");
-      darkCards.forEach((card) => {
-        (card as HTMLElement).style.color = "#ffffff";
-        const children = card.querySelectorAll("p, span, h1, h2, h3, div");
-        children.forEach((c) => {
-          const el = c as HTMLElement;
-          if (!el.className.includes("text-gray-400") && !el.className.includes("opacity-60") && !el.className.includes("text-slate-400")) {
-            el.style.color = "#ffffff";
-          }
-        });
-      });
-
-      container.appendChild(clone);
-      document.body.appendChild(container);
-
-      // Wait for fonts & images inside the cloned node to complete loading
-      if (document.fonts) {
-        await document.fonts.ready;
-      }
-      const images = Array.from(clone.querySelectorAll("img"));
-      await Promise.all(
-        images.map((img) => {
-          if (img.complete) return Promise.resolve();
-          return new Promise((resolve) => {
-            img.onload = resolve;
-            img.onerror = resolve;
-          });
-        })
-      );
-      await new Promise((r) => setTimeout(r, 100));
-
-      // Render canvas with html2canvas
-      const canvas = await html2canvas(clone, {
-        scale: 3, // High DPI retina quality
+      // 3. Snapshot with html2canvas at 3× for retina-quality text.
+      const canvas = await html2canvas(element, {
+        scale: 3,
         useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#FFFFFF",
+        allowTaint: false,
+        backgroundColor: '#ffffff',
         logging: false,
-        windowWidth: 800,
+        width: naturalW,
+        height: naturalH,
+        windowWidth: naturalW,
+        windowHeight: naturalH,
+        // Scroll the element into view so nothing is clipped
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
+        x: 0,
+        y: 0,
       });
 
-      // Clean up clone container from DOM immediately
-      document.body.removeChild(container);
+      // 4. Build the PDF.
+      //    A4 = 210 × 297 mm; we keep the aspect ratio of the snapshot.
+      const A4_W_MM = 210;
+      const A4_H_MM = 297;
 
-      // Create PDF with exact A4 proportions
-      const imgData = canvas.toDataURL("image/png");
+      const pxPerMm = canvas.width / A4_W_MM; // px per mm at chosen scale
+      const contentH_mm = canvas.height / pxPerMm;
+
+      // How many A4 pages do we need?
+      const totalPages = Math.ceil(contentH_mm / A4_H_MM);
+
       const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
       });
 
-      const pdfWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) pdf.addPage();
 
-      pdf.setFillColor(255, 255, 255);
-      pdf.rect(0, 0, pdfWidth, pageHeight, "F");
+        // Slice of the canvas that corresponds to this A4 page.
+        const srcY = page * A4_H_MM * pxPerMm;
+        const srcH = Math.min(A4_H_MM * pxPerMm, canvas.height - srcY);
 
-      if (imgHeight <= pageHeight) {
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
-      } else {
-        let heightLeft = imgHeight;
-        let position = 0;
-        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
-        heightLeft -= pageHeight;
-        while (heightLeft > 0) {
-          position = heightLeft - imgHeight;
-          pdf.addPage();
-          pdf.setFillColor(255, 255, 255);
-          pdf.rect(0, 0, pdfWidth, pageHeight, "F");
-          pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
-          heightLeft -= pageHeight;
-        }
+        // Create a temporary canvas for this page slice.
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = srcH;
+        const ctx = pageCanvas.getContext('2d')!;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+
+        const sliceData = pageCanvas.toDataURL('image/png', 1.0);
+        const sliceH_mm = srcH / pxPerMm;
+
+        pdf.addImage(sliceData, 'PNG', 0, 0, A4_W_MM, sliceH_mm, undefined, 'FAST');
       }
 
       return pdf;
     } catch (error) {
-      console.error("Error generating PDF:", error);
+      console.error('Error generating PDF:', error);
       toast({
-        title: "Error",
-        description: "Failed to generate PDF",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to generate PDF. Please try again.',
+        variant: 'destructive',
       });
       return null;
     } finally {
@@ -403,15 +410,26 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
   };
 
   const handleDownloadPDF = async () => {
+    // Ensure we're on the Custom (live preview) view so invoiceRef is in the DOM
+    const wasInPdfView = isPdfView;
+    if (isPdfView) {
+      setIsPdfView(false);
+      await new Promise((resolve) => setTimeout(resolve, 150)); // let React repaint
+    }
+
     const pdf = await generatePDF();
+
+    // Restore previous view
+    if (wasInPdfView) setIsPdfView(true);
+
     if (!pdf) return;
 
-    pdf.save(`Invoice-${displayInvoice?.invoiceNumber || "unknown"}.pdf`);
+    pdf.save(`Invoice-${displayInvoice?.invoiceNumber || 'invoice'}.pdf`);
 
     toast({
-      title: "Success",
-      description: "Invoice PDF downloaded successfully",
-      variant: "default",
+      title: 'Success',
+      description: 'Invoice PDF downloaded successfully',
+      variant: 'default',
     });
   };
 
@@ -445,7 +463,10 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
       }
 
       setSendingEmail(true);
+
+      // Generate PDF from the actual visible invoice preview
       const pdf = await generatePDF();
+
       if (!pdf) {
         throw new Error("Failed to generate PDF");
       }
@@ -592,6 +613,31 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
           templateParams,
           "oEKkAS-XYQUnWfbKa"
         );
+      }
+
+      // ── Trigger invoice_sent automation for the Invoicely user ───────────
+      if (session?.user?.email && displayInvoice?.invoiceNumber) {
+        try {
+          await supabase.functions.invoke('trigger-automation-email', {
+            body: {
+              triggerEvent: 'invoice_sent',
+              idempotencyKey: `invoice_sent_${displayInvoice.id ?? displayInvoice.invoiceNumber}_${session.user.id}`,
+              recipientEmail: session.user.email,
+              recipientName: session.user.email.split('@')[0],
+              variables: {
+                userName: session.user.email.split('@')[0],
+                userEmail: session.user.email,
+                invoiceNumber: displayInvoice.invoiceNumber ?? '',
+                invoiceAmount: `₹${Number(displayInvoice.total ?? 0).toFixed(2)}`,
+                invoiceDueDate: displayInvoice.dueDate
+                  ? new Date(displayInvoice.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                  : '',
+              },
+            },
+          });
+        } catch (autoErr) {
+          console.warn('[automation] invoice_sent email failed:', autoErr);
+        }
       }
 
       toast({
@@ -767,27 +813,28 @@ const InvoicePreview = ({ invoice, showSendByEmail }: InvoicePreviewProps) => {
     <>
       <div className={containerClasses}>
         <div className="flex flex-col items-center">
-          <div
-            ref={invoiceRef}
-            className={`p-6 sm:p-8 max-w-3xl w-full mx-auto pb-24 transition-all duration-200 ${
-              isPdfView
-                ? "bg-white text-slate-900 shadow-2xl rounded-none border border-gray-200 my-4 min-h-[1050px]"
-                : ""
-            }`}
-          >
-            {formatRecurrenceInfo(displayInvoice) && (
-              <div className="mb-4">
+          {/* Recurrence info – shown in the UI above the invoice, NOT inside the capture ref */}
+          {displayInvoice.is_recurring && (
+            <div className="flex justify-between items-center mb-4 px-8 pt-4 max-w-3xl w-full mx-auto">
+              <div className="flex items-center space-x-4">
                 <h1
-                  className={`text-xl font-bold ${
-                    selectedTemplate
-                      ? selectedTemplate.styles.accent
-                      : "text-invoice-lightText dark:text-invoice-darkText"
-                  }`}
+                  className={`text-base font-medium ${selectedTemplate
+                    ? selectedTemplate.styles.accent
+                    : "text-invoice-lightText dark:text-invoice-darkText"
+                    }`}
                 >
                   {formatRecurrenceInfo(displayInvoice)}
                 </h1>
               </div>
-            )}
+            </div>
+          )}
+
+          {/* Single invoice render — the ONLY source of truth for PDF capture */}
+          <div
+            ref={invoiceRef}
+            className={`bg-white max-w-3xl w-full mx-auto pb-24 ${isPdfView ? 'shadow-2xl' : ''}`}
+            style={{ minWidth: '600px' }}
+          >
             {selectedTemplate && (
               <InvoiceLayout
                 layout={selectedTemplate.styles.layout}

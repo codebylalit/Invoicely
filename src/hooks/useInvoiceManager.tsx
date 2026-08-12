@@ -100,6 +100,7 @@ export function useInvoiceManager() {
         // Make sure complex objects are properly converted to JSONB
         items: invoiceData.items || [],
         payment_methods: invoiceData.paymentMethods || [],
+        template_id: invoiceData.template_id ?? null,
         // Recurring fields
         is_recurring: invoiceData.is_recurring || false,
         recurrence_frequency: invoiceData.is_recurring ? invoiceData.recurrence_frequency || null : null,
@@ -130,6 +131,42 @@ export function useInvoiceManager() {
           .single();
         data = res.data;
         error = res.error;
+
+        // ── Trigger automation: first_invoice_created or invoice_created ──────
+        if (!error && data && session?.user?.email) {
+          try {
+            // Check if this is the user's first invoice
+            const { count } = await supabase
+              .from('invoices')
+              .select('id', { count: 'exact', head: true })
+              .eq('user_id', session.user.id);
+
+            const isFirst = (count ?? 0) === 1;
+            const triggerEvent = isFirst ? 'first_invoice_created' : 'invoice_created';
+            const idempotencyKey = isFirst
+              ? `first_invoice_created_${session.user.id}`
+              : `invoice_created_${data.id}`;
+
+            await supabase.functions.invoke('trigger-automation-email', {
+              body: {
+                triggerEvent,
+                idempotencyKey,
+                recipientEmail: session.user.email,
+                recipientName: session.user.email.split('@')[0],
+                variables: {
+                  userName: session.user.email.split('@')[0],
+                  userEmail: session.user.email,
+                  invoiceNumber: invoiceData.invoiceNumber ?? '',
+                  invoiceAmount: `₹${Number(invoiceData.total ?? 0).toFixed(2)}`,
+                  invoiceDueDate: invoiceData.dueDate ?? '',
+                },
+              },
+            });
+          } catch (autoErr) {
+            console.warn('[automation] invoice creation email failed:', autoErr);
+          }
+        }
+
       }
 
       if (error) throw error;

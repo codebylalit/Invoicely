@@ -111,6 +111,7 @@ CREATE TABLE public.invoices (
     taxes numeric(10,2),
     discounts numeric(10,2),
     payment_methods jsonb,
+    template_id integer,
     parent_invoice_id uuid,
     next_recurrence_date date,
     is_recurring boolean DEFAULT false,

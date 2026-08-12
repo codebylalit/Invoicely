@@ -29,6 +29,7 @@ export interface PaymentMethod {
 }
 
 export interface Invoice {
+  id?: string;
   status: "draft" | "pending" | "paid" | "overdue" | "partial" | "cancelled" | "Paid" | "Pending" | "Overdue" | "Partial" | "Cancelled" | "Draft";
   invoiceNumber: string;
   invoiceTitle: string;
@@ -53,6 +54,7 @@ export interface Invoice {
   recurrence_end_date?: string;
   parent_invoice_id?: string;
   next_recurrence_date?: string;
+  template_id?: number | null;
 }
 
 export interface AIGeneratedInvoice {

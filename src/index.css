@@ -125,11 +125,61 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     -ms-overflow-style: none;
-    scrollbar-width: none;
   }
 
   body::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  html,
+  body,
+  #root {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  img,
+  svg,
+  canvas {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .no-print,
+  button,
+  [data-no-print="true"] {
+    display: none !important;
+  }
+
+  .invoice-print-root {
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    overflow: visible !important;
   }
 }
 
