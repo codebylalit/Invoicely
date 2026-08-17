@@ -423,7 +423,7 @@ const Landing = () => {
           </div>
 
           {/* Trust micro-badges */}
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-stone-500 mb-16">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-stone-500 mb-6">
             <span className="flex items-center gap-1.5">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />
               No credit card required
@@ -438,6 +438,24 @@ const Landing = () => {
               <Globe className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
               Instant 1-Click PDF export
             </span>
+          </div>
+
+          {/* Featured on badge */}
+          <div className="flex items-center justify-center mb-14">
+            <a
+              href="https://tools.launchllama.co?utm_source=badge&utm_medium=referral"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center transition-transform hover:scale-105 duration-200"
+            >
+              <img
+                src="https://tools.launchllama.co/featured-badge.png?v=2"
+                alt="As seen on Launch Llama Newsletter"
+                width={200}
+                height={50}
+                className="h-11 w-auto rounded-lg shadow-sm"
+              />
+            </a>
           </div>
         </div>
 
@@ -931,6 +949,22 @@ const Landing = () => {
             <span>Built with</span>
             <span className="text-amber-400">🧡</span>
             <span>© {new Date().getFullYear()} Invoicely. All rights reserved.</span>
+          </div>
+          <div className="flex items-center">
+            <a
+              href="https://tools.launchllama.co?utm_source=badge&utm_medium=referral"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center transition-opacity hover:opacity-85"
+            >
+              <img
+                src="https://tools.launchllama.co/featured-badge.png?v=2"
+                alt="As seen on Launch Llama Newsletter"
+                width={200}
+                height={50}
+                className="h-8 w-auto"
+              />
+            </a>
           </div>
           <div className="flex flex-wrap justify-center gap-6 text-xs font-semibold">
             <Link to="/terms" className="hover:text-amber-400 transition-colors">

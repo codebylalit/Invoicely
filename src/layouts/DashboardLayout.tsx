@@ -12,7 +12,6 @@ export const SidebarContext = createContext<{
 }>({ isOpen: false, setIsOpen: () => {} });
 
 export const useSidebar = () => useContext(SidebarContext);
-
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
