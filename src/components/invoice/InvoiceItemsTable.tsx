@@ -41,10 +41,10 @@ const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({ items }) => (
         {items && items.length > 0 ? (
           items.map((item) => (
             <tr key={item.id} className="border-b border-gray-100">
-              <td className="py-2 pr-4 align-top break-words whitespace-normal min-w-0">
-                <div className="leading-5">{item.description}</div>
+              <td className="py-2 pr-4 align-top break-words [overflow-wrap:anywhere] whitespace-normal min-w-0">
+                <div className="leading-5 break-words [overflow-wrap:anywhere]">{item.description}</div>
                 {item.additionalInfo && (
-                  <div className="text-xs text-gray-500 mt-1 break-words whitespace-normal">
+                  <div className="text-xs text-gray-500 mt-1 break-words [overflow-wrap:anywhere] whitespace-normal">
                     {item.additionalInfo}
                   </div>
                 )}

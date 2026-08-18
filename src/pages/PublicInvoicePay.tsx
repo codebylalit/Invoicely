@@ -438,26 +438,26 @@ const PublicInvoicePay = () => {
           </div>
 
           {/* From / Bill To Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-sm">
-            <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-sm min-w-0">
+            <div className="min-w-0 break-words [overflow-wrap:anywhere]">
               <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-2">
                 From
               </p>
-              <p className="font-bold text-slate-900">
+              <p className="font-bold text-slate-900 break-words [overflow-wrap:anywhere]">
                 {businessDetails?.business_name || "Seller"}
               </p>
-              <p className="text-slate-500">{businessDetails?.email}</p>
-              <p className="text-slate-500">{businessDetails?.address}</p>
+              <p className="text-slate-500 break-words [overflow-wrap:anywhere]">{businessDetails?.email}</p>
+              <p className="text-slate-500 break-words [overflow-wrap:anywhere]">{businessDetails?.address}</p>
             </div>
-            <div>
+            <div className="min-w-0 break-words [overflow-wrap:anywhere]">
               <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-2">
                 Billed To
               </p>
-              <p className="font-bold text-slate-900">
+              <p className="font-bold text-slate-900 break-words [overflow-wrap:anywhere]">
                 {invoice.client_name || "Client"}
               </p>
-              <p className="text-slate-500">{invoice.client_email}</p>
-              <p className="text-slate-500">{invoice.details}</p>
+              <p className="text-slate-500 break-words [overflow-wrap:anywhere]">{invoice.client_email}</p>
+              <p className="text-slate-500 break-words [overflow-wrap:anywhere]">{invoice.details}</p>
             </div>
           </div>
 

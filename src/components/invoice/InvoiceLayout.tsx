@@ -55,15 +55,15 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                             <p className="text-sm text-gray-600">Invoice# {displayInvoice.invoiceNumber || "00000"}</p>
                         </div>
                     </div>
-                    <div className="flex justify-between">
-                        <div className="w-1/2">
+                    <div className="flex justify-between gap-6 min-w-0">
+                        <div className="w-1/2 min-w-0 break-words [overflow-wrap:anywhere]">
                             <div className="mb-6">
                                 <p className="text-sm text-gray-600 mb-1">Issued</p>
                                 <p className="text-sm">{displayInvoice.issuedDate}</p>
                             </div>
                             <div className="mb-6">
                                 <p className="text-sm text-gray-600 mb-1">From</p>
-                                <p className="text-sm">{businessDetails.business_name}</p>
+                                <p className="text-sm font-semibold">{businessDetails.business_name}</p>
                                 <p className="text-sm">{businessDetails.email || "N/A"}</p>
                                 <p className="text-sm">
                                     {businessDetails.address && `${businessDetails.address}, `}
@@ -72,16 +72,16 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                                 </p>
                             </div>
                         </div>
-                        <div className="w-1/2 text-right">
+                        <div className="w-1/2 text-right min-w-0 break-words [overflow-wrap:anywhere]">
                             <div className="mb-6">
                                 <p className="text-sm text-gray-600 mb-1">Due</p>
                                 <p className="text-sm">{displayInvoice.dueDate}</p>
                             </div>
                             <div className="mb-6">
                                 <p className="text-sm text-gray-600 mb-1">Invoice For</p>
-                                <p className="text-sm">{displayInvoice.name || "N/A"}</p>
-                                <p className="text-sm">{displayInvoice.email || "N/A"}</p>
-                                <p className="text-sm">{displayInvoice.details || "N/A"}</p>
+                                <p className="text-sm font-semibold">{displayInvoice.name || "N/A"}</p>
+                                <p className="text-sm break-words [overflow-wrap:anywhere]">{displayInvoice.email || "N/A"}</p>
+                                <p className="text-sm break-words [overflow-wrap:anywhere]">{displayInvoice.details || "N/A"}</p>
                             </div>
                         </div>
                     </div>

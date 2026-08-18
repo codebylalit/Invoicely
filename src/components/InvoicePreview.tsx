@@ -385,12 +385,27 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
       const captureW = targetPaperPx;
       const captureH = element.scrollHeight;
 
-      // 4. Snapshot with html2canvas at 3× resolution
+      // 4. Resolve exact background color of template to prevent white frame margins in PDF
+      const computedBg = window.getComputedStyle(element).backgroundColor;
+      let captureBg = '#ffffff';
+      if (computedBg && computedBg !== 'rgba(0, 0, 0, 0)' && computedBg !== 'transparent') {
+        captureBg = computedBg;
+      } else {
+        const bgStyle = selectedTemplate?.styles.background || '';
+        if (bgStyle.includes('zinc-950') || bgStyle.includes('gray-950')) captureBg = '#030712';
+        else if (bgStyle.includes('black')) captureBg = '#000000';
+        else if (bgStyle.includes('1c1005')) captureBg = '#1c1005';
+        else if (bgStyle.includes('f6f9fc')) captureBg = '#f6f9fc';
+        else if (bgStyle.includes('fafaf9')) captureBg = '#fafaf9';
+        else if (bgStyle.includes('f8f8f8')) captureBg = '#f8f8f8';
+      }
+
+      // 5. Snapshot with html2canvas at 3× resolution
       const canvas = await html2canvas(element, {
         scale: 3,
         useCORS: true,
         allowTaint: false,
-        backgroundColor: '#ffffff',
+        backgroundColor: captureBg,
         logging: false,
         width: captureW,
         height: captureH,
@@ -435,7 +450,7 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
             pageCanvas.width = canvas.width;
             pageCanvas.height = pageH_px;
             const ctx = pageCanvas.getContext('2d')!;
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = captureBg;
             ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
             ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
 
@@ -470,7 +485,7 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
             pageCanvas.width = canvas.width;
             pageCanvas.height = pageH_px;
             const ctx = pageCanvas.getContext('2d')!;
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = captureBg;
             ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
             ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
 
@@ -1015,11 +1030,9 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
               ? `${activeSizeConfig.minHClass} flex flex-col justify-between`
               : 'h-fit flex flex-col justify-between';
 
-            return (
               <div
                 ref={invoiceRef}
-                className={`bg-white ${previewWidthClass} ${previewHeightClass} w-full mx-auto p-6 sm:p-10 relative transition-all duration-200 ${isPdfView ? 'shadow-2xl' : ''}`}
-                style={{ minWidth: '600px' }}
+                className={`${selectedTemplate?.styles.background || "bg-white"} ${selectedTemplate?.styles.font || ""} ${previewWidthClass} ${previewHeightClass} w-full max-w-full overflow-hidden break-words [overflow-wrap:anywhere] mx-auto relative transition-all duration-200 ${isPdfView ? 'shadow-2xl' : ''}`}
               >
                 {selectedTemplate && (
                   <InvoiceLayout
@@ -1030,22 +1043,6 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
                     paymentDetails={paymentDetails}
                     isPro={userSubscription.tier === "pro"}
                   />
-                )}
-
-                {/* Invoicely Watermark - Enforced for Free tier & configurable for Pro tier */}
-                {effectiveShowWatermark && (
-                  <a
-                    href="https://getinvoicely.online"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    data-watermark-link="true"
-                    className="pt-6 pb-4 mt-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-gray-500 select-none hover:text-amber-600 transition-colors cursor-pointer no-underline block text-center"
-                  >
-                    <span className="inline-flex items-center justify-center gap-2">
-                      <img src="/icon.png" alt="Invoicely Logo" className="h-4 w-4 object-contain opacity-80" />
-                      <span>Created with <strong className="font-semibold text-gray-600 dark:text-gray-300">Invoicely</strong></span>
-                    </span>
-                  </a>
                 )}
               </div>
             );

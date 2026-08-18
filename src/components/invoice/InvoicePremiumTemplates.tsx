@@ -50,9 +50,9 @@ const StatusBadge = ({ status, variant = 'default' }: { status?: string; variant
 };
 
 const InfoBlock = ({ label, children, align = 'left' }: { label: string; children: React.ReactNode; align?: string }) => (
-  <div className={align === 'right' ? 'text-right' : ''}>
+  <div className={`min-w-0 ${align === 'right' ? 'text-right' : ''}`}>
     <p className="text-xs font-semibold tracking-widest uppercase text-gray-400 mb-2">{label}</p>
-    <div className="text-sm space-y-0.5 leading-relaxed">{children}</div>
+    <div className="text-sm space-y-0.5 leading-relaxed min-w-0 break-words [overflow-wrap:anywhere]">{children}</div>
   </div>
 );
 
@@ -481,26 +481,26 @@ export const CorporateBlueTemplate: React.FC<TemplateProps> = ({ businessDetails
 );
 
 // ─── 6. Elegant Dark ──────────────────────────────────────────────────────────
-export const ElegantDarkTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails }) => (
-  <div className="bg-gray-950 w-full text-white font-sans" style={{ fontFamily: "'Inter', sans-serif" }}>
+export const ElegantDarkTemplate: React.FC<TemplateProps> = ({ businessDetails, displayInvoice, calculatedInvoice, paymentDetails, isPro }) => (
+  <div className="bg-gray-950 w-full text-white font-sans overflow-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
     {/* Gold accent line */}
     <div className="h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
 
-    <div className="px-12 py-10">
+    <div className="px-6 sm:px-12 py-10">
       {/* Header */}
-      <div className="flex items-start justify-between mb-10">
-        <div>
+      <div className="flex items-start justify-between mb-10 gap-4 min-w-0">
+        <div className="min-w-0 flex-1 break-words [overflow-wrap:anywhere]">
           {businessDetails.logo_url ? (
             <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain mb-4 opacity-90" crossOrigin="anonymous" />
           ) : (
-            <p className="text-2xl font-light tracking-widest text-amber-400 mb-4">{businessDetails.business_name || 'COMPANY'}</p>
+            <p className="text-2xl font-light tracking-widest text-amber-400 mb-4 break-words [overflow-wrap:anywhere]">{businessDetails.business_name || 'COMPANY'}</p>
           )}
-          <p className="text-gray-500 text-sm">{businessDetails.email}</p>
-          <p className="text-gray-500 text-sm">{businessDetails.address}</p>
+          <p className="text-gray-500 text-sm break-words [overflow-wrap:anywhere]">{businessDetails.email}</p>
+          <p className="text-gray-500 text-sm break-words [overflow-wrap:anywhere]">{businessDetails.address}</p>
         </div>
-        <div className="text-right">
+        <div className="text-right min-w-0 flex-shrink-0">
           <p className="text-xs tracking-widest uppercase text-amber-400 mb-2">{displayInvoice.invoiceTitle || 'Invoice'}</p>
-          <p className="text-3xl font-thin text-white">#{displayInvoice.invoiceNumber || '—'}</p>
+          <p className="text-2xl sm:text-3xl font-thin text-white break-words [overflow-wrap:anywhere]">#{displayInvoice.invoiceNumber || '—'}</p>
           <div className="mt-3"><StatusBadge status={displayInvoice.status} variant="dark" /></div>
         </div>
       </div>
@@ -509,51 +509,54 @@ export const ElegantDarkTemplate: React.FC<TemplateProps> = ({ businessDetails, 
       <div className="border-t border-gray-800 mb-8" />
 
       {/* Meta */}
-      <div className="grid grid-cols-4 gap-6 mb-10">
-        <div><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">Issued</p><p className="text-sm text-gray-300">{fmtDate(displayInvoice.issuedDate)}</p></div>
-        <div><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">Due</p><p className="text-sm text-gray-300">{fmtDate(displayInvoice.dueDate)}</p></div>
-        <div><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">From</p><p className="text-sm text-gray-300">{businessDetails.business_name || '—'}</p></div>
-        <div className="text-right"><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">Billed To</p><p className="text-sm text-gray-300 font-semibold">{displayInvoice.name || '—'}</p><p className="text-xs text-gray-500">{displayInvoice.email}</p></div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-10 min-w-0">
+        <div className="min-w-0 break-words [overflow-wrap:anywhere]"><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">Issued</p><p className="text-sm text-gray-300">{fmtDate(displayInvoice.issuedDate)}</p></div>
+        <div className="min-w-0 break-words [overflow-wrap:anywhere]"><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">Due</p><p className="text-sm text-gray-300">{fmtDate(displayInvoice.dueDate)}</p></div>
+        <div className="min-w-0 break-words [overflow-wrap:anywhere]"><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">From</p><p className="text-sm text-gray-300 font-semibold">{businessDetails.business_name || '—'}</p><p className="text-xs text-gray-500">{businessDetails.email}</p></div>
+        <div className="text-right min-w-0 break-words [overflow-wrap:anywhere]"><p className="text-xs text-gray-600 uppercase tracking-widest mb-1">Billed To</p><p className="text-sm text-gray-300 font-semibold">{displayInvoice.name || '—'}</p><p className="text-xs text-gray-500 break-words [overflow-wrap:anywhere]">{displayInvoice.email}</p></div>
       </div>
 
       {/* Items */}
-      <table className="w-full text-sm mb-8">
-        <thead>
-          <tr className="border-b border-gray-800">
-            <th className="text-left py-3 text-xs uppercase tracking-widest text-gray-500 font-normal">Description</th>
-            <th className="text-center py-3 text-xs uppercase tracking-widest text-gray-500 font-normal">Qty</th>
-            <th className="text-right py-3 text-xs uppercase tracking-widest text-gray-500 font-normal">Rate</th>
-            <th className="text-right py-3 text-xs uppercase tracking-widest text-gray-500 font-normal">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(displayInvoice.items || []).map((item: any, i: number) => (
-            <tr key={item.id || i} className="border-b border-gray-800/50">
-              <td className="py-4 text-gray-200">{item.description}</td>
-              <td className="py-4 text-center text-gray-400">{item.quantity}</td>
-              <td className="py-4 text-right text-gray-400">${fmt(item.unitPrice)}</td>
-              <td className="py-4 text-right text-white font-semibold">${fmt(item.totalPrice)}</td>
+      <div className="w-full overflow-x-auto mb-8">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-800">
+              <th className="text-left py-3 text-xs uppercase tracking-widest text-gray-500 font-normal">Description</th>
+              <th className="text-center py-3 text-xs uppercase tracking-widest text-gray-500 font-normal w-16">Qty</th>
+              <th className="text-right py-3 text-xs uppercase tracking-widest text-gray-500 font-normal w-24">Rate</th>
+              <th className="text-right py-3 text-xs uppercase tracking-widest text-gray-500 font-normal w-28">Amount</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {(displayInvoice.items || []).map((item: any, i: number) => (
+              <tr key={item.id || i} className="border-b border-gray-800/50">
+                <td className="py-4 text-gray-200 break-words [overflow-wrap:anywhere] pr-4">{item.description}</td>
+                <td className="py-4 text-center text-gray-400 tabular-nums">{item.quantity}</td>
+                <td className="py-4 text-right text-gray-400 tabular-nums">${fmt(item.unitPrice)}</td>
+                <td className="py-4 text-right text-white font-semibold tabular-nums">${fmt(item.totalPrice)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* Totals */}
       <div className="flex justify-end mb-10">
-        <div className="w-64 space-y-2 text-sm">
-          <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>${fmt(calculatedInvoice.subtotal)}</span></div>
-          {(calculatedInvoice.taxes || []).map((t: any, i: number) => <div key={i} className="flex justify-between text-gray-500"><span>Tax</span><span>${fmt(t.amount)}</span></div>)}
+        <div className="w-full sm:w-72 space-y-2 text-sm">
+          <div className="flex justify-between text-gray-500"><span>Subtotal</span><span className="tabular-nums">${fmt(calculatedInvoice.subtotal)}</span></div>
+          {(calculatedInvoice.taxes || []).map((t: any, i: number) => <div key={i} className="flex justify-between text-gray-500"><span>Tax</span><span className="tabular-nums">${fmt(t.amount)}</span></div>)}
           <div className="flex justify-between pt-3 border-t border-amber-400/30">
             <span className="text-amber-400 font-semibold">Total Due</span>
-            <span className="text-amber-400 text-2xl font-thin">${fmt(calculatedInvoice.total)}</span>
+            <span className="text-amber-400 text-2xl font-thin tabular-nums">${fmt(calculatedInvoice.total)}</span>
           </div>
         </div>
       </div>
 
-      {displayInvoice.notes && <p className="text-xs text-gray-600 italic mb-6">{displayInvoice.notes}</p>}
+      {displayInvoice.notes && <p className="text-xs text-gray-600 italic mb-6 break-words [overflow-wrap:anywhere]">{displayInvoice.notes}</p>}
       <PaymentDetails showPaymentMethods={displayInvoice.showPaymentMethods !== false} paymentMethods={displayInvoice.paymentMethods} paymentDetails={paymentDetails} theme="executive" />
     </div>
     <div className="h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 

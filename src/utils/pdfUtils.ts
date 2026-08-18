@@ -10,7 +10,11 @@ export const renderInvoiceElementToPdf = async (
   element: HTMLElement,
   options: InvoicePdfOptions = {},
 ) => {
-  const { scale = 3, backgroundColor = "#ffffff" } = options;
+  const computedBg = window.getComputedStyle(element).backgroundColor;
+  const resolvedBg = (computedBg && computedBg !== 'rgba(0, 0, 0, 0)' && computedBg !== 'transparent')
+    ? computedBg
+    : (options.backgroundColor || "#ffffff");
+  const { scale = 3 } = options;
   const sourceRect = element.getBoundingClientRect();
   const targetWidth = Math.max(1, Math.ceil(sourceRect.width));
 
@@ -19,10 +23,10 @@ export const renderInvoiceElementToPdf = async (
   container.style.top = "-9999px";
   container.style.left = "-9999px";
   container.style.width = `${targetWidth}px`;
-  container.style.backgroundColor = "transparent";
+  container.style.backgroundColor = resolvedBg;
 
   const clone = element.cloneNode(true) as HTMLElement;
-  clone.style.backgroundColor = "transparent";
+  clone.style.backgroundColor = resolvedBg;
   clone.style.width = `${targetWidth}px`;
   clone.style.maxWidth = `${targetWidth}px`;
   clone.style.minWidth = `${targetWidth}px`;
@@ -55,7 +59,7 @@ export const renderInvoiceElementToPdf = async (
       scale,
       useCORS: true,
       allowTaint: true,
-      backgroundColor,
+      backgroundColor: resolvedBg,
       logging: false,
       windowWidth: targetWidth,
     });
