@@ -464,7 +464,7 @@ const Landing = () => {
 
             {/* Sub-headline */}
             <p className="text-stone-500 text-lg sm:text-xl max-w-xl mx-auto mb-10 leading-relaxed font-normal">
-              Create invoices with AI, calculate taxes, email PDFs directly to clients, and share payment links—all in seconds.
+              Stop wasting hours on spreadsheets. AI-powered invoicing with auto-tax calculation, direct email delivery, instant payment links, and beautiful templates.
             </p>
 
 
