@@ -3,51 +3,85 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Invoicely – Create, Send & Track Invoices Instantly</title>
-    <meta name="description" content="Streamline your invoicing process with Invoicely. Create, manage, and track professional invoices easily. Perfect for freelancers, agencies, and growing businesses." />
-    <meta name="keywords" content="invoice management, invoicing software, professional invoices, business invoicing, freelancer invoicing, GST invoices" />
-    <meta name="author" content="Invoicely" />
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="apple-touch-icon" href="/icon.png">
-    <meta name="google-site-verification" content="Zwb2aC5NgIDU8pBGP_iJSifKb0-u3fe2RF1JJl3fwgo" />
-    <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://getinvoicely.online" />
 
-    <!-- Open Graph / Facebook -->
+    <!--
+      ── Default metadata (overridden per-page by SEOHead / react-helmet-async) ──
+      These are the fallback values shown when JS has not yet executed.
+      Every real page sets its own title + description via <SEOHead>.
+    -->
+    <title>Invoicely — Free Online Invoice Generator</title>
+    <meta name="description" content="Create professional invoices online in seconds. Free invoice generator for freelancers and small businesses — AI-powered, PDF export, GST support, and online payment links." />
+    <meta name="author" content="Invoicely" />
+    <link rel="canonical" href="https://www.getinvoicely.online" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Favicon -->
+    <link rel="icon" href="/icon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/icon.png" />
+
+    <!-- Google Search Console verification -->
+    <meta name="google-site-verification" content="Zwb2aC5NgIDU8pBGP_iJSifKb0-u3fe2RF1JJl3fwgo" />
+
+    <!-- Open Graph (fallback — overridden per-page by react-helmet-async) -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://getinvoicely.online" />
-    <meta property="og:title" content="Invoicely - Professional Invoice & Billing Management Software" />
-    <meta property="og:description" content="Invoicely is a smart invoice management application for freelancers and businesses to create, send, and track professional invoices." />
-    <meta property="og:image" content="https://getinvoicely.online/invoicelyCover.png" />
+    <meta property="og:url" content="https://www.getinvoicely.online" />
+    <meta property="og:title" content="Invoicely — Free Online Invoice Generator" />
+    <meta property="og:description" content="Create professional invoices online in seconds. Free for freelancers and small businesses — AI-powered, PDF export, GST support." />
+    <meta property="og:image" content="https://www.getinvoicely.online/invoicelyCover.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Invoicely" />
 
-    <!-- Twitter -->
+    <!-- Twitter Card (fallback) -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://getinvoicely.online" />
-    <meta name="twitter:title" content="Invoicely - Professional Invoice & Billing Management Software" />
-    <meta name="twitter:description" content="Invoicely is a smart invoice management application for freelancers and businesses to create, send, and track professional invoices." />
-    <meta name="twitter:image" content="https://getinvoicely.online/invoicelyCover.png" />
+    <meta name="twitter:url" content="https://www.getinvoicely.online" />
+    <meta name="twitter:title" content="Invoicely — Free Online Invoice Generator" />
+    <meta name="twitter:description" content="Create professional invoices online in seconds. Free for freelancers and small businesses." />
+    <meta name="twitter:image" content="https://www.getinvoicely.online/invoicelyCover.png" />
 
-    <!-- Structured Data -->
+    <!--
+      Structured Data — Organization + WebSite (site-level schema).
+      Page-level schema (SoftwareApplication, Article, FAQPage, etc.)
+      is injected per-page by react-helmet-async via SEOHead.
+    -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "Invoicely",
-        "applicationCategory": "BusinessApplication",
-        "operatingSystem": "Web",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        },
-        "description": "Professional invoice management software for freelancers and businesses. Create, manage, and track invoices easily.",
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": "4.8",
-          "ratingCount": "100"
-        }
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.getinvoicely.online/#organization",
+            "name": "Invoicely",
+            "url": "https://www.getinvoicely.online",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://www.getinvoicely.online/icon.png"
+            },
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "email": "support@getinvoicely.online",
+              "contactType": "customer support"
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.getinvoicely.online/#website",
+            "url": "https://www.getinvoicely.online",
+            "name": "Invoicely",
+            "description": "Free online invoice generator for freelancers and small businesses",
+            "publisher": {
+              "@id": "https://www.getinvoicely.online/#organization"
+            },
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://www.getinvoicely.online/?q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          }
+        ]
       }
     </script>
 

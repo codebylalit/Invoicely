@@ -1,7 +1,8 @@
 import ThemeToggle from "./ThemeToggle";
-import { FileText, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import Logo from "@/components/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from '@supabase/auth-helpers-react';
 import { useToast } from "./ui/use-toast";
@@ -30,12 +31,8 @@ const Header = () => {
 
   return (
     <header className="flex items-center justify-between px-4 py-3 border-b border-border">
-      <Link to="/" className="flex items-center gap-2">
-        <FileText className="text-primary" size={22} />
-        <h1 className="text-lg font-bold text-invoice-lightText dark:text-invoice-darkText">
-          invoicelly
-        </h1>
-      </Link>
+      <Logo href="/" size="sm" />
+
 
       <div className="flex items-center gap-3">
         {session ? (
@@ -64,7 +61,8 @@ const Header = () => {
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="font-bold text-[#2D2D2D] text-2xl tracking-tight">Invoicelly</span>
+        <span className="font-bold text-[#2D2D2D] text-2xl tracking-tight">Invoicely</span>
+
         <nav className="ml-8 space-x-4">
           <Link to="/about" className="text-[#2D2D2D] hover:text-[#FFB800]">About</Link>
           <Link to="/faq" className="text-[#2D2D2D] hover:text-[#FFB800]">FAQ</Link>

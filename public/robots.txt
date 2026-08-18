@@ -1,11 +1,18 @@
 # Global rules
 User-agent: *
 Allow: /
+Allow: /invoice-generator
+Allow: /ai-invoice-generator
+Allow: /free-invoice-generator
+Allow: /invoice-generator-online
+Allow: /blog/
+Allow: /about
+Allow: /faq
 Disallow: /api/
 Disallow: /admin/
 Disallow: /app/
 
-# Specific rules for major crawlers
+# Specific rules for major search crawlers
 User-agent: Googlebot
 Allow: /
 Disallow: /api/
@@ -18,5 +25,5 @@ Disallow: /api/
 Disallow: /admin/
 Disallow: /app/
 
-# Sitemap
-Sitemap: https://getinvoicely.online/sitemap.xml
+# Sitemap location
+Sitemap: https://www.getinvoicely.online/sitemap.xml

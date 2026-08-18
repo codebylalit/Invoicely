@@ -24,6 +24,21 @@ import Subscription from "./components/Subscription";
 import About from "./pages/About";
 import FAQ from "./pages/FAQ";
 import Blog from "./pages/Blog";
+
+// ── SEO Landing Pages ────────────────────────────────────────────────────────
+import InvoiceGenerator from "./pages/seo/InvoiceGenerator";
+import AIInvoiceGenerator from "./pages/seo/AIInvoiceGenerator";
+import FreeInvoiceGenerator from "./pages/seo/FreeInvoiceGenerator";
+import InvoiceGeneratorOnline from "./pages/seo/InvoiceGeneratorOnline";
+
+// ── Blog Article Pages ───────────────────────────────────────────────────────
+import HowToCreateAnInvoice from "./pages/blog/HowToCreateAnInvoice";
+import WhatIsAnInvoice from "./pages/blog/WhatIsAnInvoice";
+import InvoiceTemplate from "./pages/blog/InvoiceTemplate";
+import InvoiceVsReceipt from "./pages/blog/InvoiceVsReceipt";
+import InvoiceForFreelancers from "./pages/blog/InvoiceForFreelancers";
+import GSTInvoiceGuide from "./pages/blog/GSTInvoiceGuide";
+import HowToGenerateInvoicePDF from "./pages/blog/HowToGenerateInvoicePDF";
 import PublicInvoicePay from "./pages/PublicInvoicePay";
 import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -174,6 +189,22 @@ const App = () => {
               <Route path="/about" element={<About />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/blog" element={<Blog />} />
+
+              {/* SEO Landing Pages */}
+              <Route path="/invoice-generator" element={<InvoiceGenerator />} />
+              <Route path="/ai-invoice-generator" element={<AIInvoiceGenerator />} />
+              <Route path="/free-invoice-generator" element={<FreeInvoiceGenerator />} />
+              <Route path="/invoice-generator-online" element={<InvoiceGeneratorOnline />} />
+
+              {/* Blog Article Pages */}
+              <Route path="/blog/how-to-create-an-invoice" element={<HowToCreateAnInvoice />} />
+              <Route path="/blog/what-is-an-invoice" element={<WhatIsAnInvoice />} />
+              <Route path="/blog/invoice-template" element={<InvoiceTemplate />} />
+              <Route path="/blog/invoice-vs-receipt" element={<InvoiceVsReceipt />} />
+              <Route path="/blog/invoice-for-freelancers" element={<InvoiceForFreelancers />} />
+              <Route path="/blog/gst-invoice-guide" element={<GSTInvoiceGuide />} />
+              <Route path="/blog/how-to-generate-invoice-pdf" element={<HowToGenerateInvoicePDF />} />
+
               <Route path="/pay/:id" element={<PublicInvoicePay />} />
               {/* Email verification + OAuth callback — must be public (no auth guard) */}
               <Route path="/auth/callback" element={<AuthCallback />} />

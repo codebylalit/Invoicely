@@ -25,6 +25,51 @@ import {
   Lock,
 } from "lucide-react";
 import Logo from "@/components/Logo";
+import SEOHead from "@/components/SEOHead";
+
+// ── Homepage structured data ──────────────────────────────────────────────────
+const homepageSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "@id": "https://www.getinvoicely.online/#software",
+  "name": "Invoicely",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "url": "https://www.getinvoicely.online",
+  "description": "Free online invoice generator for freelancers and small businesses. Create, send, and track professional invoices with AI, GST support, and online payment links.",
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Free Plan",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "5 invoices per month, 3 templates, 3 clients"
+    },
+    {
+      "@type": "Offer",
+      "name": "Pro Plan",
+      "price": "6",
+      "priceCurrency": "USD",
+      "billingIncrement": 1,
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "6",
+        "priceCurrency": "USD",
+        "unitCode": "MON"
+      }
+    }
+  ],
+  "featureList": [
+    "AI invoice generation",
+    "20 professional invoice templates",
+    "GST/tax calculation",
+    "PDF export",
+    "Online payment links",
+    "Client management",
+    "Automatic payment reminders",
+    "Multi-currency support"
+  ]
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA
@@ -220,6 +265,13 @@ const Landing = () => {
   const toggleMobileMenu = () => setIsMobileMenuOpen((v) => !v);
 
   return (
+    <>
+    <SEOHead
+      title="Invoicely — Free Online Invoice Generator"
+      description="Create professional invoices online in seconds. Free invoice generator for freelancers and small businesses — AI-powered, PDF export, GST-compliant, and online payment links included."
+      canonical="https://www.getinvoicely.online"
+      structuredData={homepageSchema}
+    />
     <div
       className="flex flex-col min-h-screen selection:bg-amber-200 selection:text-[#0A0A0A]"
       style={{
@@ -982,6 +1034,7 @@ const Landing = () => {
         </div>
       </footer>
     </div>
+    </>
   );
 };
 

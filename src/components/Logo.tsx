@@ -7,6 +7,7 @@ interface LogoProps {
   showText?: boolean;
   onClick?: () => void;
   href?: string;
+  textColor?: string;
 }
 
 export const LogoIcon: React.FC<{ size?: "sm" | "md" | "lg"; className?: string }> = ({
@@ -39,6 +40,7 @@ export const Logo: React.FC<LogoProps> = ({
   showText = true,
   onClick,
   href = "/",
+  textColor = "text-foreground",
 }) => {
   const textSizes = {
     sm: "text-base",
@@ -56,7 +58,7 @@ export const Logo: React.FC<LogoProps> = ({
       <LogoIcon size={size} />
       {showText && (
         <div className="flex items-center">
-          <span className={`font-black tracking-tight text-foreground ${textSizes}`}>
+          <span className={`font-black tracking-tight ${textColor} ${textSizes}`}>
             Invoicely
           </span>
           <span className="h-1.5 w-1.5 rounded-full bg-amber-500 ml-0.5 animate-pulse" aria-hidden="true" />
@@ -65,5 +67,6 @@ export const Logo: React.FC<LogoProps> = ({
     </Link>
   );
 };
+
 
 export default Logo;
