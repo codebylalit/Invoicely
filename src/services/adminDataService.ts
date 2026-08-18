@@ -162,22 +162,77 @@ export const fetchLiveAdminData = async (
   });
 
   // ── 4. Subscriptions = Pro users only
+  // Helper: compute days between now and a future date
+  const daysFrom = (isoDate?: string | null): number | undefined => {
+    if (!isoDate) return undefined;
+    const diff = new Date(isoDate).getTime() - Date.now();
+    return Math.ceil(diff / 86_400_000);
+  };
+
+  // Map profiles (not usersList) for subscription fields — profiles have the raw columns
+  const rawProfileById = new Map<string, any>();
+  rawProfiles.forEach((p: any) => {
+    const uid = p.user_id ?? p.id;
+    if (uid) rawProfileById.set(uid, p);
+  });
+
   const subscriptionsList: AdminSubscription[] = usersList
     .filter((u) => u.plan === 'Pro')
-    .map((u, i) => ({
-      id: `sub_${100 + i}`,
-      userId: u.id,
-      userName: u.name,
-      userEmail: u.email,
-      userAvatar: u.avatar,
-      plan: 'Pro' as PlanType,
-      price: 6,
-      billingCycle: 'monthly' as const,
-      startDate: u.joinedDate,
-      renewalDate: new Date(Date.now() + 30 * 86_400_000).toISOString().split('T')[0],
-      status: 'Active' as const,
-      paymentMethod: 'Razorpay / Credit Card'
-    }));
+    .map((u, i) => {
+      const profile = rawProfileById.get(u.id);
+
+      // Prefer real subscription start date; fall back to account join date
+      const startDate = profile?.subscription_start_date
+        ? new Date(profile.subscription_start_date).toISOString().split('T')[0]
+        : u.joinedDate;
+
+      // Prefer real renewal date stored in DB; never invent one
+      const renewalDate = profile?.subscription_renewal_date
+        ? new Date(profile.subscription_renewal_date).toISOString().split('T')[0]
+        : 'N/A';
+
+      // End date (set when subscription is cancelled)
+      const endDate = profile?.subscription_end_date
+        ? new Date(profile.subscription_end_date).toISOString().split('T')[0]
+        : undefined;
+
+      // Billing cycle from profile
+      const billingCycle: 'monthly' | 'yearly' =
+        profile?.billing_cycle === 'yearly' ? 'yearly' : 'monthly';
+
+      // Days until renewal (or end)
+      const daysUntilRenewal = endDate
+        ? daysFrom(profile?.subscription_end_date)
+        : daysFrom(profile?.subscription_renewal_date);
+
+      // Determine status from stored data
+      let status: SubscriptionStatus = 'Active';
+      const subStatus = (profile?.subscription_status ?? '').toLowerCase();
+      if (subStatus === 'cancelled' || endDate) {
+        status = 'Cancelled';
+      } else if (subStatus === 'past_due') {
+        status = 'Past Due';
+      } else if (renewalDate !== 'N/A' && new Date(renewalDate) < new Date()) {
+        status = 'Past Due';
+      }
+
+      return {
+        id: `sub_${100 + i}`,
+        userId: u.id,
+        userName: u.name,
+        userEmail: u.email,
+        userAvatar: u.avatar,
+        plan: 'Pro' as PlanType,
+        price: billingCycle === 'yearly' ? 59 : 6,
+        billingCycle,
+        startDate,
+        renewalDate,
+        endDate,
+        daysUntilRenewal,
+        status,
+        paymentMethod: 'Razorpay / Credit Card',
+      };
+    });
 
   // ── 5. Transactions from real invoices
   const transactionsList: AdminTransaction[] = rawInvoices.slice(0, 20).map((inv: any, idx: number) => ({

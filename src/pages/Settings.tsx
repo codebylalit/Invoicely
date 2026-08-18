@@ -9,6 +9,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Sun, Moon, Loader2, Building2, CreditCard, Star, Palette, Sliders } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/hooks/use-toast";
 
 // ─── Currency options ────────────────────────────────────────────────────────
 const CURRENCIES = [
@@ -45,6 +46,11 @@ const Settings = () => {
     paymentMethod: null as string | null,
     bankTransferDetails: "",
     paymentLink: "",
+    subscriptionStartDate: null as string | null,
+    subscriptionRenewalDate: null as string | null,
+    subscriptionEndDate: null as string | null,
+    billingCycle: "monthly" as string,
+    subscriptionStatus: "inactive" as string,
   });
 
   const [businessDetails, setBusinessDetails] = useState({
@@ -137,7 +143,9 @@ const Settings = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("tier, payment_method, bank_transfer_details, payment_link")
+        .select(
+          "tier, payment_method, bank_transfer_details, payment_link, subscription_start_date, subscription_renewal_date, subscription_end_date, billing_cycle, subscription_status"
+        )
         .eq("user_id", session!.user.id)
         .maybeSingle();
       if (error) throw error;
@@ -146,6 +154,11 @@ const Settings = () => {
         paymentMethod: data?.payment_method || null,
         bankTransferDetails: data?.bank_transfer_details || "",
         paymentLink: data?.payment_link || "",
+        subscriptionStartDate: data?.subscription_start_date || null,
+        subscriptionRenewalDate: data?.subscription_renewal_date || null,
+        subscriptionEndDate: data?.subscription_end_date || null,
+        billingCycle: data?.billing_cycle || "monthly",
+        subscriptionStatus: data?.subscription_status || "inactive",
       });
     } catch (err) {
       console.error("Error fetching subscription:", err);

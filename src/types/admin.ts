@@ -69,6 +69,8 @@ export interface AdminSubscription {
   billingCycle: 'monthly' | 'yearly';
   startDate: string;
   renewalDate: string;
+  endDate?: string;          // Set when subscription is cancelled
+  daysUntilRenewal?: number; // Computed: days until renewal/expiry
   status: SubscriptionStatus;
   paymentMethod: string;
 }

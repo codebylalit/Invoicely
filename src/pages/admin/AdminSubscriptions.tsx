@@ -261,7 +261,8 @@ export const AdminSubscriptions: React.FC = () => {
               <TableHead className="font-bold">Plan</TableHead>
               <TableHead className="font-bold">Price</TableHead>
               <TableHead className="font-bold">Start Date</TableHead>
-              <TableHead className="font-bold">Renewal Date</TableHead>
+              <TableHead className="font-bold">Next Renewal</TableHead>
+              <TableHead className="font-bold">Plan End Date</TableHead>
               <TableHead className="font-bold">Status</TableHead>
               <TableHead className="font-bold text-right">Payment Method</TableHead>
             </TableRow>
@@ -298,8 +299,39 @@ export const AdminSubscriptions: React.FC = () => {
                     ${sub.price}
                     <span className="text-[10px] font-normal text-slate-400">/{sub.billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
                   </TableCell>
-                  <TableCell className="text-slate-500 dark:text-slate-400">{sub.startDate}</TableCell>
-                  <TableCell className="text-slate-500 dark:text-slate-400">{sub.renewalDate}</TableCell>
+                  <TableCell className="text-slate-500 dark:text-slate-400">
+                    {sub.startDate !== 'N/A' ? sub.startDate : <span className="text-slate-400 italic">Unknown</span>}
+                  </TableCell>
+                  <TableCell>
+                    {sub.renewalDate !== 'N/A' ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-500 dark:text-slate-400">{sub.renewalDate}</span>
+                        {typeof sub.daysUntilRenewal === 'number' && sub.daysUntilRenewal <= 7 && sub.daysUntilRenewal >= 0 && !sub.endDate && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
+                            <AlertTriangle className="h-2.5 w-2.5" />
+                            {sub.daysUntilRenewal === 0 ? 'Today' : `${sub.daysUntilRenewal}d`}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-slate-400 italic text-xs">N/A</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-slate-500 dark:text-slate-400">
+                    {sub.endDate ? (
+                      <div className="flex items-center gap-2">
+                        <span>{sub.endDate}</span>
+                        {typeof sub.daysUntilRenewal === 'number' && sub.daysUntilRenewal <= 7 && sub.daysUntilRenewal >= 0 && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-500/15 text-rose-600 dark:text-rose-400 text-[10px] font-bold">
+                            <AlertTriangle className="h-2.5 w-2.5" />
+                            {sub.daysUntilRenewal === 0 ? 'Today' : `${sub.daysUntilRenewal}d`}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-slate-400 text-xs">—</span>
+                    )}
+                  </TableCell>
                   <TableCell>{getStatusBadge(sub.status)}</TableCell>
                   <TableCell className="text-right text-slate-500 dark:text-slate-400 text-[11px] font-mono">
                     {sub.paymentMethod}
@@ -308,7 +340,7 @@ export const AdminSubscriptions: React.FC = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-slate-400">
+                <TableCell colSpan={8} className="h-32 text-center text-slate-400">
                   No subscriptions match the selected criteria.
                 </TableCell>
               </TableRow>

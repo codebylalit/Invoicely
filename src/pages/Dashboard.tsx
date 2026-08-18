@@ -25,6 +25,9 @@ import {
   ArrowDownRight,
   DollarSign,
   Zap,
+  AlertTriangle,
+  CalendarX2,
+  RefreshCw,
 } from "lucide-react";
 import CreateInvoiceButton from "@/components/CreateInvoiceButton";
 
@@ -160,12 +163,19 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [businessName, setBusinessName] = useState("");
 
+  // ── Subscription alert state ─────────────────────────────────────────────
+  const [subAlert, setSubAlert] = useState<{
+    type: 'renewal' | 'expiry' | null;
+    date: string | null;
+    daysLeft: number | null;
+  }>({ type: null, date: null, daysLeft: null });
+
   useEffect(() => {
     const load = async () => {
       if (!session?.user?.id) return;
       setLoading(true);
       try {
-        const [invoicesRes, businessRes] = await Promise.all([
+        const [invoicesRes, businessRes, profileRes] = await Promise.all([
           supabase
             .from("invoices")
             .select("id, invoice_number, client_name, total, status, created_at, due_date")
@@ -174,6 +184,11 @@ const Dashboard = () => {
           supabase
             .from("business_details")
             .select("contact_name, business_name")
+            .eq("user_id", session.user.id)
+            .maybeSingle(),
+          supabase
+            .from("profiles")
+            .select("tier, subscription_renewal_date, subscription_end_date, subscription_status")
             .eq("user_id", session.user.id)
             .maybeSingle(),
         ]);
@@ -185,6 +200,32 @@ const Dashboard = () => {
               businessRes.data.contact_name ||
               ""
           );
+        }
+
+        // ── Compute subscription alert ─────────────────────────────────────
+        const profile = profileRes.data as any;
+        if (profile?.tier === 'pro') {
+          const daysUntil = (iso: string | null) => {
+            if (!iso) return null;
+            return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
+          };
+          const endDays = daysUntil(profile.subscription_end_date);
+          const renewalDays = daysUntil(profile.subscription_renewal_date);
+
+          if (
+            endDays !== null &&
+            endDays >= 0 &&
+            endDays <= 7
+          ) {
+            setSubAlert({ type: 'expiry', date: profile.subscription_end_date, daysLeft: endDays });
+          } else if (
+            renewalDays !== null &&
+            renewalDays >= 0 &&
+            renewalDays <= 7 &&
+            profile.subscription_status !== 'cancelled'
+          ) {
+            setSubAlert({ type: 'renewal', date: profile.subscription_renewal_date, daysLeft: renewalDays });
+          }
         }
 
         // ── Ensure welcome email is triggered once for new users (Google OAuth + Email Signups)
@@ -333,6 +374,69 @@ const Dashboard = () => {
           <CreateInvoiceButton />
         </div>
       </div>
+
+      {/* ── Subscription Renewal / Expiry Warning Banner ──────────────────── */}
+      {subAlert.type !== null && subAlert.date !== null && (
+        <div
+          className={`flex items-start gap-3 rounded-xl px-4 py-3.5 border ${
+            subAlert.type === 'expiry'
+              ? 'bg-rose-50 dark:bg-rose-950/30 border-rose-300 dark:border-rose-700/60'
+              : 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700/60'
+          }`}
+        >
+          {subAlert.type === 'expiry' ? (
+            <CalendarX2 className="h-5 w-5 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
+          ) : (
+            <RefreshCw className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+          )}
+          <div className="flex-1 min-w-0">
+            {subAlert.type === 'expiry' ? (
+              <>
+                <p className="text-sm font-semibold text-rose-800 dark:text-rose-300">
+                  Pro access ends{' '}
+                  {subAlert.daysLeft === 0
+                    ? 'today'
+                    : `in ${subAlert.daysLeft} day${subAlert.daysLeft === 1 ? '' : 's'}`}
+                </p>
+                <p className="text-xs text-rose-700 dark:text-rose-400 mt-0.5">
+                  Your subscription was cancelled. Pro features will stop on{' '}
+                  <strong>
+                    {new Date(subAlert.date).toLocaleDateString('en-IN', {
+                      day: 'numeric', month: 'short', year: 'numeric',
+                    })}
+                  </strong>.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                  Pro subscription renews{' '}
+                  {subAlert.daysLeft === 0
+                    ? 'today'
+                    : `in ${subAlert.daysLeft} day${subAlert.daysLeft === 1 ? '' : 's'}`}
+                  {' '}—{' '}
+                  {new Date(subAlert.date).toLocaleDateString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                  })}
+                </p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                  Make sure your payment method is up to date to avoid service interruption.
+                </p>
+              </>
+            )}
+          </div>
+          <Link
+            to="/app/settings?tab=subscription"
+            className={`text-xs font-semibold flex-shrink-0 ${
+              subAlert.type === 'expiry'
+                ? 'text-rose-600 dark:text-rose-400 hover:text-rose-800'
+                : 'text-amber-700 dark:text-amber-400 hover:text-amber-900'
+            }`}
+          >
+            Manage →
+          </Link>
+        </div>
+      )}
 
       {/* ── Stat Cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
