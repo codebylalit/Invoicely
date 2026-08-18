@@ -1039,10 +1039,18 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
                     target="_blank"
                     rel="noopener noreferrer"
                     data-watermark-link="true"
-                    className="pt-6 pb-3 mt-6 border-t border-gray-100 dark:border-gray-800 text-center text-[11px] text-gray-400 dark:text-gray-500 font-sans flex items-center justify-center gap-1 hover:text-amber-600 transition-colors cursor-pointer no-underline block"
+                    className="pt-6 pb-3 mt-6 border-t border-gray-100 dark:border-gray-800 text-center text-[11px] text-gray-400 dark:text-gray-500 font-sans flex items-center justify-center gap-1.5 hover:text-amber-600 transition-colors cursor-pointer no-underline block"
                   >
                     <span>Powered by</span>
-                    <strong className="text-gray-700 dark:text-gray-300 font-semibold">Invoicely</strong>
+                    <span className="inline-flex items-center gap-1 text-gray-800 dark:text-gray-200 font-semibold">
+                      <img
+                        src="/icon.png"
+                        alt="Invoicely Logo"
+                        className="h-3.5 w-3.5 object-contain inline-block rounded-sm"
+                        crossOrigin="anonymous"
+                      />
+                      <span>Invoicely</span>
+                    </span>
                     <span>· Create free professional invoices for your business</span>
                   </a>
                 )}

@@ -267,14 +267,16 @@ const PublicInvoicePay = () => {
       <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-8 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-amber-500 flex items-center justify-center text-slate-900 font-black text-sm shadow-sm">
-              I
-            </div>
+            <img
+              src="/icon.png"
+              alt="Invoicely Logo"
+              className="h-8 w-8 object-contain rounded-lg shadow-sm"
+            />
             <div>
               <p className="font-bold text-sm text-slate-900 dark:text-white leading-tight">
                 {businessDetails?.business_name || "Secure Invoice Portal"}
               </p>
-              <p className="text-xs text-slate-400">Powered by invoicelly</p>
+              <p className="text-xs text-slate-400">Powered by Invoicely</p>
             </div>
           </div>
 
