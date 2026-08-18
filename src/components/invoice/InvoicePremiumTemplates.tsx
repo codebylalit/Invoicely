@@ -12,14 +12,21 @@ interface TemplateProps {
   isPro?: boolean;
 }
 
-const PoweredByFooter = ({ isPro }: { isPro?: boolean }) => {
+export const PoweredByFooter = ({ isPro, dark = false }: { isPro?: boolean; dark?: boolean }) => {
   if (isPro) return null;
   return (
-    <div className="py-2.5 px-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 text-center text-[11px] text-gray-400 font-sans flex items-center justify-center gap-1">
-      <span>Powered by</span>
-      <strong className="text-gray-700 dark:text-gray-300">Invoicely</strong>
-      <span>· Create free professional invoices for your business</span>
-    </div>
+    <a
+      href="https://www.getinvoicely.online/"
+      target="_blank"
+      rel="noopener noreferrer"
+      data-watermark-link="true"
+      className={`py-3 px-4 ${dark ? 'bg-transparent text-gray-400 border-t border-gray-800/80' : 'bg-gray-50/80 dark:bg-gray-900/80 text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800'} text-center text-xs font-sans flex items-center justify-center gap-1.5 no-underline hover:text-amber-500 transition-colors select-none block`}
+    >
+      <span className="inline-flex items-center justify-center gap-1.5">
+        <img src="/icon.png" alt="Invoicely Logo" className="h-3.5 w-3.5 object-contain opacity-90" crossOrigin="anonymous" />
+        <span>Powered by <strong className={dark ? "font-semibold text-gray-200" : "font-semibold text-gray-700 dark:text-gray-200"}>Invoicely</strong> · Create free professional invoices for your business</span>
+      </span>
+    </a>
   );
 };
 
@@ -239,6 +246,7 @@ export const ModernSaasTemplate: React.FC<TemplateProps> = ({ businessDetails, d
       <PaymentDetails showPaymentMethods={displayInvoice.showPaymentMethods !== false} paymentMethods={displayInvoice.paymentMethods} paymentDetails={paymentDetails} theme="default" />
     </div>
     <div className="h-1 bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-600" />
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -322,6 +330,7 @@ export const StripeInspiredTemplate: React.FC<TemplateProps> = ({ businessDetail
         <PaymentDetails showPaymentMethods={displayInvoice.showPaymentMethods !== false} paymentMethods={displayInvoice.paymentMethods} paymentDetails={paymentDetails} theme="default" />
         {displayInvoice.notes && <p className="text-sm text-gray-500 mt-4 pt-4 border-t border-gray-100">{displayInvoice.notes}</p>}
       </div>
+      <PoweredByFooter isPro={isPro} />
     </div>
   </div>
 );
@@ -380,6 +389,7 @@ export const AppleMinimalTemplate: React.FC<TemplateProps> = ({ businessDetails,
       {displayInvoice.notes && <p className="text-sm text-gray-400 mt-6 text-center">{displayInvoice.notes}</p>}
       <p className="text-center text-xs text-gray-300 mt-8">{businessDetails.business_name} · {businessDetails.email}</p>
     </div>
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -477,6 +487,7 @@ export const CorporateBlueTemplate: React.FC<TemplateProps> = ({ businessDetails
     <div className="bg-[#1e3a5f] px-10 py-3 text-center text-xs text-blue-200">
       {businessDetails.business_name} · Thank you for your business
     </div>
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -646,6 +657,7 @@ export const LuxuryBlackTemplate: React.FC<TemplateProps> = ({ businessDetails, 
       {displayInvoice.notes && <p className="text-xs text-gray-600 italic mb-6 border-t border-gray-900 pt-6">{displayInvoice.notes}</p>}
       <PaymentDetails showPaymentMethods={displayInvoice.showPaymentMethods !== false} paymentMethods={displayInvoice.paymentMethods} paymentDetails={paymentDetails} theme="executive" />
     </div>
+    <PoweredByFooter isPro={isPro} dark={true} />
   </div>
 );
 
@@ -723,6 +735,7 @@ export const ModernPurpleTemplate: React.FC<TemplateProps> = ({ businessDetails,
       <PaymentDetails showPaymentMethods={displayInvoice.showPaymentMethods !== false} paymentMethods={displayInvoice.paymentMethods} paymentDetails={paymentDetails} theme="default" />
     </div>
     <div className="bg-gradient-to-r from-purple-700 to-indigo-600 h-1.5" />
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -810,6 +823,7 @@ export const CreativeAgencyTemplate: React.FC<TemplateProps> = ({ businessDetail
         <PaymentDetails showPaymentMethods={displayInvoice.showPaymentMethods !== false} paymentMethods={displayInvoice.paymentMethods} paymentDetails={paymentDetails} theme="default" />
       </div>
     </div>
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -880,8 +894,9 @@ export const FreelancerTemplate: React.FC<TemplateProps> = ({ businessDetails, d
 
       {displayInvoice.notes && <p className="text-sm text-gray-500 italic mb-6">{displayInvoice.notes}</p>}
       <PaymentDetails showPaymentMethods={displayInvoice.showPaymentMethods !== false} paymentMethods={displayInvoice.paymentMethods} paymentDetails={paymentDetails} theme="default" />
-      <p className="text-center text-xs text-gray-400 mt-8">Thank you for working with me! 🙏</p>
+      <p className="text-center text-xs text-gray-400 mt-8 mb-4">Thank you for working with me! 🙏</p>
     </div>
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -957,6 +972,7 @@ export const StartupTemplate: React.FC<TemplateProps> = ({ businessDetails, disp
     <div className="px-10 pb-8">
       <PaymentDetails showPaymentMethods={displayInvoice.showPaymentMethods !== false} paymentMethods={displayInvoice.paymentMethods} paymentDetails={paymentDetails} theme="default" />
     </div>
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -1048,6 +1064,7 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ businessDetails, disp
     <div className="bg-[#0f4c81] text-blue-200 text-xs px-10 py-3 text-center">
       {businessDetails.business_name} · {businessDetails.email} · Thank you for your trust
     </div>
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -1139,6 +1156,7 @@ export const HealthcareTemplate: React.FC<TemplateProps> = ({ businessDetails, d
     <div className="bg-teal-600 text-teal-200 text-xs px-10 py-3 text-center">
       Your health is our priority · Thank you for choosing {businessDetails.business_name}
     </div>
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -1231,6 +1249,7 @@ export const ConstructionTemplate: React.FC<TemplateProps> = ({ businessDetails,
       <PaymentDetails showPaymentMethods={displayInvoice.showPaymentMethods !== false} paymentMethods={displayInvoice.paymentMethods} paymentDetails={paymentDetails} theme="default" />
     </div>
     <div className="h-3" style={{ background: 'repeating-linear-gradient(45deg, #fbbf24, #fbbf24 10px, #f97316 10px, #f97316 20px)' }} />
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -1295,6 +1314,7 @@ export const RetailTemplate: React.FC<TemplateProps> = ({ businessDetails, displ
         <p className="text-xs text-gray-400 mt-1">www.{(businessDetails.business_name || 'store').toLowerCase().replace(/\s/g, '')}.com</p>
       </div>
     </div>
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -1369,11 +1389,12 @@ export const RestaurantTemplate: React.FC<TemplateProps> = ({ businessDetails, d
 
       {displayInvoice.notes && <p className="text-amber-400/60 text-xs text-center mt-4 italic">{displayInvoice.notes}</p>}
 
-      <div className="text-center mt-8">
+      <div className="text-center mt-8 mb-4">
         <p className="text-amber-400 text-sm italic">We hope to see you again soon</p>
       </div>
     </div>
     <div className="h-1 bg-gradient-to-r from-amber-700 via-yellow-400 to-amber-700" />
+    <PoweredByFooter isPro={isPro} dark={true} />
   </div>
 );
 
@@ -1468,6 +1489,7 @@ export const ConsultingTemplate: React.FC<TemplateProps> = ({ businessDetails, d
         </div>
       </div>
     </div>
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -1560,6 +1582,7 @@ export const GreenEcoTemplate: React.FC<TemplateProps> = ({ businessDetails, dis
     <div className="bg-[#2d6a4f] text-green-200 text-xs px-10 py-3 text-center">
       🌱 This invoice was generated without paper · {businessDetails.business_name}
     </div>
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -1649,6 +1672,7 @@ export const ProfessionalGrayTemplate: React.FC<TemplateProps> = ({ businessDeta
     <div className="bg-[#374151] text-gray-400 text-xs px-10 py-3 text-center">
       {businessDetails.business_name} · {businessDetails.email} · Thank you for your business
     </div>
+    <PoweredByFooter isPro={isPro} />
   </div>
 );
 
@@ -1753,5 +1777,6 @@ export const InternationalBusinessTemplate: React.FC<TemplateProps> = ({ busines
       <span>{businessDetails.business_name} · {businessDetails.country}</span>
       <span>Thank you for your international business partnership</span>
     </div>
+    <PoweredByFooter isPro={isPro} />
   </div>
 );

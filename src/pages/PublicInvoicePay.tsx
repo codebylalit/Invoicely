@@ -17,6 +17,7 @@ import {
   Globe,
 } from "lucide-react";
 import { renderInvoiceElementToPdf } from "@/utils/pdfUtils";
+import { PoweredByFooter } from "@/components/invoice/InvoicePremiumTemplates";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -30,25 +31,25 @@ const ConfettiOverlay = () => {
         const delay = Math.random() * 2;
         const duration = 2.5 + Math.random() * 2;
         const colors = [
-          "#eab308",
-          "#22c55e",
+          "#f59e0b",
+          "#10b981",
           "#3b82f6",
           "#ec4899",
           "#8b5cf6",
-          "#f97316",
+          "#f43f5e",
         ];
         const color = colors[i % colors.length];
 
         return (
           <div
             key={i}
-            className="absolute top-0 w-3 h-3 rounded-sm opacity-90 animate-fall"
+            className="absolute -top-4 w-3 h-3 rounded-full animate-fall opacity-90"
             style={{
               left: `${left}%`,
               backgroundColor: color,
-              animationDelay: `${delay}s`,
               animationDuration: `${duration}s`,
-              transform: `rotate(${Math.random() * 360}deg)`,
+              animationDelay: `${delay}s`,
+              transform: `rotate(${i * 30}deg)`,
             }}
           />
         );
@@ -57,45 +58,29 @@ const ConfettiOverlay = () => {
   );
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-const fmtCurrency = (amount: number, currency: string = "INR") => {
-  try {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: currency || "INR",
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return `₹${amount.toFixed(2)}`;
-  }
-};
-
-const fmtDate = (d?: string) => {
-  if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-};
-
+// ─── Status Badge Config ─────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<
   string,
-  { label: string; bg: string; text: string; icon: React.ReactNode }
+  { label: string; bg: string; icon: React.ReactNode }
 > = {
   paid: {
     label: "PAID",
     bg: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400",
     icon: <CheckCircle2 className="h-4 w-4" />,
   },
+  unpaid: {
+    label: "UNPAID",
+    bg: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400",
+    icon: <Clock className="h-4 w-4" />,
+  },
   pending: {
-    label: "PAYMENT DUE",
+    label: "PENDING",
     bg: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400",
     icon: <Clock className="h-4 w-4" />,
   },
   overdue: {
     label: "OVERDUE",
-    bg: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400",
+    bg: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400",
     icon: <AlertCircle className="h-4 w-4" />,
   },
   partial: {
@@ -116,6 +101,7 @@ const PublicInvoicePay = () => {
   const [invoice, setInvoice] = useState<any>(null);
   const [businessDetails, setBusinessDetails] = useState<any>(null);
   const [sellerPaymentLink, setSellerPaymentLink] = useState<string | null>(null);
+  const [isPro, setIsPro] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [justPaid, setJustPaid] = useState(false);
@@ -144,7 +130,7 @@ const PublicInvoicePay = () => {
         if (invErr || !invData) throw new Error("Invoice not found or link has expired.");
         setInvoice(invData);
 
-        // Fetch seller business details + payment link in parallel
+        // Fetch seller business details + payment link & tier in parallel
         if (invData?.user_id) {
           const [bRes, pRes] = await Promise.all([
             supabase
@@ -154,12 +140,14 @@ const PublicInvoicePay = () => {
               .maybeSingle(),
             supabase
               .from("profiles")
-              .select("payment_link")
+              .select("payment_link, tier")
               .eq("user_id", invData.user_id)
               .maybeSingle(),
           ]);
+
           if (bRes.data) setBusinessDetails(bRes.data);
           if (pRes.data?.payment_link) setSellerPaymentLink(pRes.data.payment_link);
+          if (pRes.data?.tier === "pro") setIsPro(true);
         }
       } catch (err: any) {
         setError(err.message || "Failed to load invoice");
@@ -274,7 +262,9 @@ const PublicInvoicePay = () => {
               <p className="font-bold text-sm text-slate-900 dark:text-white leading-tight">
                 {businessDetails?.business_name || "Secure Invoice Portal"}
               </p>
-              <p className="text-xs text-slate-400">Powered by invoicelly</p>
+              <p className="text-xs text-slate-400">
+                {isPro ? "Official Invoice" : "Invoicely Secure Portal"}
+              </p>
             </div>
           </div>
 
@@ -547,6 +537,7 @@ const PublicInvoicePay = () => {
             <span>{businessDetails?.business_name || "Company"}</span>
             <span>Thank you for your business!</span>
           </div>
+          <PoweredByFooter isPro={isPro} />
         </div>
 
         {/* ── Client Comments / Question Box ──────────────────────────────────── */}
