@@ -30,6 +30,7 @@ import InvoiceGenerator from "./pages/seo/InvoiceGenerator";
 import AIInvoiceGenerator from "./pages/seo/AIInvoiceGenerator";
 import FreeInvoiceGenerator from "./pages/seo/FreeInvoiceGenerator";
 import InvoiceGeneratorOnline from "./pages/seo/InvoiceGeneratorOnline";
+import HowItWorksPage from "./pages/HowItWorks";
 
 // ── Blog Article Pages ───────────────────────────────────────────────────────
 import HowToCreateAnInvoice from "./pages/blog/HowToCreateAnInvoice";
@@ -189,6 +190,7 @@ const App = () => {
               <Route path="/about" element={<About />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/blog" element={<Blog />} />
+              <Route path="/how-it-works" element={<HowItWorksPage />} />
 
               {/* SEO Landing Pages */}
               <Route path="/invoice-generator" element={<InvoiceGenerator />} />

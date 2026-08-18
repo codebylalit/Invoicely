@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, ChevronDown, ArrowRight, FileText, Zap, Download, Link2, Users, RefreshCw } from "lucide-react";
+import { CheckCircle2, ChevronDown, ArrowRight, FileText, Zap, Download, Link2, Users, RefreshCw, Mail } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
 import PublicPageLayout from "@/components/PublicPageLayout";
 
@@ -70,13 +70,14 @@ const breadcrumbSchema = {
 
 // ── Features ───────────────────────────────────────────────────────────────────
 const features = [
+  { icon: Mail, title: "1-Click Direct Email Delivery", desc: "Send invoices straight to your client's email address with the print-ready PDF attached and payment link included." },
   { icon: Zap, title: "AI Invoice Generation", desc: "Describe your work in plain English and get a complete, itemised invoice in seconds — no blank forms." },
   { icon: FileText, title: "20 Professional Templates", desc: "Choose from 20 designs covering freelancer, agency, retail, healthcare, consulting, and more." },
   { icon: Download, title: "One-Click PDF Export", desc: "Download a print-ready PDF instantly. Compatible with email, WhatsApp, and any document system." },
-  { icon: Link2, title: "Online Payment Links", desc: "Share a link — clients pay via UPI, Razorpay, or card. No manual bank-transfer follow-ups." },
-  { icon: Users, title: "Client Management", desc: "Save client details once. Track outstanding balances and full payment history per client." },
-  { icon: RefreshCw, title: "Recurring Invoices", desc: "Set up automatic recurring invoices for retainer clients. Invoicely sends them on schedule." },
+  { icon: Link2, title: "Razorpay & PayPal Payment Links", desc: "Accept UPI, Cards, Netbanking via Razorpay or global payments via PayPal." },
+  { icon: RefreshCw, title: "Automated Recurring Invoices", desc: "Set up automatic recurring schedules for retainer clients. Invoicely generates and emails them on schedule." },
 ];
+
 
 // ── Steps ──────────────────────────────────────────────────────────────────────
 const steps = [

@@ -63,9 +63,10 @@ const workflowSteps = [
   { title: "1. Access Online in Browser", desc: "Open Invoicely on desktop or mobile. No app download or installation required." },
   { title: "2. Add Client & Services", desc: "Select or add client details and enter billing line items with custom quantities and prices." },
   { title: "3. Auto-Calculate Tax & Totals", desc: "GST (CGST/SGST/IGST) or international sales tax is computed automatically." },
-  { title: "4. Generate PDF & Live Link", desc: "Download a print-ready PDF or share a live online checkout link directly with your client." },
+  { title: "4. Direct Email Send & PDF Export", desc: "Email invoices straight to client inboxes with print-ready PDFs attached alongside live checkout links." },
   { title: "5. Track Payment Status", desc: "Monitor paid vs. pending invoices right from your online dashboard." },
 ];
+
 
 const InvoiceGeneratorOnline = () => (
   <>

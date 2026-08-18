@@ -65,6 +65,7 @@ const FaqItem = ({ q, a }: { q: string; a: string }) => {
 
 const freeFeatures = [
   "5 Professional invoices per month",
+  "1-Click direct email sending with PDF attached",
   "3 Clean invoice templates",
   "Manage up to 3 active client profiles",
   "1-Click print-ready PDF exports",
@@ -73,6 +74,7 @@ const freeFeatures = [
   "Try AI invoice generation (3 uses free)",
   "No credit card required to start",
 ];
+
 
 const FreeInvoiceGenerator = () => (
   <>

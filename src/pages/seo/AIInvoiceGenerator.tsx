@@ -163,9 +163,9 @@ const AIInvoiceGenerator = () => (
             </div>
             <div className="space-y-2">
               <div className="h-8 w-8 rounded-full bg-amber-500 text-black font-black flex items-center justify-center text-sm">3</div>
-              <h3 className="font-bold text-[#0A0A0A]">Review, Export & Send</h3>
+              <h3 className="font-bold text-[#0A0A0A]">Direct Email & Pay Link</h3>
               <p className="text-xs text-stone-600 leading-relaxed">
-                Tweak any fields if needed, apply one of 20 templates, export as PDF, or share an online payment link.
+                Tweak any fields, apply a template, export as PDF, or send directly to your client's email inbox with payment links attached.
               </p>
             </div>
           </div>
@@ -195,9 +195,9 @@ const AIInvoiceGenerator = () => (
           <div className="grid sm:grid-cols-2 gap-5">
             {[
               { title: "Save 90% of Creation Time", desc: "Spend seconds instead of minutes per invoice. Type once and let AI construct the entire document." },
+              { title: "1-Click Direct Email Sending", desc: "Email invoices straight to clients from Invoicely with print-ready PDFs attached." },
               { title: "Zero Arithmetic Errors", desc: "No misplaced decimals or manual calculation mistakes on unit rates, discounts, or multi-line totals." },
-              { title: "Smart Tax Handling", desc: "Automatically handles GST (CGST/SGST/IGST) calculations or custom tax rates without manual math." },
-              { title: "Seamless Multi-Currency", desc: "Specify rates in USD, EUR, GBP, or INR effortlessly for global client billing." },
+              { title: "Smart Tax & Multi-Currency", desc: "Automatically handles GST (CGST/SGST/IGST) and multi-currency billing (USD, EUR, GBP, INR)." },
             ].map((b, i) => (
               <div key={i} className="bg-white rounded-2xl border border-stone-100 p-5 shadow-sm">
                 <h3 className="font-bold text-[#0A0A0A] text-sm mb-1">{b.title}</h3>
@@ -206,6 +206,7 @@ const AIInvoiceGenerator = () => (
             ))}
           </div>
         </section>
+
 
         {/* Related internal links */}
         <section className="border-t border-stone-200 pt-8">
