@@ -923,7 +923,6 @@ const Landing = () => {
           }}
         />
         <div className="max-w-3xl mx-auto text-center relative z-10">
-          <Sparkles className="h-8 w-8 text-amber-700/40 mx-auto mb-4" aria-hidden="true" />
           <h2 className="text-4xl sm:text-5xl font-black text-[#0A0A0A] mb-4 tracking-tight">
             Ready to get paid faster?
           </h2>

@@ -9,6 +9,7 @@ import { SessionContextProvider, useSessionContext } from '@supabase/auth-helper
 import Index from "./pages/Dashboard";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 import Clients from "./pages/Clients";
 import Invoices from "./pages/Invoices";
@@ -174,6 +175,8 @@ const App = () => {
               <Route path="/faq" element={<FAQ />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/pay/:id" element={<PublicInvoicePay />} />
+              {/* Email verification + OAuth callback — must be public (no auth guard) */}
+              <Route path="/auth/callback" element={<AuthCallback />} />
 
               {/* Admin routes – only ADMIN_EMAILS can access */}
               <Route

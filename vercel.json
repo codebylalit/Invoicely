@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/auth/callback",
+            "destination": "/index.html"
+        },
+        {
             "source": "/app/settings",
             "destination": "/index.html"
         },

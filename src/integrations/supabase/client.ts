@@ -8,4 +8,16 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    // Persist session across page reloads using localStorage
+    persistSession: true,
+    // Auto-refresh tokens before they expire
+    autoRefreshToken: true,
+    // Required: reads the session from URL hash on email-verification redirects
+    // (the user clicks the link → lands on /app with #access_token=... in the URL)
+    detectSessionInUrl: true,
+    // Use localStorage (default) – avoids cookie-related CSRF issues in SPAs
+    storage: window.localStorage,
+  },
+});
