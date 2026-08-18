@@ -74,7 +74,7 @@ const features = [
   { icon: Zap, title: "AI Invoice Generation", desc: "Describe your work in plain English and get a complete, itemised invoice in seconds — no blank forms." },
   { icon: FileText, title: "20 Professional Templates", desc: "Choose from 20 designs covering freelancer, agency, retail, healthcare, consulting, and more." },
   { icon: Download, title: "One-Click PDF Export", desc: "Download a print-ready PDF instantly. Compatible with email, WhatsApp, and any document system." },
-  { icon: Link2, title: "Razorpay & PayPal Payment Links", desc: "Accept UPI, Cards, Netbanking via Razorpay or global payments via PayPal." },
+  { icon: Link2, title: "Global Payment Links", desc: "Add your Stripe, PayPal, Razorpay, UPI, or any payment link. Clients pay directly into your account." },
   { icon: RefreshCw, title: "Automated Recurring Invoices", desc: "Set up automatic recurring schedules for retainer clients. Invoicely generates and emails them on schedule." },
 ];
 

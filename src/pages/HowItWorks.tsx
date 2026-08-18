@@ -41,7 +41,7 @@ const useCases = [
     keyBenefits: [
       "Send PDF invoice directly to client's email inbox in 1 click",
       "Request 50% upfront deposits automatically",
-      "Share direct UPI, Razorpay & Card payment links",
+      "Share your payment link — Stripe, PayPal, UPI, or any provider",
       "Export print-ready PDF invoices for offline accounting",
     ],
     example: {
@@ -110,7 +110,7 @@ const useCases = [
       ],
       tax: "CGST 9% (₹3,600) + SGST 9% (₹3,600)",
       totalDue: "₹47,200.00",
-      paymentTerm: "Net 30 · Bank Transfer / UPI / Razorpay",
+      paymentTerm: "Net 30 · Bank Transfer / UPI / Online Payment Link",
     },
   },
   {
@@ -194,11 +194,11 @@ const detailedSteps = [
     num: "04",
     badge: "COLLECTION & AUTOMATION",
     title: "Live Payment Links & Auto Reminders",
-    shortDesc: "Clients pay via Razorpay, UPI, Card, or PayPal. Invoicely tracks everything.",
+    shortDesc: "Clients click Pay Online and pay directly into your account via their preferred method.",
     longDesc:
-      "Each invoice includes a live payment link where clients can checkout instantly using Razorpay (UPI, Netbanking, Cards) or PayPal. Set automated background reminders for upcoming or overdue invoices, or schedule recurring billing.",
+      "Each invoice includes a live \"Pay Online\" button. Clients click it and pay via your chosen payment provider — Stripe, PayPal, Razorpay, UPI, or any platform you use. Money goes directly to your account, anywhere in the world. Set automated background reminders for upcoming or overdue invoices, or schedule recurring billing.",
     bullets: [
-      "Live payment links (UPI, Razorpay, Cards, PayPal)",
+      "Live payment links (Stripe, PayPal, Razorpay, UPI, any provider)",
       "Automated email reminders before & after due dates",
       "Auto-recurring invoices for retainer clients",
       "Real-time payment status tracking (Sent, Paid, Overdue)",

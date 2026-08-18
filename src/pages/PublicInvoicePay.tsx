@@ -4,25 +4,18 @@ import { createClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   CheckCircle2,
   Clock,
   AlertCircle,
   Download,
   Printer,
-  CreditCard,
-  Building2,
-  Mail,
-  Send,
-  Sparkles,
   ExternalLink,
   ShieldCheck,
   Check,
-  FileText,
+  Send,
   MessageSquare,
-  ChevronLeft,
+  Globe,
 } from "lucide-react";
 import { renderInvoiceElementToPdf } from "@/utils/pdfUtils";
 
@@ -127,9 +120,9 @@ const PublicInvoicePay = () => {
   const { id } = useParams<{ id: string }>();
   const [invoice, setInvoice] = useState<any>(null);
   const [businessDetails, setBusinessDetails] = useState<any>(null);
+  const [sellerPaymentLink, setSellerPaymentLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [paying, setPaying] = useState(false);
   const [justPaid, setJustPaid] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
@@ -156,19 +149,22 @@ const PublicInvoicePay = () => {
         if (invErr || !invData) throw new Error("Invoice not found or link has expired.");
         setInvoice(invData);
 
-        // Fetch seller business details
+        // Fetch seller business details + payment link in parallel
         if (invData?.user_id) {
-          const { data: bData } = await supabase
-            .from("business_details")
-            .select("*")
-            .eq("user_id", invData.user_id)
-            .maybeSingle();
-          if (bData) setBusinessDetails(bData);
-        }
-
-        // Parse comments if stored in details or metadata
-        if (invData?.notes) {
-          // parse any client messages
+          const [bRes, pRes] = await Promise.all([
+            supabase
+              .from("business_details")
+              .select("*")
+              .eq("user_id", invData.user_id)
+              .maybeSingle(),
+            supabase
+              .from("profiles")
+              .select("payment_link")
+              .eq("user_id", invData.user_id)
+              .maybeSingle(),
+          ]);
+          if (bRes.data) setBusinessDetails(bRes.data);
+          if (pRes.data?.payment_link) setSellerPaymentLink(pRes.data.payment_link);
         }
       } catch (err: any) {
         setError(err.message || "Failed to load invoice");
@@ -180,125 +176,13 @@ const PublicInvoicePay = () => {
     fetchInvoiceData();
   }, [id]);
 
-  // Load Razorpay checkout script
-  const loadRazorpayScript = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (
-        document.querySelector(
-          "script[src='https://checkout.razorpay.com/v1/checkout.js']",
-        )
-      ) {
-        resolve();
-        return;
-      }
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.async = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Failed to load Razorpay SDK"));
-      document.body.appendChild(script);
-    });
-  };
-
-  // Handle Payment via Razorpay Edge Function
-  const handlePayNow = async () => {
-    if (!invoice) return;
-    setPaying(true);
-    try {
-      // 1. Invoke create-razorpay-order Edge Function
-      const { data, error: fnErr } = await supabase.functions.invoke(
-        "create-razorpay-order",
-        {
-          body: {
-            plan: `Invoice #${invoice.invoice_number}`,
-            userId: invoice.user_id,
-            amount: Number(invoice.total) || 0,
-          },
-        },
-      );
-
-      if (fnErr || !data?.orderId) {
-        throw new Error(
-          fnErr?.message ||
-            data?.error ||
-            "Could not initialize payment order.",
-        );
-      }
-
-      await loadRazorpayScript();
-
-      const options = {
-        key: data.keyId,
-        amount: data.amount,
-        currency: data.currency || "INR",
-        name: businessDetails?.business_name || "Invoice Payment",
-        description: `Payment for Invoice #${invoice.invoice_number}`,
-        order_id: data.orderId,
-        handler: async function (response: any) {
-          try {
-            // Update invoice status to Paid in Supabase
-            await supabase
-              .from("invoices")
-              .update({ status: "Paid" })
-              .eq("id", invoice.id);
-
-            setInvoice((prev: any) => ({ ...prev, status: "Paid" }));
-            setJustPaid(true);
-
-            // ── Trigger invoice_paid automation for the invoice owner ─────────
-            try {
-              // Fetch owner's email from profiles or use user_id to look up auth
-              const { data: ownerProfile } = await supabase
-                .from('profiles')
-                .select('email, full_name')
-                .eq('id', invoice.user_id)
-                .maybeSingle();
-
-              const ownerEmail = ownerProfile?.email ?? null;
-              if (ownerEmail) {
-                await supabase.functions.invoke('trigger-automation-email', {
-                  body: {
-                    triggerEvent: 'invoice_paid',
-                    idempotencyKey: `invoice_paid_${invoice.id}`,
-                    recipientEmail: ownerEmail,
-                    recipientName: ownerProfile?.full_name ?? ownerEmail.split('@')[0],
-                    variables: {
-                      userName: ownerProfile?.full_name ?? ownerEmail.split('@')[0],
-                      userEmail: ownerEmail,
-                      invoiceNumber: invoice.invoice_number ?? '',
-                      invoiceAmount: `₹${Number(invoice.total ?? 0).toFixed(2)}`,
-                      invoiceDueDate: invoice.due_date ?? '',
-                    },
-                  },
-                });
-              }
-            } catch (autoErr) {
-              console.warn('[automation] invoice_paid email failed:', autoErr);
-            }
-          } catch (e) {
-            console.error("Failed to mark invoice paid:", e);
-          }
-        },
-
-        prefill: {
-          name: invoice.client_name || "",
-          email: invoice.client_email || "",
-        },
-        theme: {
-          color: "#f59e0b",
-        },
-      };
-
-      // @ts-ignore
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (err: any) {
-      alert(
-        `Payment Error: ${err.message || "Could not launch payment modal"}`,
-      );
-    } finally {
-      setPaying(false);
-    }
+  // Handle "Pay Online" — opens seller's own payment link in a new tab.
+  // Shows confetti to celebrate the action. The seller marks the invoice
+  // as paid manually once they receive confirmation from their payment provider.
+  const handlePayOnline = () => {
+    if (!sellerPaymentLink) return;
+    setJustPaid(true); // Show confetti celebration
+    window.open(sellerPaymentLink, "_blank", "noopener,noreferrer");
   };
 
   // Handle PDF Download
@@ -425,18 +309,18 @@ const PublicInvoicePay = () => {
 
       {/* ── Main Content Container ──────────────────────────────────────────── */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
-        {/* Just Paid Success Alert Banner */}
+        {/* Redirected to payment provider banner */}
         {justPaid && (
-          <div className="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-700 rounded-2xl p-6 text-center space-y-2 animate-bounce-short">
+          <div className="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-700 rounded-2xl p-6 text-center space-y-2">
             <div className="h-12 w-12 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto shadow-md">
               <Check className="h-7 w-7 stroke-[3]" />
             </div>
             <h2 className="text-2xl font-bold text-emerald-900 dark:text-emerald-100">
-              Payment Successful! 🎉
+              Redirected to Payment Page 🎉
             </h2>
             <p className="text-sm text-emerald-700 dark:text-emerald-300 max-w-sm mx-auto">
-              Thank you for your payment. Your receipt has been generated and
-              updated below.
+              Complete your payment in the tab that just opened. The seller will
+              mark this invoice as paid once they receive your payment.
             </p>
           </div>
         )}
@@ -466,27 +350,38 @@ const PublicInvoicePay = () => {
 
               {/* Action Side */}
               <div className="flex flex-col gap-3 sm:w-64 flex-shrink-0">
-                {!isPaid ? (
-                  <Button
-                    onClick={handlePayNow}
-                    disabled={paying}
-                    className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold py-6 text-base shadow-md hover:shadow-lg transition-all duration-200"
-                  >
-                    <CreditCard className="h-5 w-5 mr-2" />
-                    {paying ? "Opening Payment…" : "Pay Now"}
-                  </Button>
-                ) : (
+                {isPaid ? (
                   <div className="bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 p-4 rounded-xl text-center">
                     <CheckCircle2 className="h-6 w-6 text-emerald-600 mx-auto mb-1" />
                     <p className="font-bold text-sm">Invoice Settled</p>
-                    <p className="text-xs opacity-80 mt-0.5">
-                      No action required
+                    <p className="text-xs opacity-80 mt-0.5">No action required</p>
+                  </div>
+                ) : sellerPaymentLink ? (
+                  <>
+                    <Button
+                      onClick={handlePayOnline}
+                      className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold py-6 text-base shadow-md hover:shadow-lg transition-all duration-200"
+                    >
+                      <Globe className="h-5 w-5 mr-2" />
+                      Pay Online
+                      <ExternalLink className="h-4 w-4 ml-2 opacity-70" />
+                    </Button>
+                    <p className="text-xs text-slate-400 text-center">
+                      You'll be redirected to the seller's secure payment page.
+                    </p>
+                  </>
+                ) : (
+                  <div className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-center space-y-2">
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Pay via Bank Transfer</p>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Contact the sender for bank details or use the reference number
+                      <span className="font-mono font-bold text-slate-600 dark:text-slate-300"> #{invoice?.invoice_number}</span> when making your payment.
                     </p>
                   </div>
                 )}
                 <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400">
                   <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                  <span>Encrypted 256-bit payment checkout</span>
+                  <span>Payment processed by seller's provider</span>
                 </div>
               </div>
             </div>

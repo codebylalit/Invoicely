@@ -462,6 +462,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 "3 Core Standard Templates",
                 "Store up to 3 clients",
                 "Basic email & bank transfer details",
+                "Add your payment link (Stripe, PayPal, UPI, any provider)",
                 "Powered by Invoicely footer badge",
                 "3 trial AI prompt generations",
               ].map((feat, i) => (
@@ -534,7 +535,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 "Unlimited Invoices & Unlimited Clients",
                 "All 20 Premium Invoice Templates",
                 "100% White-Label (Remove Invoicely branding)",
-                "Live Client Payment Links + Confetti 🎉",
+                "Live Shareable Client Invoice Page 🎉",
                 "Unlimited AI Natural Language Prompt Generator",
                 "GST & Multi-Currency auto-tax calculations",
                 "Collection Autopilot & Automated Email Reminders",

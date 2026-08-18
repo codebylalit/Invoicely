@@ -69,7 +69,7 @@ const homepageSchema = {
     "Direct 1-click email delivery with PDF attachment",
     "GST/tax calculation",
     "PDF export",
-    "Online payment links (Razorpay & PayPal)",
+    "Online payment links (Stripe, PayPal, Razorpay, UPI, and more)",
     "Client management",
     "Automatic payment reminders",
     "Multi-currency support"
@@ -94,7 +94,7 @@ const pricingTiers = [
       "1-Click direct email sending (PDF attached)",
       "3 professional invoice templates",
       "Manage up to 3 clients",
-      "Bank & payment link details",
+      "Payment link (Stripe, PayPal, UPI, any provider)",
       "Try AI invoice creation (3 uses)",
       "Multi-currency (USD, EUR, INR)",
     ],
@@ -113,7 +113,7 @@ const pricingTiers = [
       "Direct email delivery with attached PDFs",
       "All 20 premium templates",
       "100% white-label — your brand only",
-      "Online payment links (Cards, PayPal, Razorpay, UPI)",
+      "Online payment links (Stripe, PayPal, UPI, Razorpay, any provider)",
       "Unlimited AI invoice creation",
       "Automatic payment reminders & recurring billing",
       "Multi-currency billing (USD, EUR, GBP, INR)",
@@ -132,7 +132,7 @@ const faqs = [
   },
   {
     q: "Can my clients pay online?",
-    a: "Yes. Invoicely integrates with Razorpay (UPI, Debit/Credit Cards, Netbanking) and PayPal for global payments in USD/EUR.",
+    a: "Yes. Each invoice has a shareable live link where your client can click Pay Online and complete payment via your chosen provider — Stripe, PayPal, Razorpay, UPI, or any platform you use. Works globally.",
   },
   {
     q: "Can I generate GST-compliant invoices?",
@@ -167,8 +167,8 @@ const features = [
   },
   {
     icon: CreditCard,
-    title: "Razorpay & PayPal Payment Checkout",
-    desc: "Accept local Indian UPI, Cards, and Netbanking via Razorpay or bill global international clients in USD/EUR via PayPal.",
+    title: "Global Payment Links",
+    desc: "Add your own Stripe, PayPal, Razorpay, UPI, or any payment link. Clients click Pay Online — money goes straight to your account, anywhere in the world.",
   },
   {
     icon: RefreshCw,
@@ -204,7 +204,7 @@ const steps = [
   {
     num: "04",
     title: "Share Payment Link & Get Paid",
-    desc: "Clients pay via Razorpay, UPI, Cards, or PayPal. Get notified the second payment arrives with auto-tracking.",
+    desc: "Clients click Pay Online — payment goes directly into your account via Stripe, PayPal, Razorpay, UPI, or whichever provider you use.",
     icon: Send,
   },
 ];
@@ -213,7 +213,7 @@ const comparisonRows = [
   { label: "Invoice creation time", without: "20–30 minutes", with: "Under 30 seconds" },
   { label: "Email sending", without: "Manual export & attachment", with: "1-Click direct email + PDF attached" },
   { label: "GST & Tax calculation", without: "Manual, error-prone", with: "Automatic CGST, SGST & IGST" },
-  { label: "Payment collection", without: "Awkward follow-up emails", with: "Razorpay (UPI/Card) & PayPal links" },
+  { label: "Payment collection", without: "Awkward follow-up emails", with: "Direct payment link — Stripe, PayPal, UPI, or any provider" },
   { label: "Invoice design", without: "Inconsistent & unprofessional", with: "20 polished templates" },
   { label: "Payment reminders", without: "Manual emails you forget", with: "Automated reminders before/after due date" },
   { label: "PDF export", without: "Manual formatting", with: "1 click high-res PDF" },
@@ -236,7 +236,7 @@ const testimonials = [
   },
   {
     stars: 5,
-    quote: "The Razorpay and PayPal payment links are game changers. Clients pay the same day they receive the email.",
+    quote: "The payment links are game changers. Clients pay the same day they receive the email — straight to my Stripe account.",
     name: "Arjun T.",
     role: "Web Agency Owner",
     initials: "AT",

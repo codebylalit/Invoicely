@@ -491,14 +491,14 @@ const Settings = () => {
                 <Input
                   id="payment-link"
                   type="url"
-                  placeholder="https://razorpay.me/@yourname"
+                  placeholder="https://buy.stripe.com/... or https://paypal.me/... or https://razorpay.me/@..."
                   value={userSubscription.paymentLink}
                   onChange={(e) =>
                     setUserSubscription((p) => ({ ...p, paymentLink: e.target.value }))
                   }
                 />
                 <p className="text-xs text-muted-foreground">
-                  Accepts any URL — Razorpay, Stripe Payment Links, UPI intent links, etc.
+                  Accepts any URL — Stripe, PayPal, Razorpay, UPI, Square, Wise, or any payment provider. Works globally.
                 </p>
               </div>
               <Button onClick={savePaymentDetails} disabled={loading}>

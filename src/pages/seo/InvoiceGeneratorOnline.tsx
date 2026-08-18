@@ -19,7 +19,7 @@ const faqs = [
   },
   {
     q: "Can I share a direct link with my client to view and pay?",
-    a: "Yes. On the Pro plan, each invoice generates a unique live checkout link. Clients can open the link in their browser and pay online via UPI, Razorpay, or credit/debit cards.",
+    a: "Yes. On the Pro plan, each invoice includes a live \"Pay Online\" button. Clients click it and pay via your chosen provider — Stripe, PayPal, Razorpay, UPI, or any payment platform you use. Money goes directly to your account.",
   },
 ];
 
@@ -151,7 +151,7 @@ const InvoiceGeneratorOnline = () => (
             {[
               { title: "Zero Install Needed", desc: "Runs entirely in modern web browsers (Chrome, Safari, Edge, Firefox)." },
               { title: "Bank-Grade Encryption", desc: "HTTPS encryption and isolated database policies keep client data safe." },
-              { title: "Live Online Payment Links", desc: "Clients can pay directly on the web via Razorpay, UPI, or Credit Cards." },
+              { title: "Live Online Payment Links", desc: "Clients click Pay Online — payment goes directly into your account via Stripe, PayPal, Razorpay, UPI, or any provider you use." },
               { title: "Multi-Currency & GST", desc: "Seamless billing for local Indian GST or international client currencies." },
             ].map((f, i) => (
               <div key={i} className="bg-white rounded-2xl border border-stone-100 p-5 shadow-sm">
