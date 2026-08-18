@@ -359,120 +359,109 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
         description: 'Preparing your invoice PDF…',
       });
 
-      // 1. Resolve Page Size configuration
+      // 1. Resolve Page Size configuration FIRST
       const effectiveSizeKey = selectedPageSize || displayInvoice?.page_size || 'auto';
       const sizeConfig = PAGE_SIZE_CONFIGS[effectiveSizeKey] || PAGE_SIZE_CONFIGS.auto;
       const widthMm = sizeConfig.widthMm;
-      const targetWidthPx = Math.round(widthMm * 3.7795); // ~794px for A4
+      const heightMm = sizeConfig.heightMm;
 
-      // 2. Prepare images on live element
+      // 2. Prepare images (convert remote URLs to base64 Data URIs) and wait for fonts
       await waitForFonts();
       await prepareImagesForCapture(element);
       await waitForImages(element);
 
-      // 3. Create isolated offscreen sandbox container
-      const sandbox = document.createElement('div');
-      sandbox.style.position = 'absolute';
-      sandbox.style.left = '-9999px';
-      sandbox.style.top = '0px';
-      sandbox.style.width = `${targetWidthPx}px`;
-      sandbox.style.padding = '0';
-      sandbox.style.margin = '0';
-      sandbox.style.overflow = 'visible';
-      sandbox.style.zIndex = '-9999';
+      // 3. Record element dimensions & snapshot at target paper width (794px for A4/Auto, 816px for Letter)
+      const targetPaperPx = Math.round(widthMm * 3.7795); // ~794px or ~816px
+      const originalInlineWidth = element.style.width;
+      const originalMaxWidth = element.style.maxWidth;
+      const originalMinHeight = element.style.minHeight;
 
-      // 4. Clone element into sandbox with forced unconstrained layout width
-      const clone = element.cloneNode(true) as HTMLElement;
-      clone.style.width = `${targetWidthPx}px`;
-      clone.style.maxWidth = `${targetWidthPx}px`;
-      clone.style.minWidth = `${targetWidthPx}px`;
-      clone.style.height = 'auto';
-      clone.style.maxHeight = 'none';
-      clone.style.overflow = 'visible';
-      clone.style.margin = '0';
-      clone.style.boxSizing = 'border-box';
-      clone.style.transform = 'none';
+      element.style.width = `${targetPaperPx}px`;
+      element.style.maxWidth = `${targetPaperPx}px`;
+      if (sizeConfig.isAuto) {
+        element.style.minHeight = 'auto';
+      }
 
-      sandbox.appendChild(clone);
-      document.body.appendChild(sandbox);
+      const captureW = targetPaperPx;
+      const captureH = element.scrollHeight;
 
-      let pdf: jsPDF | null = null;
-      try {
-        // Wait for clone assets to settle
-        if (document.fonts) await document.fonts.ready;
-        await prepareImagesForCapture(clone);
-        await waitForImages(clone);
-        await new Promise((resolve) => setTimeout(resolve, 100));
+      // 4. Snapshot with html2canvas at 3× resolution
+      const canvas = await html2canvas(element, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width: captureW,
+        height: captureH,
+        windowWidth: captureW,
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
+        x: 0,
+        y: 0,
+      });
 
-        // 5. Measure exact unconstrained dimensions in sandbox
-        const captureW = targetWidthPx;
-        const captureH = Math.max(clone.scrollHeight, clone.offsetHeight);
+      // Restore inline styles after capture
+      element.style.width = originalInlineWidth;
+      element.style.maxWidth = originalMaxWidth;
+      element.style.minHeight = originalMinHeight;
 
-        // 6. Resolve exact background color of template
-        const computedBg = window.getComputedStyle(clone).backgroundColor;
-        let captureBg = '#ffffff';
-        if (computedBg && computedBg !== 'rgba(0, 0, 0, 0)' && computedBg !== 'transparent') {
-          captureBg = computedBg;
-        } else {
-          const bgStyle = selectedTemplate?.styles.background || '';
-          if (bgStyle.includes('zinc-950') || bgStyle.includes('gray-950')) captureBg = '#030712';
-          else if (bgStyle.includes('black')) captureBg = '#000000';
-          else if (bgStyle.includes('1c1005')) captureBg = '#1c1005';
-          else if (bgStyle.includes('f6f9fc')) captureBg = '#f6f9fc';
-          else if (bgStyle.includes('fafaf9')) captureBg = '#fafaf9';
-          else if (bgStyle.includes('f8f8f8')) captureBg = '#f8f8f8';
-        }
+      const pxPerMm = canvas.width / widthMm;
+      const imgHeightMm = widthMm * (canvas.height / canvas.width);
 
-        // 7. Snapshot clone with html2canvas at 3x resolution
-        const canvas = await html2canvas(clone, {
-          scale: 3,
-          useCORS: true,
-          allowTaint: false,
-          backgroundColor: captureBg,
-          logging: false,
-          width: captureW,
-          height: captureH,
-          windowWidth: captureW,
-          windowHeight: captureH,
-          scrollX: 0,
-          scrollY: 0,
-          x: 0,
-          y: 0,
-        });
+      let pdf: jsPDF;
 
-        // Calculate PDF page height based on canvas aspect ratio
-        const imgHeightMm = widthMm * (canvas.height / canvas.width);
-
-        if (sizeConfig.isAuto || imgHeightMm <= sizeConfig.heightMm) {
-          // Single-page PDF with exact aspect ratio
-          const pdfPageH = sizeConfig.isAuto ? imgHeightMm : Math.max(sizeConfig.heightMm, imgHeightMm);
+      if (sizeConfig.isAuto) {
+        // Auto Mode: single dynamic-height PDF page if <= 594mm, else multi-page A4 fallback
+        if (imgHeightMm <= 594) {
           pdf = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
-            format: [widthMm, pdfPageH],
+            format: [widthMm, imgHeightMm],
           });
-          pdf.setFillColor(captureBg);
-          pdf.rect(0, 0, widthMm, pdfPageH, 'F');
-
           const sliceData = canvas.toDataURL('image/png', 1.0);
           pdf.addImage(sliceData, 'PNG', 0, 0, widthMm, imgHeightMm, undefined, 'FAST');
         } else {
-          // Multi-page slicing for large invoices
-          pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: sizeConfig.jsPdfFormat,
-          });
+          pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+          const pageH_px = 297 * pxPerMm;
+          const totalPages = Math.ceil(canvas.height / pageH_px);
 
-          const pxPerMm = canvas.width / widthMm;
-          const pageH_px = sizeConfig.heightMm * pxPerMm;
+          for (let page = 0; page < totalPages; page++) {
+            if (page > 0) pdf.addPage('a4');
+            const srcY = page * pageH_px;
+            const srcH = Math.min(pageH_px, canvas.height - srcY);
+
+            const pageCanvas = document.createElement('canvas');
+            pageCanvas.width = canvas.width;
+            pageCanvas.height = pageH_px;
+            const ctx = pageCanvas.getContext('2d')!;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+            ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
+
+            const sliceData = pageCanvas.toDataURL('image/png', 1.0);
+            pdf.addImage(sliceData, 'PNG', 0, 0, widthMm, 297, undefined, 'FAST');
+          }
+        }
+      } else {
+        // Fixed A4 or Letter Mode:
+        pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: sizeConfig.jsPdfFormat,
+        });
+
+        if (imgHeightMm <= heightMm) {
+          // Single page fixed mode
+          const sliceData = canvas.toDataURL('image/png', 1.0);
+          pdf.addImage(sliceData, 'PNG', 0, 0, widthMm, imgHeightMm, undefined, 'FAST');
+        } else {
+          // Multi-page slicing for A4 or Letter
+          const pageH_px = heightMm * pxPerMm;
           const totalPages = Math.ceil(canvas.height / pageH_px);
 
           for (let page = 0; page < totalPages; page++) {
             if (page > 0) pdf.addPage(sizeConfig.jsPdfFormat);
-
-            pdf.setFillColor(captureBg);
-            pdf.rect(0, 0, widthMm, sizeConfig.heightMm, 'F');
 
             const srcY = page * pageH_px;
             const srcH = Math.min(pageH_px, canvas.height - srcY);
@@ -481,39 +470,39 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
             pageCanvas.width = canvas.width;
             pageCanvas.height = pageH_px;
             const ctx = pageCanvas.getContext('2d')!;
-            ctx.fillStyle = captureBg;
+            ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
             ctx.drawImage(canvas, 0, srcY, canvas.width, srcH, 0, 0, canvas.width, srcH);
 
             const sliceData = pageCanvas.toDataURL('image/png', 1.0);
-            pdf.addImage(sliceData, 'PNG', 0, 0, widthMm, sizeConfig.heightMm, undefined, 'FAST');
+            pdf.addImage(sliceData, 'PNG', 0, 0, widthMm, heightMm, undefined, 'FAST');
           }
         }
+      }
 
-        // 8. Embed clickable PDF hyperlink annotation if watermark link exists (Free tier)
-        const watermarkEl = clone.querySelector<HTMLElement>('[data-watermark-link="true"]');
-        if (watermarkEl && effectiveShowWatermark && pdf) {
-          const cloneRect = clone.getBoundingClientRect();
-          const wmRect = watermarkEl.getBoundingClientRect();
+      // Embed clickable PDF hyperlink annotation for the watermark
+      const watermarkEl = element.querySelector<HTMLElement>('[data-watermark-link="true"]');
+      if (watermarkEl && effectiveShowWatermark) {
+        const elRect = element.getBoundingClientRect();
+        const wmRect = watermarkEl.getBoundingClientRect();
 
-          const wmTopPx = wmRect.top - cloneRect.top;
-          const wmHeightPx = wmRect.height;
-          const wmLeftPx = wmRect.left - cloneRect.left;
-          const wmWidthPx = wmRect.width;
+        const wmTopPx = wmRect.top - elRect.top;
+        const wmHeightPx = wmRect.height;
+        const wmLeftPx = wmRect.left - elRect.left;
+        const wmWidthPx = wmRect.width;
 
-          const pdfPageH = sizeConfig.isAuto ? imgHeightMm : sizeConfig.heightMm;
-          const wmTopMm = (wmTopPx / captureH) * imgHeightMm;
-          const wmHeightMm = (wmHeightPx / captureH) * imgHeightMm;
-          const wmLeftMm = Math.max(0, (wmLeftPx / captureW) * widthMm);
-          const wmWidthMm = Math.min(widthMm, (wmWidthPx / captureW) * widthMm);
+        const targetPageH_mm = sizeConfig.isAuto && imgHeightMm <= 594 ? imgHeightMm : heightMm;
+        const wmTopMm = (wmTopPx / element.scrollHeight) * imgHeightMm;
+        const wmHeightMm = (wmHeightPx / element.scrollHeight) * imgHeightMm;
+        const wmLeftMm = Math.max(0, (wmLeftPx / element.scrollWidth) * widthMm);
+        const wmWidthMm = Math.min(widthMm, (wmWidthPx / element.scrollWidth) * widthMm);
 
-          pdf.setPage(1);
-          pdf.link(wmLeftMm, wmTopMm, wmWidthMm, wmHeightMm, { url: "https://www.getinvoicely.online/" });
-        }
-      } finally {
-        if (sandbox && sandbox.parentElement) {
-          sandbox.parentElement.removeChild(sandbox);
-        }
+        const targetPage = Math.min(Math.ceil(wmTopMm / targetPageH_mm), Math.ceil(imgHeightMm / targetPageH_mm));
+        const wmYOnPage = wmTopMm % targetPageH_mm;
+
+        pdf.setPage(targetPage || 1);
+        const invoicelyUrl = "https://getinvoicely.online";
+        pdf.link(wmLeftMm, wmYOnPage, wmWidthMm, wmHeightMm, { url: invoicelyUrl });
       }
 
       // Step 1 Verification log as requested in user prompt
@@ -995,7 +984,7 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
   };
 
   const isFreeTier = userSubscription.tier !== "pro";
-  const effectiveShowWatermark = isFreeTier ? true : (displayInvoice?.show_watermark ?? false);
+  const effectiveShowWatermark = isFreeTier ? true : (displayInvoice?.show_watermark ?? true);
 
   return (
     <>
@@ -1029,7 +1018,8 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
             return (
               <div
                 ref={invoiceRef}
-                className={`${selectedTemplate?.styles.background || "bg-white"} ${selectedTemplate?.styles.font || ""} ${previewWidthClass} ${previewHeightClass} w-full max-w-full overflow-hidden break-words [overflow-wrap:anywhere] mx-auto relative transition-all duration-200 ${isPdfView ? 'shadow-2xl' : ''}`}
+                className={`bg-white ${previewWidthClass} ${previewHeightClass} w-full max-w-full overflow-hidden break-words [overflow-wrap:anywhere] mx-auto p-6 sm:p-10 relative transition-all duration-200 ${isPdfView ? 'shadow-2xl' : ''}`}
+                style={{ minWidth: '320px' }}
               >
                 {selectedTemplate && (
                   <InvoiceLayout
@@ -1038,8 +1028,23 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
                     displayInvoice={displayInvoice}
                     calculatedInvoice={calculatedInvoice}
                     paymentDetails={paymentDetails}
-                    isPro={!effectiveShowWatermark}
+                    isPro={userSubscription.tier === "pro"}
                   />
+                )}
+
+                {/* Invoicely Watermark - Enforced for Free tier & configurable for Pro tier */}
+                {effectiveShowWatermark && (
+                  <a
+                    href="https://getinvoicely.online"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-watermark-link="true"
+                    className="pt-6 pb-3 mt-6 border-t border-gray-100 dark:border-gray-800 text-center text-[11px] text-gray-400 dark:text-gray-500 font-sans flex items-center justify-center gap-1 hover:text-amber-600 transition-colors cursor-pointer no-underline block"
+                  >
+                    <span>Powered by</span>
+                    <strong className="text-gray-700 dark:text-gray-300 font-semibold">Invoicely</strong>
+                    <span>· Create free professional invoices for your business</span>
+                  </a>
                 )}
               </div>
             );

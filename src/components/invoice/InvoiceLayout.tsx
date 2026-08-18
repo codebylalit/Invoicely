@@ -22,8 +22,7 @@ import {
     ConsultingTemplate,
     GreenEcoTemplate,
     ProfessionalGrayTemplate,
-    InternationalBusinessTemplate,
-    PoweredByFooter
+    InternationalBusinessTemplate
 } from './InvoicePremiumTemplates';
 
 interface InvoiceLayoutProps {
@@ -103,7 +102,6 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                         paymentDetails={paymentDetails}
                         theme="default"
                     />
-                    <PoweredByFooter isPro={isPro} />
                 </div>
             );
         case 'classic':
@@ -150,7 +148,6 @@ const InvoiceLayout: React.FC<InvoiceLayoutProps> = ({ layout, businessDetails, 
                         paymentDetails={paymentDetails}
                         theme="classic"
                     />
-                    <PoweredByFooter isPro={isPro} />
                 </div>
             );
         case 'modern':

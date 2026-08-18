@@ -118,8 +118,8 @@ export function useInvoiceManager() {
         items: invoiceData.items || [],
         payment_methods: invoiceData.paymentMethods || [],
         template_id: validTemplateId,
-        // Free users MUST have watermark = true (branding ON), Pro users default to false (OFF)
-        show_watermark: isProUser ? (invoiceData.show_watermark ?? false) : true,
+        // Free users MUST have watermark = true
+        show_watermark: isProUser ? (invoiceData.show_watermark ?? true) : true,
         page_size: invoiceData.page_size || 'auto',
         // Free users CANNOT create recurring invoices
         is_recurring: isProUser ? (invoiceData.is_recurring || false) : false,

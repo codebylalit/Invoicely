@@ -354,7 +354,7 @@ export const InvoiceForm = ({
     const saved = activeDraft?.template_id;
     return (typeof saved === 'number' && !isNaN(saved)) ? saved : 0;
   });
-  const [showWatermark, setShowWatermark] = useState<boolean>(() => activeDraft?.show_watermark ?? (isPro ? false : true));
+  const [showWatermark, setShowWatermark] = useState<boolean>(() => activeDraft?.show_watermark ?? true);
   const [pageSize, setPageSize] = useState<'auto' | 'a4' | 'letter'>(() => {
     if (activeDraft?.page_size) return activeDraft.page_size;
     try {
@@ -1041,59 +1041,48 @@ export const InvoiceForm = ({
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Invoice Branding
+                Branding & Watermark
               </h2>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {isPro
-                  ? "Your invoices are completely white-label."
-                  : "Upgrade to Pro to remove Invoicely branding."}
+                Control the "Powered by Invoicely" footer watermark on your invoice.
               </p>
             </div>
           </div>
 
-          {isPro ? (
+          {userSubscription.tier === "pro" ? (
             <div className="flex items-center gap-2">
               <Switch
                 id="watermark-toggle"
                 checked={showWatermark}
                 onCheckedChange={setShowWatermark}
               />
-              <Label htmlFor="watermark-toggle" className="text-sm font-medium cursor-pointer text-gray-800 dark:text-gray-200 select-none">
-                Invoicely branding [{showWatermark ? "ON" : "OFF"}]
+              <Label htmlFor="watermark-toggle" className="text-sm font-medium cursor-pointer text-gray-800 dark:text-gray-200">
+                {showWatermark ? "Watermark On" : "Watermark Off"}
               </Label>
             </div>
           ) : (
-            <div
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => {
-                toast({
-                  title: "Pro Feature",
-                  description: "Upgrade to Pro to remove Invoicely branding.",
-                  variant: "default",
-                });
-              }}
-            >
+            <div className="flex items-center gap-2">
               <Switch id="watermark-toggle" checked={true} disabled />
-              <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 text-xs font-semibold gap-1">
-                <Lock className="w-3 h-3" /> ON 🔒
+              <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 text-xs">
+                Locked (Free)
               </Badge>
             </div>
           )}
         </div>
 
-        {!isPro && (
+        {userSubscription.tier !== "pro" && (
           <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/60 rounded-md flex items-center justify-between text-xs text-amber-800 dark:text-amber-300">
             <div className="flex items-center gap-2">
               <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
-              <span>Upgrade to Pro to remove Invoicely branding.</span>
+              <span>Watermark is required on the Free plan. Upgrade to Pro to remove the Invoicely watermark.</span>
             </div>
             <Button
               size="sm"
               variant="outline"
               onClick={goToSubscription}
-              className="h-7 text-xs border-amber-400 text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-medium"
+              className="h-7 text-xs border-amber-400 text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40"
             >
-              Upgrade to Pro
+              Upgrade
             </Button>
           </div>
         )}
