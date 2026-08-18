@@ -500,7 +500,7 @@ const Landing = () => {
               <span className="text-stone-300" aria-hidden="true">·</span>
               <span className="flex items-center gap-1.5">
                 <CheckIcon className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
-                GST &amp; Razorpay/PayPal ready
+                GST ready &amp; global payment links
               </span>
             </div>
           </div>
