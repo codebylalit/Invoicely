@@ -18,12 +18,10 @@ import {
 } from "lucide-react";
 import Logo from "@/components/Logo";
 
-// ── Production redirect URL ────────────────────────────────────────────────
+// ── Redirect URL (dynamic per environment) ─────────────────────────────────
 // Points to /auth/callback — a dedicated page that handles all verification
 // outcomes (auto-session, expired token, invalid token) cleanly.
-// /app cannot handle this because ProtectedRoute may redirect before the
-// Supabase client finishes parsing the URL hash token.
-const EMAIL_REDIRECT_URL = "https://www.getinvoicely.online/auth/callback";
+const getRedirectUrl = () => `${window.location.origin}/auth/callback`;
 
 // ── Password rules ─────────────────────────────────────────────────────────
 interface PasswordRule {
@@ -150,7 +148,7 @@ const Auth = () => {
           email,
           password,
           options: {
-            emailRedirectTo: EMAIL_REDIRECT_URL,
+            emailRedirectTo: getRedirectUrl(),
           },
         });
         if (error) throw error;
@@ -215,7 +213,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: "https://www.getinvoicely.online/auth/callback",
+          redirectTo: getRedirectUrl(),
         },
       });
       if (error) throw error;

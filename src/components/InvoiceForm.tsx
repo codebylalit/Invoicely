@@ -520,43 +520,13 @@ export const InvoiceForm = ({
     onDraftChange,
   ]);
 
-  // Add this to your useEffect that fetches user data:
   useEffect(() => {
     if (session?.user?.id) {
       fetchBusinessDetails();
       fetchClients();
       fetchPaymentDetails();
-      fetchUserSubscription(); // Add this line to fetch subscription
     }
   }, [session]);
-
-  // Add this function to fetch the user's subscription:
-  const fetchUserSubscription = async () => {
-    try {
-      if (!session?.user?.id) return;
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("tier")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        setUserSubscription({
-          tier: data.tier || "free",
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching user subscription:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load subscription details",
-        variant: "destructive",
-      });
-    }
-  };
 
 
   const fetchPaymentDetails = async () => {

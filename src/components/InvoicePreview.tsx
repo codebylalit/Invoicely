@@ -879,7 +879,6 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
     if (session?.user?.id) {
       fetchBusinessDetails();
       fetchPaymentDetails();
-      fetchUserSubscription(); // Add this line to fetch subscription
     }
   }, [session]);
 

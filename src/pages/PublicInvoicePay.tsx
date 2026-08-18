@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { createClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,11 +18,7 @@ import {
 } from "lucide-react";
 import { renderInvoiceElementToPdf } from "@/utils/pdfUtils";
 
-// Initialize standalone Supabase client for unauthenticated access
-const supabaseUrl = "https://mrmjkdxerrpwrrmmymmv.supabase.co";
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ybWprZHhlcnJwd3JybW15bW12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1OTMwNDAsImV4cCI6MjA5NzE2OTA0MH0.G0nuJd44Ib6rBKgBSgpPn_6SSUBY0lRBYY3muGj6GTw";
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from "@/integrations/supabase/client";
 
 // ─── Confetti Animation Overlay ─────────────────────────────────────────────
 const ConfettiOverlay = () => {
