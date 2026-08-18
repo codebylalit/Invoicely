@@ -381,7 +381,7 @@ export const CorporateBlueTemplate: React.FC<TemplateProps> = ({ businessDetails
       <div className="flex items-center justify-between">
         <div>
           {businessDetails.logo_url ? (
-            <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-3">
+            <div className="bg-white p-1.5 rounded-lg inline-block shadow-sm mb-3">
               <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" crossOrigin="anonymous" />
             </div>
           ) : (
@@ -481,7 +481,7 @@ export const ElegantDarkTemplate: React.FC<TemplateProps> = ({ businessDetails, 
       <div className="flex items-start justify-between mb-10 gap-4 min-w-0">
         <div className="min-w-0 flex-1 break-words [overflow-wrap:anywhere]">
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain mb-4 opacity-90" crossOrigin="anonymous" />
+            <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain mb-4" crossOrigin="anonymous" />
           ) : (
             <p className="text-2xl font-light tracking-widest text-amber-400 mb-4 break-words [overflow-wrap:anywhere]">{businessDetails.business_name || 'COMPANY'}</p>
           )}
@@ -557,7 +557,7 @@ export const LuxuryBlackTemplate: React.FC<TemplateProps> = ({ businessDetails, 
       <div className="flex items-center justify-between border-b border-gray-800 pb-10 mb-10">
         <div>
           {businessDetails.logo_url ? (
-            <img src={businessDetails.logo_url} alt="Logo" className="h-14 object-contain opacity-90" crossOrigin="anonymous" />
+            <img src={businessDetails.logo_url} alt="Logo" className="h-14 object-contain" crossOrigin="anonymous" />
           ) : (
             <div>
               <div className="text-4xl font-bold tracking-widest text-white mb-1">
@@ -646,7 +646,7 @@ export const ModernPurpleTemplate: React.FC<TemplateProps> = ({ businessDetails,
       <div className="flex items-start justify-between">
         <div>
           {businessDetails.logo_url ? (
-            <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-4">
+            <div className="bg-white p-1.5 rounded-lg inline-block shadow-sm mb-4">
               <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" crossOrigin="anonymous" />
             </div>
           ) : (
@@ -722,7 +722,7 @@ export const CreativeAgencyTemplate: React.FC<TemplateProps> = ({ businessDetail
       {/* Left sidebar */}
       <div className="bg-[#ff6b35] text-white px-6 py-10 flex flex-col">
         {businessDetails.logo_url ? (
-          <div className="bg-white/95 p-2 rounded-lg inline-block shadow-sm mb-6">
+          <div className="bg-white p-2 rounded-lg inline-block shadow-sm mb-6">
             <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" crossOrigin="anonymous" />
           </div>
         ) : (
@@ -957,7 +957,7 @@ export const FinanceTemplate: React.FC<TemplateProps> = ({ businessDetails, disp
       <div className="flex items-start justify-between">
         <div>
           {businessDetails.logo_url ? (
-            <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-3">
+            <div className="bg-white p-1.5 rounded-lg inline-block shadow-sm mb-3">
               <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" crossOrigin="anonymous" />
             </div>
           ) : (
@@ -1467,7 +1467,7 @@ export const GreenEcoTemplate: React.FC<TemplateProps> = ({ businessDetails, dis
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           {businessDetails.logo_url ? (
-            <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm">
+            <div className="bg-white p-1.5 rounded-lg inline-block shadow-sm">
               <img src={businessDetails.logo_url} alt="Logo" className="h-9 object-contain" crossOrigin="anonymous" />
             </div>
           ) : (
@@ -1559,7 +1559,7 @@ export const ProfessionalGrayTemplate: React.FC<TemplateProps> = ({ businessDeta
       <div className="flex items-start justify-between">
         <div>
           {businessDetails.logo_url ? (
-            <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-3">
+            <div className="bg-white p-1.5 rounded-lg inline-block shadow-sm mb-3">
               <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" crossOrigin="anonymous" />
             </div>
           ) : (
@@ -1653,7 +1653,7 @@ export const InternationalBusinessTemplate: React.FC<TemplateProps> = ({ busines
       <div className="flex items-start justify-between relative z-10">
         <div>
           {businessDetails.logo_url ? (
-            <div className="bg-white/95 p-1.5 rounded-lg inline-block shadow-sm mb-4">
+            <div className="bg-white p-1.5 rounded-lg inline-block shadow-sm mb-4">
               <img src={businessDetails.logo_url} alt="Logo" className="h-10 object-contain" crossOrigin="anonymous" />
             </div>
           ) : (

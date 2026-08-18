@@ -1039,19 +1039,20 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
                     target="_blank"
                     rel="noopener noreferrer"
                     data-watermark-link="true"
-                    className="pt-6 pb-3 mt-6 border-t border-gray-100 dark:border-gray-800 text-center text-[11px] text-gray-400 dark:text-gray-500 font-sans flex items-center justify-center gap-1.5 hover:text-amber-600 transition-colors cursor-pointer no-underline block"
+                    className="pt-6 pb-3 mt-6 border-t border-gray-100 dark:border-gray-800 text-[11px] text-gray-400 dark:text-gray-500 font-sans hover:text-amber-600 transition-colors cursor-pointer no-underline"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', lineHeight: '1' }}
                   >
-                    <span>Powered by</span>
-                    <span className="inline-flex items-center gap-1 text-gray-800 dark:text-gray-200 font-semibold">
+                    <span style={{ lineHeight: '1' }}>Powered by</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', lineHeight: '1', fontWeight: 600, color: 'inherit' }}>
                       <img
                         src="/icon.png"
-                        alt="Invoicely Logo"
-                        className="h-3.5 w-3.5 object-contain inline-block rounded-sm"
+                        alt="Invoicely"
                         crossOrigin="anonymous"
+                        style={{ height: '13px', width: '13px', objectFit: 'contain', display: 'block', flexShrink: 0 }}
                       />
-                      <span>Invoicely</span>
+                      <span style={{ lineHeight: '1' }}>Invoicely</span>
                     </span>
-                    <span>· Create free professional invoices for your business</span>
+                    <span style={{ lineHeight: '1' }}>· Create free professional invoices for your business</span>
                   </a>
                 )}
               </div>
