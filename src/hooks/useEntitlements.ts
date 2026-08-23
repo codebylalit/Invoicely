@@ -11,8 +11,6 @@ export interface Entitlements {
   canRemoveWatermark: boolean;
   canUseTemplate: (templateId?: number | null) => boolean;
   canSendEmail: boolean;
-  canAddClient: (currentClientCount: number) => boolean;
-  maxClients: number;
   refetch: () => Promise<void>;
 }
 
@@ -67,8 +65,16 @@ export function useEntitlements(): Entitlements {
   const isPro = !isLoading && (tier === "pro" || tier === "admin");
   const canUseRecurringInvoices = isPro;
   const canRemoveWatermark = isPro;
-  const canSendEmail = isPro;
-  const maxClients = isPro ? Infinity : 10;
+  // Sending is deliberately NOT gated. It is the action that produces the
+  // sent/viewed/paid history the rest of the product is built on; charging for
+  // it means free users never generate any of that data.
+  const canSendEmail = true;
+  // Client storage is deliberately NOT capped either. A cap on saved clients
+  // lands on day one, before the user has sent anything or seen any value, and
+  // it throttles the only free acquisition channel we have — every invoice a
+  // free user sends carries our badge to another business owner. Rows are
+  // effectively free; blocking onboarding is not. Pro sells brand removal and
+  // automation instead.
 
   const canUseTemplate = useCallback(
     (templateId?: number | null): boolean => {
@@ -81,14 +87,6 @@ export function useEntitlements(): Entitlements {
     [isPro]
   );
 
-  const canAddClient = useCallback(
-    (currentClientCount: number): boolean => {
-      if (isPro) return true;
-      return currentClientCount < 10;
-    },
-    [isPro]
-  );
-
   return {
     tier,
     isPro,
@@ -97,8 +95,6 @@ export function useEntitlements(): Entitlements {
     canRemoveWatermark,
     canUseTemplate,
     canSendEmail,
-    canAddClient,
-    maxClients,
     refetch: fetchSubscription,
   };
 }

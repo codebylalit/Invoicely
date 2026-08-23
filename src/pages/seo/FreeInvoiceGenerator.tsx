@@ -7,11 +7,11 @@ import PublicPageLayout from "@/components/PublicPageLayout";
 const faqs = [
   {
     q: "Is Invoicely really 100% free to start?",
-    a: "Yes. Invoicely offers a genuine forever-free tier. You can create up to 5 invoices per month, manage up to 3 clients, and export high-resolution PDFs without entering a credit card.",
+    a: "Yes. Invoicely offers a genuine forever-free tier. You can create and email unlimited invoices, save unlimited clients, and export high-resolution PDFs without entering a credit card.",
   },
   {
     q: "Are there any hidden fees or charges on the free plan?",
-    a: "No hidden fees. Free accounts have explicit usage limits (5 invoices/mo, 3 clients), but we never auto-charge or ask for payment details unless you choose to upgrade to Pro.",
+    a: "No hidden fees. Free accounts get 3 of the 20 templates and carry a small \"Powered by Invoicely\" badge, but invoices and saved clients are unlimited, and we never auto-charge or ask for payment details unless you choose to upgrade to Pro.",
   },
   {
     q: "Can I download PDF invoices on the free plan?",
@@ -19,7 +19,7 @@ const faqs = [
   },
   {
     q: "What features are included in the Free tier versus Pro?",
-    a: "Free includes 5 invoices/mo, 3 templates, 3 clients, multi-currency support, and 3 free AI generations. Pro ($6/mo) unlocks unlimited invoices, all 20 templates, custom branding/white-labeling, online payment links, and recurring invoices.",
+    a: "Free includes unlimited invoices, unlimited clients, 1-click email delivery with the PDF attached, 3 templates, tax and discount lines, and a shareable pay page using your own payment link. Pro ($6/mo) unlocks all 20 templates, recurring invoices for retainers, and removes Invoicely branding from the invoice, PDF, pay page, and email.",
   },
   {
     q: "Who is the free invoice generator best suited for?",
@@ -64,14 +64,13 @@ const FaqItem = ({ q, a }: { q: string; a: string }) => {
 };
 
 const freeFeatures = [
-  "5 Professional invoices per month",
   "1-Click direct email sending with PDF attached",
   "3 Clean invoice templates",
-  "Manage up to 3 active client profiles",
+  "Unlimited saved client profiles",
   "1-Click print-ready PDF exports",
-  "Automatic GST / Tax calculations",
-  "Multi-currency support (USD, EUR, INR, etc.)",
-  "Try AI invoice generation (3 uses free)",
+  "Named tax & discount lines, calculated for you",
+  "A shareable pay page using your own payment link",
+  "Unlimited invoices — no monthly cap",
   "No credit card required to start",
 ];
 
@@ -116,7 +115,7 @@ const FreeInvoiceGenerator = () => (
               <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
             </Link>
           </div>
-          <p className="text-xs text-stone-400 mt-4">Includes 5 free invoices/mo · Free forever</p>
+          <p className="text-xs text-stone-400 mt-4">Unlimited invoices · Free forever</p>
         </div>
       </section>
 
@@ -153,14 +152,14 @@ const FreeInvoiceGenerator = () => (
               </thead>
               <tbody>
                 {[
-                  ["Monthly Invoices", "5 per month", "Unlimited"],
-                  ["Client Directory", "Up to 3 clients", "Unlimited clients"],
+                  ["Invoices", "Unlimited", "Unlimited"],
+                  ["Client Directory", "Unlimited", "Unlimited"],
                   ["Templates", "3 standard templates", "All 20 premium templates"],
                   ["PDF Export", "Included", "Included"],
-                  ["AI Generations", "3 trial uses", "Unlimited AI generation"],
-                  ["Branding / Watermark", "Invoicely branding", "100% White-label (Your brand)"],
-                  ["Online Payment Links", "—", "Razorpay, UPI, Card checkout"],
-                  ["Recurring Invoices", "—", "Automated recurring schedules"],
+                  ["Email Delivery", "Included", "Included"],
+                  ["Branding", "\"Powered by Invoicely\" badge", "Your brand only — invoice, PDF, pay page & email"],
+                  ["Pay Page (your own link)", "Included", "Included"],
+                  ["Recurring Invoices", "—", "Saved retainer schedules"],
                 ].map(([feature, freeVal, proVal], i) => (
                   <tr key={i} className="border-b border-stone-100 last:border-0">
                     <td className="py-3 px-4 text-stone-700 font-medium">{feature}</td>
@@ -207,7 +206,7 @@ const FreeInvoiceGenerator = () => (
           <div className="grid sm:grid-cols-2 gap-3">
             {[
               { to: "/invoice-generator", label: "Standard Invoice Generator", desc: "Overview of our core invoice generator" },
-              { to: "/ai-invoice-generator", label: "AI Invoice Generator", desc: "Draft invoices from plain text descriptions" },
+              { to: "/how-it-works", label: "How Invoicely Works", desc: "The full workflow from draft to paid" },
               { to: "/invoice-generator-online", label: "Online Invoice Maker", desc: "Browser-based invoicing with zero setup" },
               { to: "/blog/invoice-for-freelancers", label: "Freelancer Invoicing Guide", desc: "Tips and templates for freelance billing" },
             ].map((link, i) => (

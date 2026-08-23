@@ -10,38 +10,23 @@ export function useInvoiceManager() {
   const session = useSession();
   const { toast } = useToast();
 
-  // Function to get the next available invoice number
+  // Function to get the next available invoice number.
+  //
+  // Allocation happens in the database (next_invoice_number RPC) which takes a
+  // row lock on the caller's counter. Doing it here in JS by reading MAX() was
+  // both racy and wrong: invoice_number is text, so ordering it descending put
+  // "999" above "1001" and handed out duplicate numbers.
   const getNextInvoiceNumber = async () => {
     try {
-      // Get the highest invoice number from the database for this user
-      let query = supabase
-        .from("invoices")
-        .select("invoice_number");
-
-      if (session?.user?.id) {
-        query = query.eq("user_id", session.user.id);
-      }
-
-      const { data, error } = await query
-        .order("invoice_number", { ascending: false })
-        .limit(1);
-
+      const { data, error } = await supabase.rpc("next_invoice_number" as any);
       if (error) throw error;
-
-      // If we have invoices, increment the highest number, otherwise start at 1001
-      if (data && data.length > 0 && data[0].invoice_number) {
-        // Extract numeric part if invoice number has a prefix
-        const currentNumber = parseInt(
-          data[0].invoice_number.replace(/\D/g, ""),
-          10
-        );
-        return isNaN(currentNumber) ? "1001" : (currentNumber + 1).toString();
-      } else {
-        return "1001"; // Starting invoice number
-      }
+      if (typeof data === "string" && data.length > 0) return data;
+      throw new Error("Invoice numbering returned an empty value");
     } catch (error) {
-      console.error("Error fetching next invoice number:", error);
-      return "1001"; // Fallback to 1001 if error
+      console.error("Error allocating next invoice number:", error);
+      // Last-resort fallback so saving never hard-fails on numbering alone.
+      // Timestamp-based, so it cannot collide with a counter-issued number.
+      return `INV-${Date.now().toString().slice(-8)}`;
     }
   };
 
@@ -64,20 +49,37 @@ export function useInvoiceManager() {
         invoiceData.invoiceNumber = await getNextInvoiceNumber();
       }
 
-      // Helper function to ensure numeric values (convert empty arrays, undefined, or null to 0)
+      // Coerce a scalar money field to a number. Arrays are NOT valid here —
+      // taxes/discounts are handled separately by normalizeLines/sumLines below.
       const ensureNumeric = (value: any): number => {
-        // If value is an array (empty or not), or null/undefined
-        if (Array.isArray(value) || value === null || value === undefined) {
-          return 0;
-        }
-        // If value is already a number, return it
-        if (typeof value === "number") {
-          return value;
-        }
-        // Try to parse as number, default to 0 if fails
+        if (value === null || value === undefined) return 0;
+        if (typeof value === "number") return isNaN(value) ? 0 : value;
         const parsed = parseFloat(value);
         return isNaN(parsed) ? 0 : parsed;
       };
+
+      // taxes/discounts are stored as jsonb arrays of {id, name, rate, amount}.
+      // They used to be run through ensureNumeric, which turned the array into 0
+      // and silently destroyed the breakdown on every save.
+      const normalizeLines = (value: any) => {
+        if (Array.isArray(value)) {
+          return value.map((line: any, idx: number) => ({
+            id: String(line?.id ?? idx),
+            name: line?.name ?? "",
+            rate: line?.rate === null || line?.rate === undefined ? null : ensureNumeric(line.rate),
+            amount: ensureNumeric(line?.amount),
+          }));
+        }
+        // Legacy drafts carried a single aggregate number.
+        const legacy = ensureNumeric(value);
+        return legacy > 0 ? [{ id: "0", name: "", rate: null, amount: legacy }] : [];
+      };
+
+      const sumLines = (lines: { amount: number }[]) =>
+        lines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0);
+
+      const taxLines = normalizeLines(invoiceData.taxes);
+      const discountLines = normalizeLines(invoiceData.discounts);
 
       // Independent DB plan verification before saving
       let isProUser = false;
@@ -105,8 +107,10 @@ export function useInvoiceManager() {
         // Ensure all numeric fields use proper values
         total: ensureNumeric(invoiceData.total),
         subtotal: ensureNumeric(invoiceData.subtotal),
-        taxes: ensureNumeric(invoiceData.taxes),
-        discounts: ensureNumeric(invoiceData.discounts),
+        taxes: taxLines,
+        discounts: discountLines,
+        tax_total: sumLines(taxLines),
+        discount_total: sumLines(discountLines),
         // Other fields
         invoice_title: invoiceData.invoiceTitle || null,
         issued_date: invoiceData.issuedDate || null,

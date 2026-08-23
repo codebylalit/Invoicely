@@ -7,7 +7,7 @@ const articleSchema = {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   headline: "GST Invoice Guide: Requirements, Format & How to Generate One",
-  description: "Complete guide to Indian GST invoices: mandatory GSTIN fields, CGST, SGST, IGST calculations, HSN/SAC codes, and generating GST-compliant PDFs.",
+  description: "Complete guide to Indian GST invoices: mandatory GSTIN fields, CGST, SGST and IGST rules, HSN/SAC codes, and generating GST-compliant PDFs.",
   url: "https://www.getinvoicely.online/blog/gst-invoice-guide",
   datePublished: "2025-08-02T00:00:00Z",
   dateModified: "2025-08-02T00:00:00Z",
@@ -29,7 +29,7 @@ const GSTInvoiceGuide = () => (
   <>
     <SEOHead
       title="GST Invoice Guide: Rules, Format & How to Create GST Invoices"
-      description="Learn GST invoicing requirements in India: mandatory fields, CGST/SGST vs IGST rules, HSN/SAC codes, and automatic tax calculation with Invoicely."
+      description="Learn GST invoicing requirements in India: mandatory fields, CGST/SGST vs IGST rules, HSN/SAC codes, and how to put a GST invoice together with Invoicely."
       canonical="https://www.getinvoicely.online/blog/gst-invoice-guide"
       ogType="article"
       articlePublishedTime="2025-08-02T00:00:00Z"
@@ -102,8 +102,8 @@ const GSTInvoiceGuide = () => (
 
         <div className="my-10 p-6 bg-amber-50 rounded-2xl border border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <h3 className="font-bold text-[#0A0A0A] text-base">Generate GST-compliant invoices automatically</h3>
-            <p className="text-xs text-stone-600">Auto-calculate CGST, SGST, and IGST with print-ready PDF export.</p>
+            <h3 className="font-bold text-[#0A0A0A] text-base">Put your GST invoice together in minutes</h3>
+            <p className="text-xs text-stone-600">Add CGST and SGST as their own tax lines, or one IGST line. Invoicely does the maths and the print-ready PDF.</p>
           </div>
           <Link to="/auth" className="bg-[#0A0A0A] hover:bg-stone-800 text-white font-bold text-xs px-5 py-3 rounded-full flex-shrink-0 transition-all">
             Create GST Invoice Free

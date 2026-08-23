@@ -15,7 +15,11 @@ serve(async (req) => {
 
   try {
     const body = await req.json()
-    const { to, subject, message, invoiceNumber, amount, dueDate, clientName, businessName, payUrl, items, pdfBase64, senderEmail, replyTo } = body
+    // showBranding=false is what Pro is actually buying: the seller's client
+    // should not see our name anywhere. Defaults to true so a caller that omits
+    // it (or a free user) still gets the badge.
+    const { to, subject, message, invoiceNumber, amount, dueDate, clientName, businessName, payUrl, items, pdfBase64, senderEmail, replyTo, showBranding } = body
+    const brandingVisible = showBranding !== false
 
     if (!to || !to.length) {
       throw new Error("Recipient email 'to' is required")
@@ -39,9 +43,26 @@ serve(async (req) => {
         `).join('')
       : ''
 
+    // The envelope address has to stay on our verified sending domain — we
+    // cannot send as the seller's domain. What we *can* do is put the seller's
+    // business name in the display name, so the client sees who is billing
+    // them rather than "Invoicely". Strip anything that could break the header.
+    const fromName = String(businessName || "Invoicely")
+      .replace(/[\r\n"<>,;:]/g, " ")
+      .trim()
+      .slice(0, 64) || "Invoicely"
+
     const emailResponse = await resend.emails.send({
-      from: "Invoicely <no-reply@getinvoicely.online>",
-      reply_to: replyTo || senderEmail || "lalitkumarnamdev4645@gmail.com",
+      // On Pro we drop "via Invoicely" from the display name. The envelope
+      // address still has to be our verified domain — sending as the seller's
+      // domain would need per-seller DNS — so this is as unbranded as the
+      // header can honestly get.
+      from: brandingVisible
+        ? `${fromName} via Invoicely <no-reply@getinvoicely.online>`
+        : `${fromName} <no-reply@getinvoicely.online>`,
+      // Replies must reach the seller. Falling back to a hardcoded personal
+      // address sent client replies to the wrong human entirely.
+      reply_to: replyTo || senderEmail || undefined,
       to: Array.isArray(to) ? to : [to],
       subject: subject || `Invoice #${invoiceNumber || ''} from ${businessName || 'Invoicely'}`,
       html: `
@@ -84,9 +105,11 @@ serve(async (req) => {
             </div>
           ` : ''}
 
-          <p style="color:#94a3b8;font-size:12px;text-align:center;margin-top:30px;border-top:1px solid #f1f5f9;padding-top:16px">
-            Sent via Invoicely • Secure Online Billing
-          </p>
+          ${brandingVisible ? `
+            <p style="color:#94a3b8;font-size:12px;text-align:center;margin-top:30px;border-top:1px solid #f1f5f9;padding-top:16px">
+              Sent via Invoicely • Secure Online Billing
+            </p>
+          ` : ''}
         </div>
       `,
       attachments: attachments.length > 0 ? attachments : undefined,

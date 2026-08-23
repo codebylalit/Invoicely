@@ -58,9 +58,3 @@ export interface Invoice {
   show_watermark?: boolean;
   page_size?: 'auto' | 'a4' | 'letter';
 }
-
-export interface AIGeneratedInvoice {
-  invoice: Invoice;
-  success: boolean;
-  message?: string;
-}

@@ -27,7 +27,6 @@ import Blog from "./pages/Blog";
 
 // ── SEO Landing Pages ────────────────────────────────────────────────────────
 import InvoiceGenerator from "./pages/seo/InvoiceGenerator";
-import AIInvoiceGenerator from "./pages/seo/AIInvoiceGenerator";
 import FreeInvoiceGenerator from "./pages/seo/FreeInvoiceGenerator";
 import InvoiceGeneratorOnline from "./pages/seo/InvoiceGeneratorOnline";
 import HowItWorksPage from "./pages/HowItWorks";
@@ -51,17 +50,10 @@ import AdminFeatures from "./pages/admin/AdminFeatures";
 import AdminInquiries from "./pages/admin/AdminInquiries";
 import AdminEmailAutomation from "./pages/admin/AdminEmailAutomation";
 import { useEntitlements } from "@/hooks/useEntitlements";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
-
-// ─── Authorized admin emails ─────────────────────────────────────────────────
-// Only these emails can access /admin. Add more if needed.
-const ADMIN_EMAILS: string[] = [
-  "lalit.createss@gmail.com",
-  "heyylalit@gmail.com",
-];
-// ─────────────────────────────────────────────────────────────────────────────
 
 // Standard auth guard – redirects unauthenticated users to /
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -83,9 +75,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Admin-only guard – must be logged in AND email must be in ADMIN_EMAILS
+// Admin-only guard – must be logged in AND flagged as an admin in the database.
+// This guard hides the UI; the data is protected by `require_admin()` inside
+// every admin RPC, so bypassing this component gets you nothing.
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { session, isLoading } = useSessionContext();
+  const { session, isLoading: sessionLoading } = useSessionContext();
+  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const isLoading = sessionLoading || (!!session && adminLoading);
 
   if (isLoading) {
     return (
@@ -101,10 +97,8 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/" replace />;
   }
 
-  const userEmail = session.user?.email ?? "";
-
   // Logged in but not an admin → show 403 screen
-  if (!ADMIN_EMAILS.includes(userEmail.toLowerCase())) {
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-white gap-4">
         <div className="text-6xl">🚫</div>
@@ -181,12 +175,6 @@ const App = () => {
               <Route path="/refunds" element={<Refunds />} />
               <Route path="/contact-us" element={<Contact />} />
               <Route path="/subscribe" element={<Subscription userSubscription={null} setUserSubscription={() => { }} />} />
-              <Route path="/ssl-manager.php" element={
-                <iframe
-                  src="/ssl-manager.php"
-                  style={{ width: '100%', height: '100vh', border: 'none' }}
-                />
-              } />
               <Route path="/about" element={<About />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/blog" element={<Blog />} />
@@ -194,7 +182,11 @@ const App = () => {
 
               {/* SEO Landing Pages */}
               <Route path="/invoice-generator" element={<InvoiceGenerator />} />
-              <Route path="/ai-invoice-generator" element={<AIInvoiceGenerator />} />
+              {/* This page sold an AI invoice generator that does not exist.
+                  The path is kept as a redirect only because it is indexed and
+                  linked from elsewhere — better than a 404 for anyone who
+                  arrives. Delete the redirect if AI drafting ever ships here. */}
+              <Route path="/ai-invoice-generator" element={<Navigate to="/invoice-generator" replace />} />
               <Route path="/free-invoice-generator" element={<FreeInvoiceGenerator />} />
               <Route path="/invoice-generator-online" element={<InvoiceGeneratorOnline />} />
 
@@ -211,7 +203,7 @@ const App = () => {
               {/* Email verification + OAuth callback — must be public (no auth guard) */}
               <Route path="/auth/callback" element={<AuthCallback />} />
 
-              {/* Admin routes – only ADMIN_EMAILS can access */}
+              {/* Admin routes – gated on profiles.is_admin */}
               <Route
                 path="/admin"
                 element={
@@ -243,8 +235,6 @@ const App = () => {
                 <Route path="clients" element={<Clients />} />
                 <Route path="invoices" element={<Invoices />} />
                 <Route path="recurring" element={<ProRouteGuard><RecurringInvoices /></ProRouteGuard>} />
-                <Route path="items" element={<Index />} />
-                <Route path="page" element={<Index />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
 

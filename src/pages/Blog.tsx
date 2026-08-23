@@ -54,7 +54,7 @@ const posts = [
     slug: "gst-invoice-guide",
     title: "GST Invoice Guide: Requirements, Format & How to Generate One",
     excerpt:
-      "If you're GST-registered in India, your invoices must include specific fields. This guide explains CGST, SGST, IGST and how Invoicely handles it all automatically.",
+      "If you're GST-registered in India, your invoices must include specific fields. This guide explains CGST, SGST and IGST, and how to set them up as tax lines in Invoicely.",
     date: "2025-08-02",
     readTime: "8 min read",
     category: "Tax & Compliance",

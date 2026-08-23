@@ -458,13 +458,14 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 Included in Free:
               </p>
               {[
-                "Up to 5 invoices per month",
+                "Unlimited invoices",
+                "Unlimited clients",
+                "1-click email delivery with the PDF attached",
                 "3 Core Standard Templates",
-                "Store up to 3 clients",
-                "Basic email & bank transfer details",
+                "Named tax & discount lines with custom rates",
                 "Add your payment link (Stripe, PayPal, UPI, any provider)",
+                "Shareable client invoice page",
                 "Powered by Invoicely footer badge",
-                "3 trial AI prompt generations",
               ].map((feat, i) => (
                 <div key={i} className="flex items-center text-xs text-gray-700 dark:text-gray-300">
                   <svg
@@ -532,13 +533,9 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 Everything in Free, plus:
               </p>
               {[
-                "Unlimited Invoices & Unlimited Clients",
                 "All 20 Premium Invoice Templates",
-                "100% White-Label (Remove Invoicely branding)",
-                "Live Shareable Client Invoice Page 🎉",
-                "Unlimited AI Natural Language Prompt Generator",
-                "GST & Multi-Currency auto-tax calculations",
-                "Collection Autopilot & Automated Email Reminders",
+                "No Invoicely branding — on invoices, PDFs, the pay page, and the email",
+                "Recurring invoices for retainer clients",
               ].map((feat, i) => (
                 <div
                   key={i}

@@ -22,3 +22,22 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Secrets — never commit these
+.env
+.env.*
+!.env.example
+
+# Database dumps and restores. These contain real rows, auth tokens and vault
+# secrets; the ones that used to be committed here leaked live credentials.
+*.backup
+*.backup/
+*.dump
+clean_restore.sql
+db_cluster-*
+
+# Local scratch scripts and research output
+tmp_*.py
+extract_clean_sql.py
+zoom_and_follow_mouse.py
+.tmp_research/

@@ -2,7 +2,9 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://mrmjkdxerrpwrrmmymmv.supabase.co";
+// Set VITE_SUPABASE_URL to the Supabase custom domain (e.g. https://auth.getinvoicely.online)
+// so Google's consent screen shows our domain instead of the project ref.
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? "https://mrmjkdxerrpwrrmmymmv.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1ybWprZHhlcnJwd3JybW15bW12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1OTMwNDAsImV4cCI6MjA5NzE2OTA0MH0.G0nuJd44Ib6rBKgBSgpPn_6SSUBY0lRBYY3muGj6GTw";
 
 // Import the supabase client like this:

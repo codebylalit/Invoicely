@@ -2,7 +2,6 @@
 User-agent: *
 Allow: /
 Allow: /invoice-generator
-Allow: /ai-invoice-generator
 Allow: /free-invoice-generator
 Allow: /invoice-generator-online
 Allow: /blog/

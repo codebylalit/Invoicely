@@ -448,11 +448,11 @@ const Auth = () => {
         <div className="relative z-10 max-w-lg mx-auto w-full my-auto space-y-8">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-amber-400 text-xs font-bold">
             <Sparkles className="h-3.5 w-3.5" />
-            AI-POWERED INVOICING PLATFORM
+            INVOICE, SEND, GET PAID
           </div>
 
           <h2 className="text-3xl sm:text-4xl font-black leading-tight tracking-tight">
-            Get Paid 3x Faster with Live Client Checkout Links & 20 Templates.
+            Email the invoice, share a pay page, know exactly who still owes you.
           </h2>
 
           <div className="space-y-4 text-sm text-slate-300">
@@ -462,11 +462,11 @@ const Auth = () => {
             </div>
             <div className="flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
-              <p><strong>Live Client Payment Links</strong> with 1-click Razorpay & UPI online checkout.</p>
+              <p><strong>1-Click Email Delivery</strong> straight to your client's inbox with the PDF attached.</p>
             </div>
             <div className="flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
-              <p><strong>AI Prompt Generator</strong> with multi-item extraction, GST, & multi-currency support.</p>
+              <p><strong>Your Own Payment Link</strong> on every invoice's pay page — Stripe, PayPal, Razorpay, UPI.</p>
             </div>
           </div>
 

@@ -163,6 +163,13 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
   // Use the provided invoice or default to an empty one
   const displayInvoice = invoice || defaultInvoice;
 
+  // Derived once, up here, because both the send handler below and the preview
+  // JSX need it. Uses canRemoveWatermark rather than `tier !== "pro"` so admin
+  // accounts are not treated as free.
+  const effectiveShowWatermark = canRemoveWatermark
+    ? (displayInvoice?.show_watermark ?? true)
+    : true;
+
   // --- Real-time calculation of subtotal, taxes, discounts, and total ---
   const calculatedInvoice = useMemo(() => {
     const items = displayInvoice.items || [];
@@ -761,6 +768,8 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
             senderEmail: session?.user?.email,
             items: displayInvoice?.items || [],
             pdfBase64,
+            // Pro pays for our name to be absent from what the client sees.
+            showBranding: effectiveShowWatermark,
           }
         });
         if (!edgeErr && edgeData?.success) {
@@ -982,9 +991,6 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
       </div>
     );
   };
-
-  const isFreeTier = userSubscription.tier !== "pro";
-  const effectiveShowWatermark = isFreeTier ? true : (displayInvoice?.show_watermark ?? true);
 
   return (
     <>

@@ -19,7 +19,7 @@ const faqs = [
   },
   {
     q: "Can I share a direct link with my client to view and pay?",
-    a: "Yes. On the Pro plan, each invoice includes a live \"Pay Online\" button. Clients click it and pay via your chosen provider — Stripe, PayPal, Razorpay, UPI, or any payment platform you use. Money goes directly to your account.",
+    a: "Yes, on every plan. Each invoice gets a shareable page with a \"Pay Online\" button. Clients click it and pay via your chosen provider — Stripe, PayPal, Razorpay, UPI, or any payment platform you use. Money goes directly to your account; Invoicely never handles it, which is also why you mark the invoice paid once your provider confirms.",
   },
 ];
 
@@ -62,7 +62,7 @@ const FaqItem = ({ q, a }: { q: string; a: string }) => {
 const workflowSteps = [
   { title: "1. Access Online in Browser", desc: "Open Invoicely on desktop or mobile. No app download or installation required." },
   { title: "2. Add Client & Services", desc: "Select or add client details and enter billing line items with custom quantities and prices." },
-  { title: "3. Auto-Calculate Tax & Totals", desc: "GST (CGST/SGST/IGST) or international sales tax is computed automatically." },
+  { title: "3. Auto-Calculate Tax & Totals", desc: "Add the tax lines you need at the rates you need; every amount and total is computed for you." },
   { title: "4. Direct Email Send & PDF Export", desc: "Email invoices straight to client inboxes with print-ready PDFs attached alongside live checkout links." },
   { title: "5. Track Payment Status", desc: "Monitor paid vs. pending invoices right from your online dashboard." },
 ];
@@ -152,7 +152,7 @@ const InvoiceGeneratorOnline = () => (
               { title: "Zero Install Needed", desc: "Runs entirely in modern web browsers (Chrome, Safari, Edge, Firefox)." },
               { title: "Bank-Grade Encryption", desc: "HTTPS encryption and isolated database policies keep client data safe." },
               { title: "Live Online Payment Links", desc: "Clients click Pay Online — payment goes directly into your account via Stripe, PayPal, Razorpay, UPI, or any provider you use." },
-              { title: "Multi-Currency & GST", desc: "Seamless billing for local Indian GST or international client currencies." },
+              { title: "Tax & Discount Lines", desc: "Name each tax or discount, set its rate, and let Invoicely do the arithmetic." },
             ].map((f, i) => (
               <div key={i} className="bg-white rounded-2xl border border-stone-100 p-5 shadow-sm">
                 <h3 className="font-bold text-[#0A0A0A] text-sm mb-1">{f.title}</h3>
@@ -168,7 +168,7 @@ const InvoiceGeneratorOnline = () => (
           <div className="grid sm:grid-cols-2 gap-3">
             {[
               { to: "/invoice-generator", label: "Invoice Generator Overview", desc: "Core feature summary & standard workflow" },
-              { to: "/ai-invoice-generator", label: "AI Invoice Generator", desc: "Generate invoices using AI prompts" },
+              { to: "/how-it-works", label: "How Invoicely Works", desc: "The full workflow from draft to paid" },
               { to: "/free-invoice-generator", label: "Free Invoice Generator", desc: "Free tier features and comparison" },
               { to: "/blog/how-to-generate-invoice-pdf", label: "How to Generate PDF Invoices", desc: "Guide to instant PDF creation" },
             ].map((link, i) => (

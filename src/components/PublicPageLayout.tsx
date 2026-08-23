@@ -35,10 +35,10 @@ const PublicPageLayout = ({ children }: PublicPageLayoutProps) => {
               Invoice Generator
             </Link>
             <Link
-              to="/ai-invoice-generator"
+              to="/how-it-works"
               className="px-3 py-1.5 rounded-full hover:bg-stone-100 hover:text-stone-900 transition-all whitespace-nowrap"
             >
-              AI Generator
+              How It Works
             </Link>
             <Link
               to="/free-invoice-generator"
@@ -88,7 +88,7 @@ const PublicPageLayout = ({ children }: PublicPageLayoutProps) => {
               <p className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-3">Product</p>
               <ul className="space-y-2 text-sm text-stone-400">
                 <li><Link to="/invoice-generator" className="hover:text-white transition-colors">Invoice Generator</Link></li>
-                <li><Link to="/ai-invoice-generator" className="hover:text-white transition-colors">AI Invoice Generator</Link></li>
+                <li><Link to="/how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
                 <li><Link to="/free-invoice-generator" className="hover:text-white transition-colors">Free Invoice Generator</Link></li>
                 <li><Link to="/invoice-generator-online" className="hover:text-white transition-colors">Online Invoice Maker</Link></li>
               </ul>

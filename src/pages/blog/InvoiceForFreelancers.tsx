@@ -29,7 +29,7 @@ const InvoiceForFreelancers = () => (
   <>
     <SEOHead
       title="How to Invoice as a Freelancer: Complete Guide & Free Generator"
-      description="Freelancer invoicing guide: how to set payment terms, charge deposits, handle GST/taxes, and get paid 3x faster with online payment links."
+      description="Freelancer invoicing guide: how to set payment terms, charge deposits, handle GST/taxes, and get paid sooner by sending a payment link with the invoice."
       canonical="https://www.getinvoicely.online/blog/invoice-for-freelancers"
       ogType="article"
       articlePublishedTime="2025-08-05T00:00:00Z"
@@ -101,7 +101,7 @@ const InvoiceForFreelancers = () => (
 
           <h2 className="text-2xl font-black text-[#0A0A0A] pt-4">Automate Your Freelance Invoicing</h2>
           <p>
-            Instead of spending hours in Word or Excel, use a <Link to="/free-invoice-generator" className="text-amber-700 font-semibold hover:underline">free invoice generator for freelancers</Link> like Invoicely. You can even use <Link to="/ai-invoice-generator" className="text-amber-700 font-semibold hover:underline">AI prompt invoice creation</Link> to build clean, professional PDFs in seconds.
+            Instead of spending hours in Word or Excel, use a <Link to="/free-invoice-generator" className="text-amber-700 font-semibold hover:underline">free invoice generator for freelancers</Link> like Invoicely to build clean, professional PDFs in seconds and email them to your client with the PDF attached.
           </p>
         </div>
 

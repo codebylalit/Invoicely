@@ -140,6 +140,32 @@ const fmtDate = (d?: string) => {
   });
 };
 
+// Rows written before the jsonb migration may still hold a single number, and
+// jsonb columns can arrive as a JSON string depending on the client. Normalize
+// everything to an array of {id, name, rate, amount}.
+const normalizeAdjustments = (value: any, idPrefix: string) => {
+  let raw = value;
+  if (typeof raw === "string") {
+    try {
+      raw = JSON.parse(raw);
+    } catch {
+      raw = null;
+    }
+  }
+  if (Array.isArray(raw)) {
+    return raw.map((line: any, idx: number) => ({
+      id: String(line?.id ?? `${idPrefix}_${idx}`),
+      name: line?.name ?? "",
+      rate: Number(line?.rate) || 0,
+      amount: Number(line?.amount) || 0,
+    }));
+  }
+  const legacy = Number(raw) || 0;
+  return legacy > 0
+    ? [{ id: `${idPrefix}_0`, name: idPrefix === "tax" ? "Tax" : "Discount", rate: 0, amount: legacy }]
+    : [];
+};
+
 const formatInvoiceForPreview = (invoice: any) => {
   let parsedPaymentMethods: PaymentMethod[] = [];
   try {
@@ -165,8 +191,8 @@ const formatInvoiceForPreview = (invoice: any) => {
     total: invoice.total || 0,
     invoiceTitle: invoice.invoice_title || "Invoice",
     items: invoice.items || [],
-    discounts: invoice.discounts || [],
-    taxes: invoice.taxes || [],
+    discounts: normalizeAdjustments(invoice.discounts, "disc"),
+    taxes: normalizeAdjustments(invoice.taxes, "tax"),
     notes: invoice.notes || "",
     paymentMethods: parsedPaymentMethods.length
       ? parsedPaymentMethods
@@ -233,8 +259,11 @@ const Invoices = () => {
       invoiceTitle: inv.invoice_title || "INVOICE",
       total: Number(inv.total) || 0,
       subtotal: Number(inv.subtotal) || 0,
-      taxes: Number(inv.tax || inv.taxes) || 0,
-      discounts: Number(inv.discount || inv.discounts) || 0,
+      // taxes/discounts are jsonb arrays of {id, name, rate, amount}. Coercing
+      // them to a single number here (as this used to do) dropped the whole
+      // breakdown as soon as an invoice was opened for editing.
+      taxes: normalizeAdjustments(inv.taxes, "tax"),
+      discounts: normalizeAdjustments(inv.discounts, "disc"),
       items: normalizedItems.length > 0 ? normalizedItems : [{ id: "0", description: "", quantity: 1, unitPrice: 0, totalPrice: 0 }],
       details: inv.details || "",
       notes: inv.notes || "",
@@ -559,6 +588,10 @@ const InvoiceCard = ({
   onUpdateStatus: (id: string, status: string) => void;
   onDelete: () => void;
 }) => {
+  // InvoiceCard is its own component, so it needs its own toast handle —
+  // "Copy Client Pay Link" previously called a bare toast() that was not in
+  // scope here and threw a ReferenceError.
+  const { toast } = useToast();
   const total = Number(inv.total) || 0;
 
   const fmtCurrency = (amount: number) =>
@@ -616,14 +649,15 @@ const InvoiceCard = ({
 
             <StatusBadge status={inv.status} />
 
-            {/* Actions Dropdown */}
+            {/* Actions Dropdown — always visible; a hover-only trigger was
+                unreachable on touch devices. */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                 <Button
                   variant="outline"
                   size="sm"
                   aria-label="Invoice actions"
-                  className="h-8 w-8 p-0 flex-shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                  className="h-8 w-8 p-0 flex-shrink-0"
                 >
                   <ChevronDown className="h-4 w-4" />
                 </Button>
@@ -636,14 +670,21 @@ const InvoiceCard = ({
                   <Eye className="h-4 w-4" /> View & Download
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.stopPropagation();
                     const payUrl = `${window.location.origin}/pay/${inv.id}`;
-                    navigator.clipboard.writeText(payUrl);
-                    toast({
-                      title: "Live Payment Link Copied! 🔗",
-                      description: "Share this link with your client to receive payment online.",
-                    });
+                    try {
+                      await navigator.clipboard.writeText(payUrl);
+                      toast({
+                        title: "Payment link copied",
+                        description: "Share this link with your client to receive payment online.",
+                      });
+                    } catch {
+                      toast({
+                        title: "Couldn't copy automatically",
+                        description: payUrl,
+                      });
+                    }
                   }}
                   className="flex items-center gap-2 text-amber-600 font-medium"
                 >

@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   CheckCircle2,
   Clock,
@@ -11,7 +10,6 @@ import {
   Printer,
   ExternalLink,
   ShieldCheck,
-  Check,
   Send,
   MessageSquare,
   Globe,
@@ -19,43 +17,6 @@ import {
 import { renderInvoiceElementToPdf } from "@/utils/pdfUtils";
 
 import { supabase } from "@/integrations/supabase/client";
-
-// ─── Confetti Animation Overlay ─────────────────────────────────────────────
-const ConfettiOverlay = () => {
-  const pieces = Array.from({ length: 50 });
-  return (
-    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-      {pieces.map((_, i) => {
-        const left = Math.random() * 100;
-        const delay = Math.random() * 2;
-        const duration = 2.5 + Math.random() * 2;
-        const colors = [
-          "#eab308",
-          "#22c55e",
-          "#3b82f6",
-          "#ec4899",
-          "#8b5cf6",
-          "#f97316",
-        ];
-        const color = colors[i % colors.length];
-
-        return (
-          <div
-            key={i}
-            className="absolute top-0 w-3 h-3 rounded-sm opacity-90 animate-fall"
-            style={{
-              left: `${left}%`,
-              backgroundColor: color,
-              animationDelay: `${delay}s`,
-              animationDuration: `${duration}s`,
-              transform: `rotate(${Math.random() * 360}deg)`,
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const fmtCurrency = (amount: number, currency: string = "INR") => {
@@ -81,7 +42,7 @@ const fmtDate = (d?: string) => {
 
 const STATUS_CONFIG: Record<
   string,
-  { label: string; bg: string; text: string; icon: React.ReactNode }
+  { label: string; bg: string; icon: React.ReactNode }
 > = {
   paid: {
     label: "PAID",
@@ -118,13 +79,10 @@ const PublicInvoicePay = () => {
   const [sellerPaymentLink, setSellerPaymentLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [justPaid, setJustPaid] = useState(false);
   const [downloading, setDownloading] = useState(false);
-
-  // Client comment state
-  const [commentText, setCommentText] = useState("");
-  const [comments, setComments] = useState<any[]>([]);
-  const [sendingComment, setSendingComment] = useState(false);
+  // The client opened the seller's payment link. This says nothing about
+  // whether money moved — only the seller marking the invoice paid does.
+  const [redirectedToPayment, setRedirectedToPayment] = useState(false);
 
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -171,12 +129,13 @@ const PublicInvoicePay = () => {
     fetchInvoiceData();
   }, [id]);
 
-  // Handle "Pay Online" — opens seller's own payment link in a new tab.
-  // Shows confetti to celebrate the action. The seller marks the invoice
-  // as paid manually once they receive confirmation from their payment provider.
+  // Handle "Pay Online" — opens the seller's own payment link in a new tab.
+  // We have no confirmation that payment succeeded, so this must not render a
+  // success or celebration state. The invoice stays unpaid until the seller
+  // marks it paid after their provider confirms the money.
   const handlePayOnline = () => {
     if (!sellerPaymentLink) return;
-    setJustPaid(true); // Show confetti celebration
+    setRedirectedToPayment(true);
     window.open(sellerPaymentLink, "_blank", "noopener,noreferrer");
   };
 
@@ -197,26 +156,6 @@ const PublicInvoicePay = () => {
     }
   };
 
-  // Handle Client Comment Submission
-  const handleSendComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentText.trim()) return;
-    setSendingComment(true);
-    try {
-      const newComment = {
-        id: Date.now(),
-        text: commentText,
-        sender: invoice.client_name || "Client",
-        created_at: new Date().toISOString(),
-      };
-      setComments((prev) => [...prev, newComment]);
-      setCommentText("");
-    } catch (e) {
-      // ignore
-    } finally {
-      setSendingComment(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -256,27 +195,45 @@ const PublicInvoicePay = () => {
   const items = Array.isArray(invoice.items) ? invoice.items : [];
   const statusKey = invoice.status?.toLowerCase() || "pending";
   const statusConfig = STATUS_CONFIG[statusKey] || STATUS_CONFIG.pending;
-  const isPaid = statusKey === "paid" || justPaid;
+  // Paid means the seller confirmed it. Opening a payment link does not.
+  const isPaid = statusKey === "paid";
+
+  // Pro sells brand removal, so it has to apply here too — this page is the one
+  // the client actually looks at. We cannot read the seller's tier from a public
+  // page (profiles RLS only exposes your own row), but the invoice already
+  // carries show_watermark, which useInvoiceManager forces to true for free
+  // users. So `false` means "a Pro seller turned branding off" — no extra query,
+  // no RLS hole.
+  const sellerIsUnbranded = invoice.show_watermark === false;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16">
-      {/* Confetti celebration if just paid */}
-      {(justPaid || isPaid) && <ConfettiOverlay />}
-
       {/* ── Top Header ──────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-8 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img
-              src="/icon.png"
-              alt="Invoicely Logo"
-              className="h-8 w-8 object-contain rounded-lg shadow-sm"
-            />
+            {sellerIsUnbranded ? (
+              businessDetails?.logo_url && (
+                <img
+                  src={businessDetails.logo_url}
+                  alt={businessDetails?.business_name || "Business logo"}
+                  className="h-8 w-8 object-contain rounded-lg shadow-sm"
+                />
+              )
+            ) : (
+              <img
+                src="/icon.png"
+                alt="Invoicely Logo"
+                className="h-8 w-8 object-contain rounded-lg shadow-sm"
+              />
+            )}
             <div>
               <p className="font-bold text-sm text-slate-900 dark:text-white leading-tight">
                 {businessDetails?.business_name || "Secure Invoice Portal"}
               </p>
-              <p className="text-xs text-slate-400">Powered by Invoicely</p>
+              {!sellerIsUnbranded && (
+                <p className="text-xs text-slate-400">Powered by Invoicely</p>
+              )}
             </div>
           </div>
 
@@ -306,18 +263,15 @@ const PublicInvoicePay = () => {
 
       {/* ── Main Content Container ──────────────────────────────────────────── */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
-        {/* Redirected to payment provider banner */}
-        {justPaid && (
-          <div className="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-700 rounded-2xl p-6 text-center space-y-2">
-            <div className="h-12 w-12 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto shadow-md">
-              <Check className="h-7 w-7 stroke-[3]" />
-            </div>
-            <h2 className="text-2xl font-bold text-emerald-900 dark:text-emerald-100">
-              Redirected to Payment Page 🎉
-            </h2>
-            <p className="text-sm text-emerald-700 dark:text-emerald-300 max-w-sm mx-auto">
-              Complete your payment in the tab that just opened. The seller will
-              mark this invoice as paid once they receive your payment.
+        {/* Neutral, factual notice. Not a success state — no payment has been
+            confirmed at this point, so it must not look like one. */}
+        {redirectedToPayment && !isPaid && (
+          <div className="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-start gap-3">
+            <ExternalLink className="h-4 w-4 text-slate-400 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              The payment page opened in a new tab. This invoice will show as
+              paid once {businessDetails?.business_name || "the sender"} confirms
+              the payment — that can take a little while after you pay.
             </p>
           </div>
         )}
@@ -551,47 +505,33 @@ const PublicInvoicePay = () => {
           </div>
         </div>
 
-        {/* ── Client Comments / Question Box ──────────────────────────────────── */}
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
-          <CardContent className="p-6">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
-              <MessageSquare className="h-4 w-4 text-amber-500" />
-              Have a question about this invoice?
-            </h3>
-
-            {/* List of comments */}
-            {comments.length > 0 && (
-              <div className="space-y-3 mb-4">
-                {comments.map((c) => (
-                  <div
-                    key={c.id}
-                    className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-sm"
-                  >
-                    <p className="font-semibold text-xs text-slate-500 mb-1">
-                      {c.sender}
-                    </p>
-                    <p className="text-slate-800 dark:text-slate-200">
-                      {c.text}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <form onSubmit={handleSendComment} className="flex gap-2">
-              <Input
-                placeholder="Leave a message or payment reference note…"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                className="flex-1"
-              />
-              <Button type="submit" disabled={sendingComment}>
-                <Send className="h-4 w-4 mr-1" />
-                Send
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        {/* Questions go to the sender directly. There was a comment box here
+            that kept messages in local state and threw them away on reload —
+            worse than no box at all, because the client believed it sent. */}
+        {businessDetails?.email && (
+          <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+            <CardContent className="p-6">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-2">
+                <MessageSquare className="h-4 w-4 text-amber-500" />
+                Have a question about this invoice?
+              </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                Reply directly to {businessDetails?.business_name || "the sender"}
+                {" "}and mention invoice #{invoice.invoice_number}.
+              </p>
+              <a
+                href={`mailto:${businessDetails.email}?subject=${encodeURIComponent(
+                  `Question about invoice #${invoice.invoice_number}`
+                )}`}
+              >
+                <Button variant="outline" className="flex items-center gap-1.5">
+                  <Send className="h-4 w-4" />
+                  Email {businessDetails.email}
+                </Button>
+              </a>
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   );

@@ -136,8 +136,8 @@ const HowToCreateAnInvoice = () => (
         {/* Callout box */}
         <div className="my-10 p-6 bg-amber-50 rounded-2xl border border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <h3 className="font-bold text-[#0A0A0A] text-base">Want to generate an invoice in under 30 seconds?</h3>
-            <p className="text-xs text-stone-600">Try Invoicely's free invoice generator or use AI to draft your invoice automatically.</p>
+            <h3 className="font-bold text-[#0A0A0A] text-base">Want to build an invoice in under a minute?</h3>
+            <p className="text-xs text-stone-600">Try Invoicely's free invoice generator — saved clients, automatic numbering, and totals worked out for you.</p>
           </div>
           <Link
             to="/auth"

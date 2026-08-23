@@ -11,8 +11,10 @@ interface EmailModalProps {
     onRemoveEmail: (index: number, type: 'to' | 'cc') => void;
     onMessageChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
     sending: boolean;
-    userSubscription: { tier: string };
-    goToSubscription: () => void;
+    /** @deprecated Sending is available on every plan; kept so callers still typecheck. */
+    userSubscription?: { tier: string };
+    /** @deprecated No longer used — sending is not gated. */
+    goToSubscription?: () => void;
 }
 
 const EmailModal: React.FC<EmailModalProps> = ({
@@ -24,8 +26,6 @@ const EmailModal: React.FC<EmailModalProps> = ({
     onRemoveEmail,
     onMessageChange,
     sending,
-    userSubscription,
-    goToSubscription,
 }) => {
     if (!open) return null;
     return (
@@ -50,8 +50,10 @@ const EmailModal: React.FC<EmailModalProps> = ({
                         </svg>
                     </Button>
                 </div>
-                {(userSubscription.tier === "pro" || userSubscription.tier === "admin") ? (
-                    <>
+                {/* Sending is available on every plan. It is the action that
+                    produces the send/view/payment history the product depends
+                    on, so gating it behind Pro starved the whole system. */}
+                <>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -145,22 +147,6 @@ const EmailModal: React.FC<EmailModalProps> = ({
                             </Button>
                         </div>
                     </>
-                ) : (
-                    <div className="space-y-4">
-                        <div className="flex items-center text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-400 p-4 rounded-lg">
-                            <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                            </svg>
-                            <span>This feature is exclusive to Pro users.</span>
-                        </div>
-                        <Button
-                            onClick={goToSubscription}
-                            className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-200"
-                        >
-                            Upgrade to Pro
-                        </Button>
-                    </div>
-                )}
             </div>
         </div>
     );

@@ -7,7 +7,7 @@ const About = () => (
   <>
     <SEOHead
       title="About Invoicely — Free Invoice Generator for Freelancers"
-      description="Invoicely was built to make invoicing simple, fast, and accessible for freelancers and small businesses. Learn about our mission, our team, and why we built an AI-powered invoice generator."
+      description="Invoicely was built to make invoicing simple, fast, and accessible for freelancers and small businesses. Learn about our mission and why we built it."
       canonical="https://www.getinvoicely.online/about"
     />
     <PublicPageLayout>
@@ -37,8 +37,8 @@ const About = () => (
           </p>
           <p className="text-stone-600 leading-relaxed">
             Our mission is simple: make it possible to go from "I just finished a project" to
-            "invoice sent" in under 60 seconds. With AI-powered generation, 20 professional templates,
-            automatic GST calculation, and online payment links, Invoicely removes every unnecessary step.
+            "invoice sent" in under 60 seconds. Saved clients, 20 professional templates, taxes and
+            totals worked out for you, and a pay page for your client — no unnecessary steps.
           </p>
         </div>
 
@@ -48,7 +48,7 @@ const About = () => (
             {
               icon: Zap,
               title: "Speed",
-              desc: "A good invoice tool should be faster than the alternative. Our AI generates a complete, itemised invoice from a plain-English description.",
+              desc: "A good invoice tool should be faster than the alternative. Saved clients, saved business details, automatic numbering, and totals that calculate themselves.",
             },
             {
               icon: FileText,
@@ -77,11 +77,11 @@ const About = () => (
           <ul className="space-y-3 text-stone-600">
             {[
               "Free online invoice generator — create a professional invoice in under 60 seconds",
-              "AI invoice generation — describe your work, get a complete invoice instantly",
+              "1-click email delivery — your client gets the invoice with the PDF attached",
               "20 professional invoice templates for freelancers, agencies, and businesses",
-              "GST-compliant invoices with automatic CGST, SGST, and IGST calculation",
+              "Named tax and discount lines with custom rates — GST, VAT, sales tax",
               "One-click PDF export — every invoice is print-ready",
-              "Online payment links — clients pay via UPI, Razorpay, or card",
+              "A shareable pay page using your own payment link (UPI, Razorpay, card, PayPal)",
               "Client management — store client details and track payment history",
               "Recurring invoices for regular clients (Pro plan)",
             ].map((item) => (

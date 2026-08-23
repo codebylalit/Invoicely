@@ -15,7 +15,6 @@ import {
   Palette,
   ArrowRight,
   ChevronDown,
-  Star,
   XCircle,
   CheckCircle2,
   Send,
@@ -40,14 +39,14 @@ const homepageSchema = {
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web",
   "url": "https://www.getinvoicely.online",
-  "description": "Free online invoice generator for freelancers and small businesses. Create, send, and track professional invoices with AI, GST support, and online payment links.",
+  "description": "Free online invoice generator for freelancers and small businesses. Create professional invoices, email them with the PDF attached, and get paid through your own payment link.",
   "offers": [
     {
       "@type": "Offer",
       "name": "Free Plan",
       "price": "0",
       "priceCurrency": "USD",
-      "description": "5 invoices per month, 3 templates, 3 clients"
+      "description": "Unlimited invoices, unlimited clients, 3 templates"
     },
     {
       "@type": "Offer",
@@ -64,15 +63,13 @@ const homepageSchema = {
     }
   ],
   "featureList": [
-    "AI invoice generation",
     "20 professional invoice templates",
     "Direct 1-click email delivery with PDF attachment",
-    "GST/tax calculation",
+    "Tax and discount line items",
     "PDF export",
-    "Online payment links (Stripe, PayPal, Razorpay, UPI, and more)",
+    "Shareable pay page with your own payment link (Stripe, PayPal, Razorpay, UPI, and more)",
     "Client management",
-    "Automatic payment reminders",
-    "Multi-currency support"
+    "Recurring invoice setup"
   ]
 };
 
@@ -90,13 +87,13 @@ const pricingTiers = [
     badge: null,
     cta: "Get Started Free",
     features: [
-      "5 invoices per month",
+      "Unlimited invoices",
+      "Unlimited clients",
       "1-Click direct email sending (PDF attached)",
       "3 professional invoice templates",
-      "Manage up to 3 clients",
-      "Payment link (Stripe, PayPal, UPI, any provider)",
-      "Try AI invoice creation (3 uses)",
-      "Multi-currency (USD, EUR, INR)",
+      "Tax & discount line items with custom rates",
+      "Your own payment link (Stripe, PayPal, UPI, any provider)",
+      "Shareable pay page for every invoice",
     ],
   },
   {
@@ -109,14 +106,10 @@ const pricingTiers = [
     badge: "Most Popular",
     cta: "Start Pro — $6/mo",
     features: [
-      "Unlimited invoices & clients",
-      "Direct email delivery with attached PDFs",
+      "Everything in Free",
       "All 20 premium templates",
-      "100% white-label — your brand only",
-      "Online payment links (Stripe, PayPal, UPI, Razorpay, any provider)",
-      "Unlimited AI invoice creation",
-      "Automatic payment reminders & recurring billing",
-      "Multi-currency billing (USD, EUR, GBP, INR)",
+      "No Invoicely branding on invoices, PDFs, the pay page, or the email",
+      "Recurring invoices for retainer clients",
     ],
   },
 ];
@@ -124,7 +117,7 @@ const pricingTiers = [
 const faqs = [
   {
     q: "Can I use Invoicely for free forever?",
-    a: "Yes. The Free plan never expires. Create up to 5 invoices per month, email them directly to clients with attached PDFs, and manage 3 clients — at no cost, forever.",
+    a: "Yes. The Free plan never expires. Create and email as many invoices as you like with attached PDFs, and save as many clients as you need — at no cost, forever. Invoices carry a small \"Powered by Invoicely\" badge; removing it is what Pro is for.",
   },
   {
     q: "Can I send invoices directly to client emails?",
@@ -135,8 +128,8 @@ const faqs = [
     a: "Yes. Each invoice has a shareable live link where your client can click Pay Online and complete payment via your chosen provider — Stripe, PayPal, Razorpay, UPI, or any platform you use. Works globally.",
   },
   {
-    q: "Can I generate GST-compliant invoices?",
-    a: "Yes. CGST, SGST, and IGST are calculated automatically based on your state code and tax rate. HSN/SAC codes and GSTIN numbers are supported.",
+    q: "Can I add GST or other taxes to an invoice?",
+    a: "Yes. Add as many named tax lines as you need — GST, VAT, sales tax — each with its own rate, and Invoicely calculates the amounts and totals. Your GSTIN and business details print on the invoice from your settings.",
   },
   {
     q: "Can I download invoices as PDF?",
@@ -144,7 +137,7 @@ const faqs = [
   },
   {
     q: "Can I remove the Invoicely branding?",
-    a: "Yes. Pro plan users get fully white-label invoices — no Invoicely watermark or badge anywhere.",
+    a: "Yes. On Pro our branding comes off everywhere your client sees it — the invoice, the PDF, the shared pay page, and the invoice email. They carry your logo and business details only. The one thing we can't change is the sending email address, which stays on our verified domain.",
   },
 ];
 
@@ -157,8 +150,8 @@ const features = [
   },
   {
     icon: ZapIcon,
-    title: "AI-Powered Generation",
-    desc: "Describe your work in plain English — Invoicely's AI builds a complete, itemized invoice in seconds with tax calculations.",
+    title: "Invoice in Under a Minute",
+    desc: "Saved clients, saved business details, and automatic invoice numbering. Add your line items and the totals, taxes, and discounts calculate themselves.",
   },
   {
     icon: Palette,
@@ -172,21 +165,21 @@ const features = [
   },
   {
     icon: RefreshCw,
-    title: "Automated Recurring Invoices",
-    desc: "Set up background recurring billing for retainer clients. Invoicely automatically generates and dispatches invoices on schedule.",
+    title: "Recurring Invoices",
+    desc: "Save a retainer client's invoice once and reissue it every cycle without rebuilding it — same items, new dates and number.",
   },
   {
     icon: BellRing,
-    title: "Smart Email Payment Reminders",
-    desc: "Automated friendly payment reminders go out before and after due dates so clients pay on time without awkward emails.",
+    title: "See Who Owes You",
+    desc: "One list of every unpaid and overdue invoice with the amount and how late it is, so you know exactly who to chase.",
   },
 ];
 
 const steps = [
   {
     num: "01",
-    title: "Describe Your Work",
-    desc: "Type what you did or let AI generate line items. Rates, quantities, and GST calculated for you automatically.",
+    title: "Add Your Line Items",
+    desc: "Pick a saved client, list what you did, and set rates and quantities. Subtotal, taxes, and discounts calculate as you type.",
     icon: Sparkles,
   },
   {
@@ -212,35 +205,11 @@ const steps = [
 const comparisonRows = [
   { label: "Invoice creation time", without: "20–30 minutes", with: "Under 30 seconds" },
   { label: "Email sending", without: "Manual export & attachment", with: "1-Click direct email + PDF attached" },
-  { label: "GST & Tax calculation", without: "Manual, error-prone", with: "Automatic CGST, SGST & IGST" },
+  { label: "Tax & discount maths", without: "Manual, error-prone", with: "Calculated on every line, every time" },
   { label: "Payment collection", without: "Awkward follow-up emails", with: "Direct payment link — Stripe, PayPal, UPI, or any provider" },
   { label: "Invoice design", without: "Inconsistent & unprofessional", with: "20 polished templates" },
-  { label: "Payment reminders", without: "Manual emails you forget", with: "Automated reminders before/after due date" },
+  { label: "Knowing who owes you", without: "Digging through sent mail", with: "One list of unpaid & overdue invoices" },
   { label: "PDF export", without: "Manual formatting", with: "1 click high-res PDF" },
-];
-
-const testimonials = [
-  {
-    stars: 5,
-    quote: "I used to spend 30 minutes per invoice in Excel. With Invoicely, it takes 2 minutes and I can email the PDF straight to my client.",
-    name: "Rahul S.",
-    role: "Freelance Designer",
-    initials: "RS",
-  },
-  {
-    stars: 5,
-    quote: "My clients actually comment on how professional my invoices look. The direct payment link has made a huge difference.",
-    name: "Priya M.",
-    role: "Marketing Consultant",
-    initials: "PM",
-  },
-  {
-    stars: 5,
-    quote: "The payment links are game changers. Clients pay the same day they receive the email — straight to my Stripe account.",
-    name: "Arjun T.",
-    role: "Web Agency Owner",
-    initials: "AT",
-  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -297,7 +266,7 @@ const Landing = () => {
     <>
       <SEOHead
         title="Invoicely — Free Online Invoice Generator with Direct Email & Payment Links"
-        description="Create professional invoices online in seconds. Direct 1-click email delivery with PDF attached, AI-powered generation, GST calculations, Razorpay & PayPal payment links."
+        description="Create professional invoices online in seconds. 1-click email delivery with the PDF attached, automatic tax and total calculation, and a shareable pay page with your own payment link."
         canonical="https://www.getinvoicely.online"
         structuredData={homepageSchema}
       />
@@ -435,15 +404,12 @@ const Landing = () => {
           />
 
           <div className="max-w-5xl mx-auto text-center relative z-10">
-            {/* Social proof pill */}
+            {/* This pill claimed "Trusted by 10,000+" with a five-star rating.
+                Both were invented. Until there is a real number to print, it
+                states what the product costs — which is verifiable. */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-stone-200 shadow-sm text-xs font-semibold text-stone-600 mb-8 animate-fade-up">
-              <div className="flex gap-0.5" aria-label="5 stars">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" aria-hidden="true" />
-                ))}
-              </div>
-              <span className="text-stone-300">·</span>
-              <span>Trusted by 10,000+ freelancers & businesses</span>
+              <Sparkles className="h-3 w-3 text-amber-500" aria-hidden="true" />
+              <span>Free to start · No credit card · No invoice limit</span>
             </div>
 
             {/* Headline */}
@@ -464,7 +430,7 @@ const Landing = () => {
 
             {/* Sub-headline */}
             <p className="text-stone-500 text-lg sm:text-xl max-w-xl mx-auto mb-10 leading-relaxed font-normal">
-              Stop wasting hours on spreadsheets. AI-powered invoicing with auto-tax calculation, direct email delivery, instant payment links, and beautiful templates.
+              Stop wasting hours on spreadsheets. Build an invoice in under a minute, email it with the PDF attached, and give your client a page where they can pay you.
             </p>
 
 
@@ -735,58 +701,9 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* ════════════════════════════════════════
-            TESTIMONIALS
-        ════════════════════════════════════════ */}
-        <section className="py-24 sm:py-32 px-4 sm:px-6" style={{ backgroundColor: "#F5F4F2" }}>
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-14">
-              <p className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-3">
-                Community Love
-              </p>
-              <h2 className="text-4xl sm:text-5xl font-black text-[#0A0A0A] mb-4 tracking-tight">
-                Loved by Freelancers &amp; Business Owners
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
-              {testimonials.map((t, i) => (
-                <div
-                  key={t.name}
-                  className={`p-7 bg-white rounded-3xl border shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between relative overflow-hidden ${i === 1 ? "md:mt-6 border-amber-200 shadow-amber-50" : "border-stone-200/80"
-                    }`}
-                >
-                  <div
-                    className="absolute top-3 right-5 select-none pointer-events-none font-serif leading-none text-stone-100"
-                    style={{ fontSize: "7rem" }}
-                    aria-hidden="true"
-                  >
-                    "
-                  </div>
-                  <div>
-                    <div className="flex gap-0.5 mb-4" aria-label={`${t.stars} out of 5 stars`}>
-                      {Array.from({ length: t.stars }).map((_, idx) => (
-                        <Star key={idx} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />
-                      ))}
-                    </div>
-                    <p className="text-sm text-stone-700 leading-relaxed font-medium mb-6 relative z-10">
-                      "{t.quote}"
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 pt-4 border-t border-stone-100">
-                    <div className="h-9 w-9 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-extrabold text-xs flex-shrink-0">
-                      {t.initials}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-[#0A0A0A]">{t.name}</p>
-                      <p className="text-xs text-stone-400 font-medium">{t.role}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* There was a testimonials section here with three invented customers
+            and five-star ratings. Put it back the day there are real quotes
+            from real users, with their permission. Not before. */}
 
         {/* ════════════════════════════════════════
             PRICING
@@ -913,7 +830,7 @@ const Landing = () => {
               Ready to get paid faster?
             </h2>
             <p className="text-amber-900/70 text-lg mb-8 font-medium">
-              Join 10,000+ freelancers and businesses who invoice smarter with Invoicely.
+              Create your first invoice free. No credit card, no trial clock.
             </p>
             <button
               onClick={() => navigate("/auth")}

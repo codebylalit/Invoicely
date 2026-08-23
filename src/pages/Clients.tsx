@@ -12,7 +12,6 @@ import {
   Mail,
   Building2,
   MapPin,
-  AlertTriangle,
   Users,
   Search,
   FileText,
@@ -40,9 +39,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { useNavigate } from "react-router-dom";
-
-import { useEntitlements } from "@/hooks/useEntitlements";
 
 interface Client {
   id: string;
@@ -56,8 +52,6 @@ interface Client {
   total_revenue?: number;
   pending_revenue?: number;
 }
-
-const FREE_TIER_LIMIT = 3;
 
 const fmtCurrency = (v: number) =>
   new Intl.NumberFormat("en-IN", {
@@ -74,7 +68,6 @@ const Clients = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentClient, setCurrentClient] = useState<Client | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
-  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
@@ -88,9 +81,8 @@ const Clients = () => {
   const session = useSession();
   const supabase = useSupabaseClient();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
-  const { isPro, canAddClient, maxClients } = useEntitlements();
+  // Saved clients are unlimited on every plan — see useEntitlements for why.
 
   const fetchClients = async () => {
     if (!session?.user?.id) return;
@@ -164,10 +156,6 @@ const Clients = () => {
   };
 
   const openAddDialog = () => {
-    if (userTier === "free" && clients.length >= FREE_TIER_LIMIT) {
-      setUpgradeDialogOpen(true);
-      return;
-    }
     resetForm();
     setFormOpen(true);
   };
@@ -185,10 +173,6 @@ const Clients = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isEditing && limitReached) {
-      setUpgradeDialogOpen(true);
-      return;
-    }
 
     const clientData = {
       name, email: email || null, phone: phone || null,
@@ -201,7 +185,12 @@ const Clients = () => {
         const { error } = await supabase.from("clients").update(clientData).eq("id", currentClient.id);
         if (error) throw error;
         if (name !== currentClient.name) {
-          await supabase.from("invoices").update({ client_name: name }).eq("client_name", currentClient.name);
+          // Scope the rename to this user's own invoices.
+          await supabase
+            .from("invoices")
+            .update({ client_name: name })
+            .eq("client_name", currentClient.name)
+            .eq("user_id", session!.user.id);
         }
         toast({ title: "Client updated", description: `${name} has been updated successfully` });
       } else {
@@ -245,8 +234,6 @@ const Clients = () => {
     }
   };
 
-  const limitReached = !canAddClient(clients.length);
-
   return (
     <div className="space-y-6 pb-4">
       {/* ── Header ──────────────────────────────────────────────────────────── */}
@@ -255,32 +242,13 @@ const Clients = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Clients</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {clients.length} client{clients.length !== 1 ? "s" : ""}
-            {!isPro ? ` · Free plan: ${clients.length}/${maxClients}` : ""}
           </p>
         </div>
-        <Button onClick={openAddDialog} disabled={limitReached} className="flex-shrink-0">
+        <Button onClick={openAddDialog} className="flex-shrink-0">
           <UserPlus className="h-4 w-4 mr-2" />
           Add Client
         </Button>
       </div>
-
-      {/* ── Free Tier Banner ─────────────────────────────────────────────────── */}
-      {limitReached && (
-        <div className="flex items-center gap-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
-          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-              Free plan limit reached ({FREE_TIER_LIMIT} clients)
-            </p>
-            <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
-              Upgrade to Pro for unlimited clients and advanced features.
-            </p>
-          </div>
-          <Button size="sm" onClick={() => navigate("/app/settings?tab=subscription")}>
-            Upgrade to Pro
-          </Button>
-        </div>
-      )}
 
       {/* ── Summary Cards ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -395,32 +363,6 @@ const Clients = () => {
               <Button type="submit">{isEditing ? "Save Changes" : "Add Client"}</Button>
             </DialogFooter>
           </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* ── Upgrade Dialog ─────────────────────────────────────────────────────── */}
-      <Dialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen}>
-        <DialogContent className="sm:max-w-md text-center">
-          <div className="flex flex-col items-center gap-4 py-4">
-            <div className="h-16 w-16 rounded-full bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center">
-              <AlertTriangle className="h-8 w-8 text-amber-600 dark:text-amber-400" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-foreground">Free Plan Limit Reached</h3>
-              <p className="text-sm text-muted-foreground mt-1.5 max-w-xs mx-auto">
-                You can manage up to {FREE_TIER_LIMIT} clients on the free plan. Upgrade to Pro for unlimited clients.
-              </p>
-            </div>
-            <div className="flex gap-3 w-full">
-              <Button variant="outline" className="flex-1" onClick={() => setUpgradeDialogOpen(false)}>Cancel</Button>
-              <Button
-                className="flex-1"
-                onClick={() => { navigate("/app/settings?tab=subscription"); setUpgradeDialogOpen(false); }}
-              >
-                Upgrade to Pro
-              </Button>
-            </div>
-          </div>
         </DialogContent>
       </Dialog>
 

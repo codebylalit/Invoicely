@@ -114,18 +114,39 @@ serve(async (req) => {
             `).join('')
           : `<tr><td colspan="4" style="padding:10px;color:#64748b">Recurring Subscription / Services</td></tr>`
 
-        let ownerEmail = "lalitkumarnamdev4645@gmail.com";
+        // Replies have to reach the seller. This used to read profiles.email,
+        // a column that does not exist, so it always fell through to a
+        // hardcoded personal address — every client reply went to the wrong
+        // person. Read the business contact email, then the account email.
+        let ownerEmail: string | undefined;
         if (invoice.user_id) {
-          const { data: ownerProfile } = await supabaseClient
-            .from("profiles")
+          const { data: ownerBusiness } = await supabaseClient
+            .from("business_details")
             .select("email")
             .eq("user_id", invoice.user_id)
             .maybeSingle();
-          if (ownerProfile?.email) ownerEmail = ownerProfile.email;
+          if (ownerBusiness?.email) {
+            ownerEmail = ownerBusiness.email;
+          } else {
+            const { data: ownerUser } = await supabaseClient.auth.admin.getUserById(invoice.user_id);
+            if (ownerUser?.user?.email) ownerEmail = ownerUser.user.email;
+          }
         }
 
+        const brandingVisible = newInvoice.show_watermark !== false
+
+        const fromName = String(businessName || "Invoicely")
+          .replace(/[\r\n"<>,;:]/g, " ")
+          .trim()
+          .slice(0, 64) || "Invoicely";
+
         await resend.emails.send({
-          from: "Invoicely <no-reply@getinvoicely.online>",
+          // Recurring invoices are a Pro-only feature, so the seller has paid
+          // for our name to stay out of what their client sees. Honour the
+          // invoice's own show_watermark flag rather than assuming.
+          from: brandingVisible
+            ? `${fromName} via Invoicely <no-reply@getinvoicely.online>`
+            : `${fromName} <no-reply@getinvoicely.online>`,
           reply_to: ownerEmail,
           to: clientEmail,
           subject: `Invoice #${newInvoice.invoice_number} from ${businessName} — Payment Due`,
@@ -171,7 +192,9 @@ serve(async (req) => {
               </div>
 
               <p style="color:#94a3b8;margin-top:28px;font-size:12px;text-align:center;border-top:1px solid #f1f5f9;padding-top:16px">
-                This is an automated recurring invoice sent via Invoicely.
+                ${brandingVisible
+                  ? 'This is an automated recurring invoice sent via Invoicely.'
+                  : `This is an automated recurring invoice from ${businessName}.`}
               </p>
             </div>
           `,

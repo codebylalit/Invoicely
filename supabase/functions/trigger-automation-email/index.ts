@@ -125,7 +125,9 @@ serve(async (req) => {
     try {
       const emailResponse = await resend.emails.send({
         from: 'Invoicely <no-reply@getinvoicely.online>',
-        reply_to: variables.replyTo ?? 'lalitkumarnamdev4645@gmail.com',
+        // These are Invoicely's own automation emails, so support is the right
+        // reply address. It used to be a hardcoded personal Gmail.
+        reply_to: variables.replyTo ?? 'support@getinvoicely.online',
         to: [recipientEmail],
         subject: resolvedSubject,
         html: resolvedBody,

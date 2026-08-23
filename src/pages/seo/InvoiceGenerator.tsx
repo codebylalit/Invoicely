@@ -8,7 +8,7 @@ import PublicPageLayout from "@/components/PublicPageLayout";
 const faqs = [
   {
     q: "Is Invoicely's invoice generator really free?",
-    a: "Yes. The free plan lets you create up to 5 invoices per month with 3 professional templates and 3 client slots at no cost. No credit card required to start.",
+    a: "Yes. The free plan lets you create and email unlimited invoices with 3 professional templates and 3 client slots at no cost. No credit card required to start.",
   },
   {
     q: "Do I need to install software to use Invoicely?",
@@ -20,11 +20,11 @@ const faqs = [
   },
   {
     q: "Does Invoicely support GST invoices?",
-    a: "Yes. Invoicely automatically calculates CGST, SGST, and IGST based on your tax rate, making it suitable for GST-registered businesses in India.",
+    a: "Yes. Add CGST and SGST as separate tax lines, or a single IGST line, each with its own rate — Invoicely calculates the amounts and the total, and prints your GSTIN on the invoice.",
   },
   {
     q: "Can I send invoices directly to clients from Invoicely?",
-    a: "Yes. You can email invoices directly from the platform. On the Pro plan, you can also share a live payment link so clients can pay online instantly.",
+    a: "Yes, on every plan. You can email invoices directly from the platform with the PDF attached, and share a pay page carrying your own payment link so clients can pay online right away.",
   },
   {
     q: "What types of businesses use an invoice generator?",
@@ -71,11 +71,11 @@ const breadcrumbSchema = {
 // ── Features ───────────────────────────────────────────────────────────────────
 const features = [
   { icon: Mail, title: "1-Click Direct Email Delivery", desc: "Send invoices straight to your client's email address with the print-ready PDF attached and payment link included." },
-  { icon: Zap, title: "AI Invoice Generation", desc: "Describe your work in plain English and get a complete, itemised invoice in seconds — no blank forms." },
+  { icon: Zap, title: "Nothing Retyped Twice", desc: "Saved clients, saved business details, and sequential invoice numbers issued for you — you only type what is actually new." },
   { icon: FileText, title: "20 Professional Templates", desc: "Choose from 20 designs covering freelancer, agency, retail, healthcare, consulting, and more." },
   { icon: Download, title: "One-Click PDF Export", desc: "Download a print-ready PDF instantly. Compatible with email, WhatsApp, and any document system." },
   { icon: Link2, title: "Global Payment Links", desc: "Add your Stripe, PayPal, Razorpay, UPI, or any payment link. Clients pay directly into your account." },
-  { icon: RefreshCw, title: "Automated Recurring Invoices", desc: "Set up automatic recurring schedules for retainer clients. Invoicely generates and emails them on schedule." },
+  { icon: RefreshCw, title: "Recurring Invoices", desc: "Save a retainer client's schedule and reissue the same invoice each cycle with new dates and a new number instead of rebuilding it." },
 ];
 
 
@@ -84,7 +84,7 @@ const steps = [
   { n: "01", title: "Create your account", desc: "Sign up free — no credit card required. Takes under 30 seconds." },
   { n: "02", title: "Add your client", desc: "Enter the client's name, email, and billing address. Save them for future invoices." },
   { n: "03", title: "Add services or products", desc: "List what you delivered — quantity, rate, and description. Invoicely totals everything automatically." },
-  { n: "04", title: "Apply tax (optional)", desc: "Add GST (CGST/SGST/IGST) or any custom tax percentage. Invoicely calculates it correctly." },
+  { n: "04", title: "Apply tax (optional)", desc: "Add named tax lines — GST, VAT, sales tax — each with its own rate. Invoicely calculates every amount." },
   { n: "05", title: "Generate and send", desc: "Download as PDF or send directly to your client's email. Share a payment link for instant online payment." },
 ];
 
@@ -100,7 +100,7 @@ const InvoiceGenerator = () => (
   <>
     <SEOHead
       title="Free Online Invoice Generator — Create Invoices in Seconds | Invoicely"
-      description="Use Invoicely's free invoice generator to create professional invoices online. AI-powered, 20 templates, PDF export, GST support. No software to install."
+      description="Use Invoicely's free invoice generator to create professional invoices online. 20 templates, PDF export, email delivery, tax lines. No software to install."
       canonical="https://www.getinvoicely.online/invoice-generator"
       structuredData={[faqSchema, breadcrumbSchema]}
     />
@@ -136,7 +136,7 @@ const InvoiceGenerator = () => (
               See what's free
             </Link>
           </div>
-          <p className="text-xs text-stone-400 mt-4">No credit card required · 5 invoices free per month</p>
+          <p className="text-xs text-stone-400 mt-4">No credit card required · Unlimited invoices on the free plan</p>
         </div>
       </section>
 
@@ -156,8 +156,8 @@ const InvoiceGenerator = () => (
             client information, payment terms, and PDF export — all automatically.
           </p>
           <p className="text-stone-600 leading-relaxed">
-            Invoicely goes further with <Link to="/ai-invoice-generator" className="text-amber-700 font-medium hover:underline">AI-powered invoice generation</Link>{" "}
-            — describe your work in plain English and get a complete invoice drafted for you.
+            Invoicely goes further by <Link to="/how-it-works" className="text-amber-700 font-medium hover:underline">taking the invoice all the way to paid</Link>{" "}
+            — email it with the PDF attached, and give your client a page with a Pay Online button.
           </p>
         </section>
 
@@ -253,7 +253,7 @@ const InvoiceGenerator = () => (
           <h2 className="text-xl font-black text-[#0A0A0A] mb-5">Related Tools & Guides</h2>
           <div className="grid sm:grid-cols-2 gap-3">
             {[
-              { to: "/ai-invoice-generator", label: "AI Invoice Generator", desc: "Create invoices from a plain-English description" },
+              { to: "/how-it-works", label: "How Invoicely Works", desc: "The full workflow from draft to paid" },
               { to: "/free-invoice-generator", label: "Free Invoice Generator", desc: "Exactly what's included in the free plan" },
               { to: "/invoice-generator-online", label: "Online Invoice Maker", desc: "No software, no install — works in any browser" },
               { to: "/blog/how-to-create-an-invoice", label: "How to Create an Invoice", desc: "Step-by-step guide for beginners" },

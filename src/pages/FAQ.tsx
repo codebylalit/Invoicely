@@ -7,23 +7,23 @@ import PublicPageLayout from "@/components/PublicPageLayout";
 const faqs = [
   {
     q: "What is Invoicely?",
-    a: "Invoicely is a free online invoice generator for freelancers and small businesses. You can create, download, and send professional invoices in under a minute — with AI assistance, 20 templates, GST support, and online payment links.",
+    a: "Invoicely is a free online invoice generator for freelancers and small businesses. You can create, download, and email professional invoices in under a minute — 20 templates, tax and discount lines, and a shareable page where your client can pay you.",
   },
   {
     q: "Is Invoicely really free?",
-    a: "Yes. The Free plan lets you create up to 5 invoices per month, manage 3 clients, and use 3 invoice templates at no cost, forever. For unlimited invoices and advanced features, the Pro plan starts at $6/month.",
+    a: "Yes. The Free plan lets you create and email unlimited invoices, save unlimited clients, and use 3 invoice templates at no cost, forever. For all 20 templates, recurring invoices, and no Invoicely branding, the Pro plan starts at $6/month.",
   },
   {
     q: "Who can use Invoicely?",
     a: "Invoicely is built for freelancers, consultants, agencies, and small business owners who need professional invoices without complex accounting software. If you invoice clients for your work, Invoicely works for you.",
   },
   {
-    q: "How does the AI invoice generation work?",
-    a: "Describe your work in plain English — for example, 'Website redesign for Acme Corp, 40 hours at ₹2,500/hr, GST 18%' — and Invoicely's AI creates a fully itemised invoice. You can then edit any field before sending.",
+    q: "How long does it take to create an invoice?",
+    a: "Under a minute once your business details are saved. Pick a saved client, add your line items, and the subtotal, taxes, discounts, and total calculate as you type. Invoice numbers are issued in sequence automatically.",
   },
   {
-    q: "Can I generate GST-compliant invoices?",
-    a: "Yes. Invoicely automatically calculates CGST, SGST, and IGST based on your tax rate. Your GSTIN appears on the invoice. This meets the standard requirements for GST invoices in India.",
+    q: "Can I add GST or other taxes to an invoice?",
+    a: "Yes. Add as many named tax lines as you need — GST, VAT, sales tax — each with its own rate, and Invoicely works out the amounts and the total. Your GSTIN or VAT number prints on the invoice from your business settings. Invoicely does not split CGST/SGST/IGST for you; add those as separate tax lines if you need them shown separately.",
   },
   {
     q: "Can I download invoices as PDF?",
@@ -31,15 +31,15 @@ const faqs = [
   },
   {
     q: "Can my clients pay online?",
-    a: "Yes, on the Pro plan. Share a payment link and your client can pay via UPI, Razorpay, debit card, credit card, or bank transfer. You get notified when payment lands.",
+    a: "Yes, on every plan. Add your own payment link — Stripe, PayPal, Razorpay, UPI, or any provider — in Settings, and every invoice gets a shareable page with a Pay Online button that sends your client to it. Money goes straight to your account; Invoicely never touches it. Because of that, Invoicely can't detect the payment for you — you mark the invoice paid once your provider confirms it.",
   },
   {
     q: "Can I remove the Invoicely branding from my invoices?",
-    a: "Yes, on the Pro plan. Pro users get fully white-label invoices — no Invoicely logo or watermark appears anywhere on the invoice.",
+    a: "Yes. On Pro our branding comes off everywhere your client sees it — the invoice, the PDF, the shared pay page, and the invoice email. They show your logo and business details only. The one thing we can't change is the sending email address, which stays on our verified domain.",
   },
   {
     q: "Do you support recurring invoices?",
-    a: "Yes, on the Pro plan. You can set up recurring invoices for regular clients that are automatically generated on a schedule — monthly, weekly, or custom intervals.",
+    a: "Yes, on the Pro plan. Save a recurring schedule for a retainer client — weekly, monthly, or a custom interval — and reissue that invoice each cycle without rebuilding it.",
   },
   {
     q: "How do I contact support?",
@@ -92,7 +92,7 @@ const FAQ = () => (
   <>
     <SEOHead
       title="FAQ — Frequently Asked Questions | Invoicely"
-      description="Answers to the most common questions about Invoicely — free plan limits, AI invoice generation, GST support, PDF export, payment links, and more."
+      description="Answers to the most common questions about Invoicely — free plan limits, tax and GST lines, PDF export, email delivery, payment links, and more."
       canonical="https://www.getinvoicely.online/faq"
       structuredData={faqSchema}
     />
@@ -129,8 +129,8 @@ const FAQ = () => (
               </Link>
             </li>
             <li>
-              <Link to="/ai-invoice-generator" className="text-amber-700 hover:underline font-medium">
-                → AI invoice generator — how it works
+              <Link to="/how-it-works" className="text-amber-700 hover:underline font-medium">
+                → How Invoicely works, step by step
               </Link>
             </li>
             <li>

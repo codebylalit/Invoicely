@@ -35,12 +35,12 @@ const useCases = [
     icon: Code,
     color: "bg-blue-50 text-blue-600 border-blue-200",
     activeTab: "bg-blue-600 text-white",
-    headline: "Go from project completion to cash in bank in under 60 seconds",
+    headline: "Go from project completion to invoice in your client's inbox in under a minute",
     description:
-      "Stop wasting unpaid hours constructing spreadsheets. Freelancers use Invoicely to email PDF invoices directly to clients, request upfront deposits, and attach direct payment links for 3x faster payment.",
+      "Stop wasting unpaid hours constructing spreadsheets. Freelancers use Invoicely to email PDF invoices directly to clients and include a link where the client can pay right away instead of waiting for bank details.",
     keyBenefits: [
       "Send PDF invoice directly to client's email inbox in 1 click",
-      "Request 50% upfront deposits automatically",
+      "Bill a deposit as its own line item on the invoice",
       "Share your payment link — Stripe, PayPal, UPI, or any provider",
       "Export print-ready PDF invoices for offline accounting",
     ],
@@ -63,26 +63,26 @@ const useCases = [
     icon: Briefcase,
     color: "bg-amber-50 text-amber-600 border-amber-200",
     activeTab: "bg-amber-500 text-slate-950 font-bold",
-    headline: "White-label billing, direct email delivery & recurring retainer schedules",
+    headline: "Unbranded invoices, direct email delivery & saved retainer schedules",
     description:
-      "Maintain a 100% professional enterprise image. Agency owners use Invoicely to send unbranded white-label invoices straight to client inboxes, set automated recurring monthly bills, and trigger auto payment reminders.",
+      "Keep a clean, professional face in front of clients. Agency owners use Invoicely to email invoices with no Invoicely watermark straight to client inboxes, and to save retainer schedules so the monthly bill doesn't get rebuilt from scratch.",
     keyBenefits: [
       "1-Click direct email sending with custom subject & message",
-      "Automated background recurring invoice generation for retainers",
-      "Remove all Invoicely branding (100% White-Label)",
-      "Automated email payment reminders before & after due dates",
+      "Saved recurring schedules for retainer clients",
+      "No Invoicely watermark on your invoices or PDFs (Pro)",
+      "One list of who is unpaid and how overdue they are",
     ],
     example: {
       client: "Nexus Global Marketing",
       type: "Monthly Digital Strategy Retainer",
-      deliveryMethod: "Auto-generated recurring email with PDF",
+      deliveryMethod: "Recurring schedule, emailed with PDF attached",
       items: [
         { desc: "Monthly Performance Marketing & SEO Retainer", rate: "$1,500/mo", total: "$1,500.00" },
         { desc: "Ad Creative Production & Copywriting", rate: "4 Units", total: "$600.00" },
       ],
       tax: "Standard State Tax (8%)",
       totalDue: "$2,268.00",
-      paymentTerm: "Recurring Monthly · Auto Payment Reminders On",
+      paymentTerm: "Recurring Monthly · Net 15",
     },
   },
   {
@@ -91,13 +91,13 @@ const useCases = [
     icon: Store,
     color: "bg-emerald-50 text-emerald-600 border-emerald-200",
     activeTab: "bg-emerald-600 text-white",
-    headline: "Automatic CGST, SGST & IGST tax calculation with instant PDF & email send",
+    headline: "Named GST tax lines, your GSTIN on the invoice, instant PDF & email send",
     description:
-      "Comply with tax authorities without doing manual math. Local business owners enter their GSTIN and items; Invoicely automatically splits CGST/SGST or IGST based on state codes and emails the GST Tax Invoice.",
+      "Stop doing tax maths by hand. Add the tax lines your invoice needs — CGST and SGST as separate lines, or a single IGST line — each with its own rate, and Invoicely calculates every amount and the total. Your GSTIN prints on the invoice from your business settings.",
     keyBenefits: [
-      "Automatic CGST, SGST, and IGST rate splitting",
-      "Mandatory GSTIN and HSN/SAC code support",
-      "Email GST invoice PDF straight to customer inbox",
+      "Add as many named tax lines as you need, each with its own rate",
+      "Your GSTIN / VAT number printed on every invoice",
+      "Email the invoice PDF straight to the customer's inbox",
       "Instant print-ready PDF export for physical billing counters",
     ],
     example: {
@@ -105,10 +105,9 @@ const useCases = [
       type: "B2B Office Supplies Order",
       deliveryMethod: "Direct Email PDF + Counter Print Ready",
       items: [
-        { desc: "Ergonomic Mesh Office Chairs (HSN: 9401)", rate: "₹8,000 × 5", total: "₹40,000.00" },
-        { desc: "CGST (9%) + SGST (9%)", rate: "18%", total: "₹7,200.00" },
+        { desc: "Ergonomic Mesh Office Chairs", rate: "₹8,000 × 5", total: "₹40,000.00" },
       ],
-      tax: "CGST 9% (₹3,600) + SGST 9% (₹3,600)",
+      tax: "CGST 9% (₹3,600) + SGST 9% (₹3,600) — two tax lines",
       totalDue: "₹47,200.00",
       paymentTerm: "Net 30 · Bank Transfer / UPI / Online Payment Link",
     },
@@ -147,16 +146,16 @@ const useCases = [
 const detailedSteps = [
   {
     num: "01",
-    badge: "INPUT & AI GENERATION",
-    title: "Describe Your Work (or let AI draft it)",
-    shortDesc: "Type what you did in plain English, or pick items from your saved catalog.",
+    badge: "BUILD THE INVOICE",
+    title: "Add Your Client & Line Items",
+    shortDesc: "Pick a saved client, list what you did, and let the totals work themselves out.",
     longDesc:
-      "No more starting at a blank spreadsheet. Simply type a quick description like 'Website redesign for Acme Corp, 20 hours at $60/hr plus 18% GST' — Invoicely's AI extracts line items, quantities, rates, tax splits, and totals in seconds.",
+      "No more starting at a blank spreadsheet. Your clients and business details are saved, invoice numbers are issued in sequence automatically, and every total — subtotal, tax, discount, amount due — recalculates as you type.",
     bullets: [
-      "Natural language AI prompt generator",
-      "Manual line-item entry with custom item discounts",
-      "Auto-calculate GST (CGST, SGST, IGST) or sales tax",
-      "Multi-currency support (USD, EUR, GBP, INR, AUD)",
+      "Saved clients and business details, filled in for you",
+      "Line-item entry with quantities, rates, and discounts",
+      "Named tax lines with custom rates — GST, VAT, sales tax",
+      "Automatic sequential invoice numbering with your own prefix",
     ],
     icon: Sparkles,
   },
@@ -170,7 +169,7 @@ const detailedSteps = [
     bullets: [
       "20 designer-crafted invoice templates",
       "Upload your company logo & custom accent colors",
-      "100% White-Label — remove Invoicely watermark (Pro)",
+      "Remove the Invoicely watermark from your invoices (Pro)",
       "Instant A4 / US Letter PDF preview",
     ],
     icon: Palette,
@@ -192,16 +191,16 @@ const detailedSteps = [
   },
   {
     num: "04",
-    badge: "COLLECTION & AUTOMATION",
-    title: "Live Payment Links & Auto Reminders",
+    badge: "GET PAID & TRACK IT",
+    title: "Share a Pay Page & Track Who Owes You",
     shortDesc: "Clients click Pay Online and pay directly into your account via their preferred method.",
     longDesc:
-      "Each invoice includes a live \"Pay Online\" button. Clients click it and pay via your chosen payment provider — Stripe, PayPal, Razorpay, UPI, or any platform you use. Money goes directly to your account, anywhere in the world. Set automated background reminders for upcoming or overdue invoices, or schedule recurring billing.",
+      "Every invoice gets a shareable page with a \"Pay Online\" button pointing at your own payment link — Stripe, PayPal, Razorpay, UPI, or any platform you use. Money goes directly to your account, anywhere in the world; Invoicely never handles it. Because the payment happens at your provider, you mark the invoice paid once they confirm it — and until then it sits in your unpaid list with the amount and days overdue.",
     bullets: [
-      "Live payment links (Stripe, PayPal, Razorpay, UPI, any provider)",
-      "Automated email reminders before & after due dates",
-      "Auto-recurring invoices for retainer clients",
-      "Real-time payment status tracking (Sent, Paid, Overdue)",
+      "Shareable pay page using your own payment link",
+      "Works with any provider (Stripe, PayPal, Razorpay, UPI)",
+      "Recurring schedules for retainer clients",
+      "Status tracking — Draft, Sent, Paid, Overdue",
     ],
     icon: Send,
   },
@@ -216,28 +215,28 @@ const uniqueFeatures = [
   },
   {
     icon: CreditCard,
-    title: "Dual Payment Gateways (Razorpay & PayPal)",
-    desc: "Accept local Indian payments via UPI, Debit/Credit Cards & Netbanking with Razorpay, or bill global clients seamlessly via PayPal.",
+    title: "Bring Your Own Payment Provider",
+    desc: "Paste your Stripe, PayPal, Razorpay, or UPI link once. Every invoice's pay page points your client at it, and the money lands in your account — Invoicely never sits in the middle and takes no cut.",
   },
   {
     icon: RefreshCw,
-    title: "Automated Recurring Invoices",
-    desc: "Set up background recurring billing schedules for retainer clients. Invoicely automatically generates and dispatches invoices on time.",
+    title: "Recurring Invoices for Retainers",
+    desc: "Save a retainer client's schedule — weekly, monthly, or a custom interval — and reissue the same invoice each cycle with new dates and a new number instead of rebuilding it.",
   },
   {
     icon: BellRing,
-    title: "Smart Email Payment Reminders",
-    desc: "Automated email notifications go out to clients before due dates and after invoices become overdue — so you get paid without awkward follow-ups.",
+    title: "One List of Who Owes You",
+    desc: "Every unpaid and overdue invoice in one place with the amount and how late it is, so chasing payment starts with knowing exactly who to chase.",
   },
   {
     icon: Sparkles,
-    title: "AI Prompt Invoice Generator",
-    desc: "Type what work you completed in natural English text. Our AI extracts line items, quantities, hourly rates, and tax calculations instantly.",
+    title: "Sequential Invoice Numbering",
+    desc: "Set your own prefix and starting number once. Every invoice gets the next number in order, issued by the database — no duplicates, no gaps, no remembering where you left off.",
   },
   {
     icon: Globe2,
-    title: "Multi-Currency & Automatic Tax Calculations",
-    desc: "Bill clients in USD, EUR, GBP, or INR with automatic CGST, SGST, and IGST tax splitting for Indian businesses and VAT for global clients.",
+    title: "Named Tax & Discount Lines",
+    desc: "Add as many tax and discount lines as an invoice needs — GST, VAT, sales tax, an early-payment discount — each with its own rate, all calculated for you.",
   },
 ];
 
@@ -261,7 +260,7 @@ const HowItWorksContent = () => {
           </h1>
           <p className="text-lg text-stone-500 max-w-2xl mx-auto leading-relaxed mb-10">
             No spreadsheets, zero manual math errors, and no bloated software.
-            Here is the exact step-by-step workflow that helps 10,000+ businesses send invoices and get paid 3x faster.
+            Here is the exact step-by-step workflow, from a blank invoice to money in your account.
           </p>
         </div>
 
@@ -315,7 +314,7 @@ const HowItWorksContent = () => {
             Built-In Invoicely Superpowers
           </p>
           <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight mb-3">
-            More Than Just Payment Links — Full Delivery & Automation
+            More Than a PDF Generator — Delivery, Payment & Tracking
           </h2>
           <p className="text-sm text-stone-400 leading-relaxed max-w-xl mx-auto">
             Everything you need to create, deliver, collect, and manage invoices smoothly in one place.
@@ -515,11 +514,11 @@ const HowItWorksContent = () => {
             <ul className="space-y-3 text-xs sm:text-sm text-emerald-950">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                <span>Generated in under 30 seconds via simple prompt or template</span>
+                <span>Built in under a minute from saved clients and business details</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                <span>100% automated math for GST (CGST/SGST/IGST), VAT, & discounts</span>
+                <span>Every total calculated for you — taxes, discounts, amount due</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
@@ -527,11 +526,11 @@ const HowItWorksContent = () => {
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                <span>Instant payment links (UPI, Razorpay, Debit/Credit Card, PayPal)</span>
+                <span>A pay page pointing at your own link (UPI, Razorpay, Card, PayPal)</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                <span>Automated friendly payment reminders & background recurring billing</span>
+                <span>Recurring schedules for retainers, plus unpaid & overdue tracking</span>
               </li>
             </ul>
           </div>
@@ -546,7 +545,7 @@ const HowItWorksContent = () => {
             Ready to experience 30-second invoicing & direct delivery?
           </h2>
           <p className="text-stone-400 text-sm leading-relaxed">
-            Create your first invoice free — no credit card required. Join 10,000+ freelancers and business owners invoicing smarter.
+            Create your first invoice free — no credit card required, no trial clock.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <button

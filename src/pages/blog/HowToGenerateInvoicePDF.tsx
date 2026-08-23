@@ -93,7 +93,7 @@ const HowToGenerateInvoicePDF = () => (
             With <Link to="/invoice-generator-online" className="text-amber-700 font-semibold hover:underline">Invoicely's online invoice generator</Link>, creating a PDF takes 3 simple steps:
           </p>
           <ol className="list-decimal pl-6 space-y-2 text-sm">
-            <li>Fill out your invoice details or use <Link to="/ai-invoice-generator" className="text-amber-700 font-semibold hover:underline">AI prompt creation</Link>.</li>
+            <li>Fill out your invoice details — <Link to="/how-it-works" className="text-amber-700 font-semibold hover:underline">see the full walkthrough</Link>.</li>
             <li>Select one of 20 professional design templates.</li>
             <li>Click <strong>Export PDF</strong> to download a crisp, print-ready file instantly.</li>
           </ol>
