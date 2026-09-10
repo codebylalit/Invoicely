@@ -18,6 +18,9 @@ import {
   ChevronRight,
   UserPlus,
 } from "lucide-react";
+import { useEntitlements } from "@/hooks/useEntitlements";
+import { useFreeLimits } from "@/hooks/useFreeLimits";
+import UpgradePrompt from "@/components/UpgradePrompt";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -70,6 +73,7 @@ const Clients = () => {
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
   // Form state
   const [name, setName] = useState("");
@@ -81,8 +85,8 @@ const Clients = () => {
   const session = useSession();
   const supabase = useSupabaseClient();
   const { toast } = useToast();
-
-  // Saved clients are unlimited on every plan — see useEntitlements for why.
+  const { isPro, canAddClient } = useEntitlements();
+  const { clientCount } = useFreeLimits();
 
   const fetchClients = async () => {
     if (!session?.user?.id) return;
@@ -156,6 +160,11 @@ const Clients = () => {
   };
 
   const openAddDialog = () => {
+    // ── Enforce Free plan client limit ─────────────────────────────────────
+    if (!isPro && !canAddClient(clients.length)) {
+      setShowUpgradePrompt(true);
+      return;
+    }
     resetForm();
     setFormOpen(true);
   };
@@ -390,6 +399,13 @@ const Clients = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ── Upgrade Prompt (shown when client limit reached) ─────────────── */}
+      <UpgradePrompt
+        open={showUpgradePrompt}
+        onClose={() => setShowUpgradePrompt(false)}
+        limitType="clients"
+      />
     </div>
   );
 };

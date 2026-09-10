@@ -18,6 +18,8 @@ import InvoiceLayout from './invoice/InvoiceLayout';
 import EmailModal from './invoice/EmailModal';
 import confetti from "canvas-confetti";
 import { useEntitlements } from "@/hooks/useEntitlements";
+import { useFreeLimits } from "@/hooks/useFreeLimits";
+import UpgradePrompt from "@/components/UpgradePrompt";
 
 interface InvoicePreviewProps {
   invoice: Invoice | null;
@@ -85,6 +87,7 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
     return 'auto';
   });
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showEmailUpgradePrompt, setShowEmailUpgradePrompt] = useState(false);
   const [emailFormData, setEmailFormData] = useState<EmailFormData>({
     to: [],
     cc: [],
@@ -131,7 +134,8 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
   const goToSubscription = () => {
     navigate("/app/settings?tab=subscription");
   };
-  const { isPro, tier, canUseTemplate, canRemoveWatermark } = useEntitlements();
+  const { isPro, tier, canUseTemplate, canRemoveWatermark, canSendEmailWithLimit } = useEntitlements();
+  const { monthlyEmailCount, incrementEmailCount } = useFreeLimits();
   const userSubscription = useMemo(() => ({ tier }), [tier]);
 
   // Default empty invoice for new/manual creation
@@ -615,6 +619,12 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
       return;
     }
 
+    // ── Enforce Free plan email limit ────────────────────────────────
+    if (!canSendEmailWithLimit(monthlyEmailCount)) {
+      setShowEmailUpgradePrompt(true);
+      return;
+    }
+
     setEmailFormData({
       ...emailFormData,
       to: [displayInvoice.email],
@@ -842,6 +852,8 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
       });
 
       setShowEmailModal(false);
+      // ── Increment monthly email count in localStorage after successful send ──
+      incrementEmailCount();
     } catch (error) {
       console.error("Error sending email:", error);
       toast({
@@ -1177,6 +1189,12 @@ const InvoicePreview = ({ invoice, showSendByEmail, onTemplateChange, onPageSize
         onSelectTemplate={handleSelectTemplate}
         selectedTemplate={selectedTemplate}
         userSubscription={userSubscription}
+      />
+      {/* ── Upgrade Prompt (shown when monthly email limit reached) ────────── */}
+      <UpgradePrompt
+        open={showEmailUpgradePrompt}
+        onClose={() => setShowEmailUpgradePrompt(false)}
+        limitType="emails"
       />
       <style>{`
         .pdf-view-mode {

@@ -46,7 +46,7 @@ const homepageSchema = {
       "name": "Free Plan",
       "price": "0",
       "priceCurrency": "USD",
-      "description": "Unlimited invoices, unlimited clients, 3 templates"
+      "description": "Up to 5 invoices per month, 10 clients, 3 professional templates"
     },
     {
       "@type": "Offer",
@@ -69,7 +69,8 @@ const homepageSchema = {
     "PDF export",
     "Shareable pay page with your own payment link (Stripe, PayPal, Razorpay, UPI, and more)",
     "Client management",
-    "Recurring invoice setup"
+    "Recurring invoice setup",
+    "Automatic payment reminders (Pro)"
   ]
 };
 
@@ -83,17 +84,19 @@ const pricingTiers = [
     price: "$0",
     subPrice: "(₹0)",
     period: "/ forever",
-    description: "Get started at no cost. No credit card required.",
+    description: "Everything you need to get started.",
     badge: null,
-    cta: "Get Started Free",
+    cta: "Start Free",
     features: [
-      "Unlimited invoices",
-      "Unlimited clients",
-      "1-Click direct email sending (PDF attached)",
+      "5 invoices / month",
+      "10 clients",
+      "5 invoice emails / month",
       "3 professional invoice templates",
       "Tax & discount line items with custom rates",
       "Your own payment link (Stripe, PayPal, UPI, any provider)",
-      "Shareable pay page for every invoice",
+      "Shareable invoice page",
+      "Basic PDF invoices",
+      "Invoicely branding",
     ],
   },
   {
@@ -102,14 +105,22 @@ const pricingTiers = [
     subPrice: "(~₹499)",
     period: "/ month",
     yearlyNote: "or $59 / year (~₹4,999) — save 17%",
-    description: "For freelancers, agencies & global businesses.",
+    description: "For freelancers, agencies & growing businesses.",
     badge: "Most Popular",
     cta: "Start Pro — $6/mo",
     features: [
       "Everything in Free",
+      "Unlimited invoices",
+      "Unlimited clients",
+      "Unlimited invoice emails",
       "All 20 premium templates",
-      "No Invoicely branding on invoices, PDFs, the pay page, or the email",
-      "Recurring invoices for retainer clients",
+      "Remove Invoicely branding",
+      "Custom invoice branding",
+      "Recurring invoices",
+      "Automatic payment reminders",
+      "Payment / status tracking",
+      "Custom email message / signature",
+      "Priority support",
     ],
   },
 ];
@@ -117,27 +128,39 @@ const pricingTiers = [
 const faqs = [
   {
     q: "Can I use Invoicely for free forever?",
-    a: "Yes. The Free plan never expires. Create and email as many invoices as you like with attached PDFs, and save as many clients as you need — at no cost, forever. Invoices carry a small \"Powered by Invoicely\" badge; removing it is what Pro is for.",
+    a: "Yes. The Free plan is available indefinitely and includes up to 5 invoices per month, 10 clients, 5 invoice emails per month, and 3 professional templates.",
   },
   {
-    q: "Can I send invoices directly to client emails?",
-    a: "Yes! You can email invoices directly to your client's email inbox from Invoicely with one click. The email includes a custom message, an attached print-ready PDF invoice, and a direct online payment link.",
+    q: "What happens when I reach my Free plan limit?",
+    a: "You can upgrade to Pro for unlimited invoices, clients, and invoice emails. Your existing invoices and clients remain available.",
+  },
+  {
+    q: "Can I send invoices directly to clients?",
+    a: "Yes. Invoicely can send the invoice directly to your client's email with the PDF attached, a custom message, and a direct payment link — in one click.",
   },
   {
     q: "Can my clients pay online?",
-    a: "Yes. Each invoice has a shareable live link where your client can click Pay Online and complete payment via your chosen provider — Stripe, PayPal, Razorpay, UPI, or any platform you use. Works globally.",
+    a: "Yes. Each invoice has a shareable live page where your client can click Pay Online and complete payment via your own Stripe, PayPal, Razorpay, UPI, or any provider you use. Works globally.",
   },
   {
-    q: "Can I add GST or other taxes to an invoice?",
-    a: "Yes. Add as many named tax lines as you need — GST, VAT, sales tax — each with its own rate, and Invoicely calculates the amounts and totals. Your GSTIN and business details print on the invoice from your settings.",
+    q: "What are automatic payment reminders?",
+    a: "Pro can automatically remind clients about upcoming and overdue invoices, helping you follow up without manually tracking every payment.",
+  },
+  {
+    q: "Can I remove Invoicely branding?",
+    a: "Yes. Pro removes Invoicely branding from your invoices, PDFs, payment pages, and invoice emails. They carry your logo and business details only.",
+  },
+  {
+    q: "Can I use Invoicely for GST invoices?",
+    a: "Yes. You can add GST and other taxes using customizable tax rates. Your GSTIN and business details print on the invoice from your settings.",
   },
   {
     q: "Can I download invoices as PDF?",
     a: "Yes. Every invoice exports as a print-ready, high-resolution PDF in one click.",
   },
   {
-    q: "Can I remove the Invoicely branding?",
-    a: "Yes. On Pro our branding comes off everywhere your client sees it — the invoice, the PDF, the shared pay page, and the invoice email. They carry your logo and business details only. The one thing we can't change is the sending email address, which stays on our verified domain.",
+    q: "Can I cancel Pro?",
+    a: "Yes. You can cancel your Pro subscription anytime and continue using the Free plan.",
   },
 ];
 
@@ -146,32 +169,38 @@ const features = [
   {
     icon: Mail,
     title: "1-Click Direct Email Delivery",
-    desc: "Send invoices straight to your client's email inbox with your custom message, attached print-ready PDF, and payment link.",
+    desc: "Send invoices straight to your client's inbox with a custom message, attached PDF, and payment link.",
+    proBadge: false,
   },
   {
     icon: ZapIcon,
     title: "Invoice in Under a Minute",
-    desc: "Saved clients, saved business details, and automatic invoice numbering. Add your line items and the totals, taxes, and discounts calculate themselves.",
+    desc: "Saved clients, saved business details, automatic invoice numbering, and instant tax and discount calculations.",
+    proBadge: false,
   },
   {
     icon: Palette,
-    title: "20 Professional Templates",
-    desc: "20 designer-crafted invoice styles — from minimal freelancer to corporate enterprise. Add your logo and brand colors.",
+    title: "Professional Invoice Templates",
+    desc: "Start with 3 professional templates on Free. Upgrade to Pro for all 20 premium designs, custom branding, and more.",
+    proBadge: false,
   },
   {
     icon: CreditCard,
     title: "Global Payment Links",
-    desc: "Add your own Stripe, PayPal, Razorpay, UPI, or any payment link. Clients click Pay Online — money goes straight to your account, anywhere in the world.",
-  },
-  {
-    icon: RefreshCw,
-    title: "Recurring Invoices",
-    desc: "Save a retainer client's invoice once and reissue it every cycle without rebuilding it — same items, new dates and number.",
+    desc: "Add your own Stripe, PayPal, Razorpay, UPI, or any payment link. Clients click Pay Online — money goes straight to your account.",
+    proBadge: false,
   },
   {
     icon: BellRing,
-    title: "See Who Owes You",
-    desc: "One list of every unpaid and overdue invoice with the amount and how late it is, so you know exactly who to chase.",
+    title: "Automatic Payment Reminders",
+    desc: "Stop chasing unpaid invoices. Pro can automatically remind clients about upcoming and overdue payments.",
+    proBadge: true,
+  },
+  {
+    icon: TrendingUp,
+    title: "Know Who Owes You",
+    desc: "See unpaid and overdue invoices in one place, including how much is owed and how late each payment is.",
+    proBadge: false,
   },
 ];
 
@@ -179,37 +208,38 @@ const steps = [
   {
     num: "01",
     title: "Add Your Line Items",
-    desc: "Pick a saved client, list what you did, and set rates and quantities. Subtotal, taxes, and discounts calculate as you type.",
+    desc: "Pick a saved client, add what you did, and set your rates. Taxes, discounts and totals calculate automatically.",
     icon: Sparkles,
   },
   {
     num: "02",
     title: "Choose a Template",
-    desc: "Select from 20 modern invoice designs. Add your logo, customize accent colors, and preview instant PDF output.",
+    desc: "Choose from 3 free templates or unlock all 20 professional designs with Pro. Add your logo and brand details.",
     icon: Palette,
   },
   {
     num: "03",
-    title: "Send Email & PDF",
-    desc: "Send directly to your client's email inbox in 1 click with the print-ready PDF attached and custom message.",
+    title: "Send the Invoice",
+    desc: "Send directly to your client's inbox with the PDF attached and your custom message.",
     icon: Mail,
   },
   {
     num: "04",
-    title: "Share Payment Link & Get Paid",
-    desc: "Clients click Pay Online — payment goes directly into your account via Stripe, PayPal, Razorpay, UPI, or whichever provider you use.",
+    title: "Get Paid & Follow Up",
+    desc: "Give clients a simple payment page with your own payment link. Pro can automatically remind clients about upcoming and overdue invoices.",
     icon: Send,
   },
 ];
 
 const comparisonRows = [
   { label: "Invoice creation time", without: "20–30 minutes", with: "Under 30 seconds" },
-  { label: "Email sending", without: "Manual export & attachment", with: "1-Click direct email + PDF attached" },
-  { label: "Tax & discount maths", without: "Manual, error-prone", with: "Calculated on every line, every time" },
-  { label: "Payment collection", without: "Awkward follow-up emails", with: "Direct payment link — Stripe, PayPal, UPI, or any provider" },
-  { label: "Invoice design", without: "Inconsistent & unprofessional", with: "20 polished templates" },
-  { label: "Knowing who owes you", without: "Digging through sent mail", with: "One list of unpaid & overdue invoices" },
-  { label: "PDF export", without: "Manual formatting", with: "1 click high-res PDF" },
+  { label: "Email sending", without: "Manual export & attachment", with: "1-click email + PDF attached" },
+  { label: "Tax & discount maths", without: "Manual and error-prone", with: "Automatic calculations" },
+  { label: "Payment collection", without: "Manual follow-ups", with: "Direct payment links + payment tracking" },
+  { label: "Payment follow-up", without: "Remembering when to chase clients", with: "Automatic reminders with Pro" },
+  { label: "Invoice design", without: "Inconsistent formatting", with: "Professional templates" },
+  { label: "Knowing who owes you", without: "Searching through emails and spreadsheets", with: "One list of unpaid & overdue invoices" },
+  { label: "PDF export", without: "Manual formatting", with: "One-click PDF generation" },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -265,8 +295,8 @@ const Landing = () => {
   return (
     <>
       <SEOHead
-        title="Invoicely — Free Online Invoice Generator with Direct Email & Payment Links"
-        description="Create professional invoices online in seconds. 1-click email delivery with the PDF attached, automatic tax and total calculation, and a shareable pay page with your own payment link."
+        title="Invoicely — Create Invoices, Get Paid, Stop Chasing"
+        description="Create professional invoices in seconds, send them directly to clients with the PDF attached, and let Invoicely help you stay on top of payments. Free to start."
         canonical="https://www.getinvoicely.online"
         structuredData={homepageSchema}
       />
@@ -323,7 +353,7 @@ const Landing = () => {
                 onClick={() => navigate("/auth")}
                 className="flex items-center gap-1.5 bg-[#0A0A0A] hover:bg-stone-700 text-white font-bold text-sm px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all duration-200 group"
               >
-                Get Started
+                Start Free
                 <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
               </button>
               <button
@@ -383,7 +413,7 @@ const Landing = () => {
                 }}
                 className="w-full bg-[#0A0A0A] hover:bg-stone-800 text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 group"
               >
-                Get Started Free
+                Start Free
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
@@ -404,12 +434,10 @@ const Landing = () => {
           />
 
           <div className="max-w-5xl mx-auto text-center relative z-10">
-            {/* This pill claimed "Trusted by 10,000+" with a five-star rating.
-                Both were invented. Until there is a real number to print, it
-                states what the product costs — which is verifiable. */}
+            {/* Pill badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-stone-200 shadow-sm text-xs font-semibold text-stone-600 mb-8 animate-fade-up">
               <Sparkles className="h-3 w-3 text-amber-500" aria-hidden="true" />
-              <span>Free to start · No credit card · No invoice limit</span>
+              <span>Free to start · No credit card · Upgrade anytime</span>
             </div>
 
             {/* Headline */}
@@ -420,20 +448,18 @@ const Landing = () => {
                 fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif",
               }}
             >
-              Create Invoices in{" "}
+              Create Invoices.{" "}
               <span className="italic" style={{ color: "#F59E0B" }}>
-                30 Seconds
+                Get Paid.
               </span>
               <br className="hidden sm:block" />
-              <span style={{ color: "#0A0A0A" }}>{"— and Get Paid Faster."}</span>
+              <span style={{ color: "#0A0A0A" }}>Stop Chasing.</span>
             </h1>
 
             {/* Sub-headline */}
             <p className="text-stone-500 text-lg sm:text-xl max-w-xl mx-auto mb-10 leading-relaxed font-normal">
-              Stop wasting hours on spreadsheets. Build an invoice in under a minute, email it with the PDF attached, and give your client a page where they can pay you.
+              Create professional invoices in seconds, send them directly to clients, and let Invoicely help you stay on top of payments.
             </p>
-
-
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-7">
@@ -442,7 +468,7 @@ const Landing = () => {
                 onClick={() => navigate("/auth")}
                 className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#0A0A0A] hover:bg-stone-700 text-white font-bold px-8 py-4 text-base rounded-full shadow-xl hover:shadow-2xl transition-all duration-200 group"
               >
-                Get Started Free
+                Start Free
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
               </button>
               <a href="#howitworks" className="w-full sm:w-auto">
@@ -461,12 +487,12 @@ const Landing = () => {
               <span className="text-stone-300" aria-hidden="true">·</span>
               <span className="flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
-                Direct Email &amp; PDF Attached
+                GST ready · Direct email &amp; PDF
               </span>
               <span className="text-stone-300" aria-hidden="true">·</span>
               <span className="flex items-center gap-1.5">
                 <CheckIcon className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
-                GST ready &amp; global payment links
+                Your own payment links
               </span>
             </div>
           </div>
@@ -536,7 +562,7 @@ const Landing = () => {
         </section>
 
         {/* ════════════════════════════════════════
-            HOW IT WORKS — 4 CORE STEPS (NON-REPETITIVE)
+            HOW IT WORKS — 4 CORE STEPS
         ════════════════════════════════════════ */}
         <section id="howitworks" className="py-20 sm:py-28 px-4 sm:px-6">
           <div className="max-w-5xl mx-auto">
@@ -545,10 +571,10 @@ const Landing = () => {
                 Simple &amp; Complete Workflow
               </p>
               <h2 className="text-4xl sm:text-5xl font-black text-[#0A0A0A] mb-4 tracking-tight">
-                From Creation to Direct Delivery in 4 Steps
+                From Invoice to Paid in 4 Simple Steps
               </h2>
               <p className="text-stone-500 text-base max-w-md mx-auto leading-relaxed">
-                No manual formatting. No spreadsheets. Email PDFs directly &amp; get paid faster.
+                Create, send, collect and follow up — without spreadsheets or manual chasing.
               </p>
             </div>
 
@@ -569,22 +595,10 @@ const Landing = () => {
                       </h3>
                       <p className="text-xs text-stone-500 leading-relaxed">{step.desc}</p>
                     </div>
-                    <div className="mt-6 pt-4 border-t border-stone-100 flex items-center gap-1.5 text-xs font-bold text-stone-700">
-                      <Icon className="h-4 w-4 text-amber-500" />
-                      <span>Built-in Feature</span>
-                    </div>
+
                   </div>
                 );
               })}
-            </div>
-
-            <div className="text-center mt-12">
-              <Link
-                to="/how-it-works"
-                className="inline-flex items-center gap-2 font-bold text-amber-700 hover:text-amber-800 text-sm hover:underline"
-              >
-                Explore Detailed Industry Use Cases &amp; Sample Invoices →
-              </Link>
             </div>
           </div>
         </section>
@@ -602,7 +616,7 @@ const Landing = () => {
                 Everything You Need to Invoice &amp; Collect
               </h2>
               <p className="text-stone-400 text-base max-w-lg mx-auto leading-relaxed">
-                Save 10+ hours every month while maintaining a polished professional brand.
+                Everything you need to create professional invoices, collect payments, and stay on top of what you're owed.
               </p>
             </div>
 
@@ -627,20 +641,139 @@ const Landing = () => {
                 );
               })()}
 
-              {/* Remaining 5 features */}
+              {/* Remaining features */}
               {features.slice(1).map((f) => (
                 <div
                   key={f.title}
                   className="p-6 rounded-3xl border border-white/8 flex flex-col group hover:border-amber-400/30 transition-all duration-300"
                   style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
                 >
-                  <div className="h-10 w-10 rounded-xl bg-amber-400/20 text-amber-400 flex items-center justify-center mb-4 group-hover:bg-amber-400 group-hover:text-[#0A0A0A] transition-all duration-300 flex-shrink-0">
-                    <f.icon className="h-5 w-5" aria-hidden="true" />
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="h-10 w-10 rounded-xl bg-amber-400/20 text-amber-400 flex items-center justify-center group-hover:bg-amber-400 group-hover:text-[#0A0A0A] transition-all duration-300 flex-shrink-0">
+                      <f.icon className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                    {f.proBadge && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-[#0A0A0A]">
+                        PRO
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-base font-bold text-white mb-2">{f.title}</h3>
                   <p className="text-sm text-stone-400 leading-relaxed">{f.desc}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ════════════════════════════════════════
+            PAYMENT REMINDERS SECTION
+        ════════════════════════════════════════ */}
+        <section className="py-24 sm:py-32 px-4 sm:px-6 bg-white border-t border-stone-100">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              {/* Left — copy */}
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 border border-amber-200 text-xs font-black uppercase tracking-wider text-amber-700 mb-6">
+                  <BellRing className="h-3.5 w-3.5" />
+                  Pro Feature
+                </div>
+                <h2 className="text-4xl sm:text-5xl font-black text-[#0A0A0A] mb-4 tracking-tight leading-[1.05]">
+                  Stop chasing<br />unpaid invoices.
+                </h2>
+                <p className="text-stone-500 text-lg mb-4 leading-relaxed">
+                  Your invoice goes out. Invoicely helps handle the follow-up.
+                </p>
+                <p className="text-stone-500 text-base mb-6 leading-relaxed">
+                  With Pro, you can automatically remind clients about upcoming and overdue invoices, so you don't have to remember who needs a follow-up.
+                </p>
+                <p className="text-stone-600 text-sm font-semibold italic mb-8">
+                  "Spend less time asking 'Did you get my invoice?' and more time doing the work you get paid for."
+                </p>
+                <button
+                  onClick={() => navigate("/auth")}
+                  className="inline-flex items-center gap-2 bg-[#0A0A0A] hover:bg-stone-800 text-white font-bold px-7 py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 group"
+                >
+                  Start Pro — $6/mo
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
+
+              {/* Right — reminder timeline visual */}
+              <div className="relative">
+                <div className="bg-[#0A0A0A] rounded-3xl p-8 shadow-2xl border border-white/5">
+                  <p className="text-xs font-bold uppercase tracking-widest text-stone-500 mb-6">
+                    Automatic reminder flow
+                  </p>
+                  <div className="space-y-0">
+                    {[
+                      {
+                        icon: Send,
+                        label: "Invoice Sent",
+                        sub: "Client receives invoice with payment link",
+                        color: "text-emerald-400",
+                        bg: "bg-emerald-400/15",
+                        border: "border-emerald-400/30",
+                      },
+                      {
+                        icon: BellRing,
+                        label: "3 Days Before Due",
+                        sub: "Automatic reminder scheduled",
+                        color: "text-amber-400",
+                        bg: "bg-amber-400/15",
+                        border: "border-amber-400/30",
+                      },
+                      {
+                        icon: Clock,
+                        label: "Due Date",
+                        sub: "Payment due — client notified",
+                        color: "text-amber-500",
+                        bg: "bg-amber-500/15",
+                        border: "border-amber-500/30",
+                      },
+                      {
+                        icon: BellRing,
+                        label: "Overdue",
+                        sub: "Automatic follow-up reminder",
+                        color: "text-rose-400",
+                        bg: "bg-rose-400/15",
+                        border: "border-rose-400/30",
+                      },
+                      {
+                        icon: CheckCircle2,
+                        label: "Paid",
+                        sub: "Reminders stop automatically",
+                        color: "text-emerald-400",
+                        bg: "bg-emerald-400/15",
+                        border: "border-emerald-400/30",
+                      },
+                    ].map((item, i, arr) => {
+                      const Icon = item.icon;
+                      return (
+                        <div key={item.label} className="flex gap-4">
+                          <div className="flex flex-col items-center">
+                            <div className={`h-10 w-10 rounded-xl ${item.bg} border ${item.border} flex items-center justify-center flex-shrink-0`}>
+                              <Icon className={`h-4 w-4 ${item.color}`} />
+                            </div>
+                            {i < arr.length - 1 && (
+                              <div className="w-px flex-1 bg-white/10 my-1.5" style={{ minHeight: "20px" }} />
+                            )}
+                          </div>
+                          <div className="pb-5">
+                            <p className={`text-sm font-bold ${item.color}`}>{item.label}</p>
+                            <p className="text-xs text-stone-500 mt-0.5">{item.sub}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                {/* Glow */}
+                <div
+                  className="absolute -inset-4 -z-10 rounded-3xl opacity-20 blur-2xl"
+                  style={{ background: "radial-gradient(ellipse at center, rgba(251,191,36,0.4) 0%, transparent 70%)" }}
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -715,10 +848,10 @@ const Landing = () => {
                 Transparent Pricing
               </p>
               <h2 className="text-4xl sm:text-5xl font-black text-[#0A0A0A] mb-4 tracking-tight">
-                Start Free. Upgrade Anytime.
+                Start Free. Upgrade When You Need More.
               </h2>
               <p className="text-stone-500 text-base max-w-md mx-auto leading-relaxed">
-                No hidden fees. Pick the plan that fits your current workflow.
+                Simple pricing for freelancers and small businesses. No hidden fees.
               </p>
             </div>
 
@@ -796,6 +929,11 @@ const Landing = () => {
                 </button>
               </div>
             </div>
+
+            {/* Pricing microcopy */}
+            <p className="text-center text-xs text-stone-400 mt-6 font-medium">
+              Free for occasional invoicing. Pro for unlimited invoicing, automation, and professional branding.
+            </p>
           </div>
         </section>
 
@@ -827,18 +965,21 @@ const Landing = () => {
         <section className="py-24 px-4 sm:px-6 bg-amber-400 relative overflow-hidden">
           <div className="max-w-3xl mx-auto text-center relative z-10">
             <h2 className="text-4xl sm:text-5xl font-black text-[#0A0A0A] mb-4 tracking-tight">
-              Ready to get paid faster?
+              Ready to stop chasing payments?
             </h2>
             <p className="text-amber-900/70 text-lg mb-8 font-medium">
-              Create your first invoice free. No credit card, no trial clock.
+              Create your first invoice for free. Upgrade when you need unlimited invoicing and automation.
             </p>
             <button
               onClick={() => navigate("/auth")}
               className="inline-flex items-center gap-2 bg-[#0A0A0A] hover:bg-stone-800 text-white font-bold px-10 py-4 rounded-full text-base shadow-xl hover:shadow-2xl transition-all duration-200 group"
             >
-              Get Started Free
+              Start Free
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
             </button>
+            <p className="mt-4 text-xs font-semibold text-amber-900/60">
+              Free to start · No credit card required
+            </p>
           </div>
         </section>
 

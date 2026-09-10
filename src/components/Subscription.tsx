@@ -73,6 +73,52 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+// ── Feature Row ───────────────────────────────────────────────────────────────
+const FeatureRow = ({
+  text,
+  accent = false,
+}: {
+  text: React.ReactNode;
+  accent?: boolean;
+}) => (
+  <div
+    className={`flex items-start gap-2.5 text-xs leading-snug ${
+      accent
+        ? "font-medium text-gray-800 dark:text-gray-200"
+        : "text-gray-700 dark:text-gray-300"
+    }`}
+  >
+    <svg
+      className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
+        accent ? "text-amber-500" : "text-emerald-500"
+      }`}
+      fill="currentColor"
+      viewBox="0 0 20 20"
+    >
+      <path
+        fillRule="evenodd"
+        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+        clipRule="evenodd"
+      />
+    </svg>
+    <span>{text}</span>
+  </div>
+);
+
+// ── Limit Chip ────────────────────────────────────────────────────────────────
+const LimitChip = ({ label }: { label: string }) => (
+  <span className="inline-block ml-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 align-middle">
+    {label}
+  </span>
+);
+
+// ── Unlimited Badge ───────────────────────────────────────────────────────────
+const UnlimitedBadge = () => (
+  <span className="inline-block ml-1 px-1.5 py-0.5 rounded text-[10px] font-black bg-amber-500/20 text-amber-600 dark:text-amber-400 align-middle tracking-wide">
+    UNLIMITED
+  </span>
+);
+
 // ── Main Component ────────────────────────────────────────────────────────────
 const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionProps) => {
   const [upgrading, setUpgrading] = useState(false);
@@ -227,6 +273,33 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
       setCancelling(false);
     }
   };
+
+  // ── Free plan features ───────────────────────────────────────────────────
+  const freeFeatures: React.ReactNode[] = [
+    <>Up to <strong>5 invoices</strong> / month<LimitChip label="5/mo" /></>,
+    <>Up to <strong>10 clients</strong><LimitChip label="10 max" /></>,
+    <><strong>3</strong> Core Standard Templates<LimitChip label="3 templates" /></>,
+    <>Up to <strong>5</strong> invoice emails / month<LimitChip label="5/mo" /></>,
+    "Tax & discount lines with custom rates",
+    "Add your payment link (Stripe, PayPal, UPI, any provider)",
+    "Shareable client invoice page",
+    "Powered by Invoicely footer badge",
+  ];
+
+  // ── Pro plan features ────────────────────────────────────────────────────
+  const proFeatures: React.ReactNode[] = [
+    <><UnlimitedBadge /> invoices</>,
+    <><UnlimitedBadge /> clients</>,
+    <><UnlimitedBadge /> invoice emails</>,
+    <>All <strong>20</strong> Premium Invoice Templates</>,
+    "No Invoicely branding — on invoices, PDFs, pay page & emails",
+    "Recurring invoices for retainer clients",
+    "Automatic payment reminders",
+    "Custom invoice branding (logo, colors, business details)",
+    "Custom email message / signature",
+    "Invoice payment / status tracking",
+    "Priority support",
+  ];
 
   return (
     <div className="space-y-6">
@@ -399,7 +472,7 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               Choose the plan that fits your business needs
             </p>
           </div>
-          {/* Monthly / Yearly Toggle */}
+          {/* Monthly / Yearly Toggle — only shown when not on Pro */}
           {!isPro && (
             <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-lg flex items-center self-start sm:self-auto">
               <button
@@ -430,9 +503,9 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Free Plan */}
-          <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden flex flex-col justify-between">
-            <div className="p-6">
+          {/* ── Free Plan ─────────────────────────────────────────────────── */}
+          <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden flex flex-col">
+            <div className="p-6 flex-1">
               <h3 className="text-lg font-bold text-invoice-lightText dark:text-invoice-darkText">
                 Free Starter
               </h3>
@@ -446,50 +519,57 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Perfect for getting started with basic invoices
               </p>
-              <Button
-                disabled={userSubscription.tier === "free"}
-                className="mt-6 w-full py-2.5 rounded-lg text-center font-semibold"
-              >
-                {userSubscription.tier === "free" ? "Current Plan" : "Downgrade to Free"}
-              </Button>
+
+              {isPro ? (
+                /* Pro users see a de-emphasized "Downgrade" option */
+                <div className="mt-6 space-y-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelSubscription}
+                    disabled={cancelling || userSubscription.subscriptionStatus === "cancelled"}
+                    className="w-full text-xs text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-gray-400"
+                  >
+                    {userSubscription.subscriptionStatus === "cancelled"
+                      ? "Downgrade scheduled"
+                      : cancelling
+                      ? "Processing..."
+                      : "Downgrade to Free"}
+                  </Button>
+                  {userSubscription.subscriptionStatus !== "cancelled" && (
+                    <p className="text-[10px] text-center text-gray-400">
+                      Access continues until end of billing period
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <Button
+                  disabled
+                  className="mt-6 w-full py-2.5 rounded-lg text-center font-semibold"
+                >
+                  Current Plan
+                </Button>
+              )}
             </div>
-            <div className="px-6 py-5 bg-gray-50/50 dark:bg-gray-800/40 border-t border-gray-200 dark:border-gray-700 space-y-2.5">
-              <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
+
+            {/* Feature list */}
+            <div className="px-6 py-5 bg-gray-50/50 dark:bg-gray-800/40 border-t border-gray-200 dark:border-gray-700 space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">
                 Included in Free:
               </p>
-              {[
-                "Unlimited invoices",
-                "Unlimited clients",
-                "1-click email delivery with the PDF attached",
-                "3 Core Standard Templates",
-                "Named tax & discount lines with custom rates",
-                "Add your payment link (Stripe, PayPal, UPI, any provider)",
-                "Shareable client invoice page",
-                "Powered by Invoicely footer badge",
-              ].map((feat, i) => (
-                <div key={i} className="flex items-center text-xs text-gray-700 dark:text-gray-300">
-                  <svg
-                    className="h-4 w-4 mr-2 text-emerald-500 flex-shrink-0"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {feat}
-                </div>
+              {freeFeatures.map((feat, i) => (
+                <FeatureRow key={i} text={feat} />
               ))}
             </div>
           </div>
 
-          {/* Pro Plan */}
-          <div className="border-2 border-amber-500 dark:border-amber-400 rounded-xl overflow-hidden flex flex-col justify-between shadow-md relative">
+          {/* ── Pro Plan ──────────────────────────────────────────────────── */}
+          <div className="border-2 border-amber-500 dark:border-amber-400 rounded-xl overflow-hidden flex flex-col shadow-md relative">
+            {/* RECOMMENDED badge */}
             <div className="absolute top-3 right-3 bg-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">
               Recommended
             </div>
+
             <div className="p-6">
               <h3 className="text-lg font-bold text-invoice-lightText dark:text-invoice-darkText flex items-center gap-1.5">
                 Pro Growth ⚡
@@ -506,13 +586,13 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
                 </span>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                For freelancers, agencies & growing businesses
+                For freelancers, agencies &amp; growing businesses
               </p>
 
               {isPro ? (
-                <div className="mt-6">
+                <div className="mt-6 space-y-2">
                   <Button className="w-full py-2.5 rounded-lg text-center font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-default">
-                    ✓ Pro Active
+                    ✓ You're on Pro
                   </Button>
                 </div>
               ) : (
@@ -528,32 +608,13 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
               )}
             </div>
 
-            <div className="px-6 py-5 bg-amber-50/50 dark:bg-amber-950/20 border-t border-amber-200 dark:border-amber-900/40 space-y-2.5">
-              <p className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-2">
+            {/* Feature list */}
+            <div className="px-6 py-5 bg-amber-50/50 dark:bg-amber-950/20 border-t border-amber-200 dark:border-amber-900/40 space-y-3 flex-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-1">
                 Everything in Free, plus:
               </p>
-              {[
-                "All 20 Premium Invoice Templates",
-                "No Invoicely branding — on invoices, PDFs, the pay page, and the email",
-                "Recurring invoices for retainer clients",
-              ].map((feat, i) => (
-                <div
-                  key={i}
-                  className="flex items-center text-xs font-medium text-gray-800 dark:text-gray-200"
-                >
-                  <svg
-                    className="h-4 w-4 mr-2 text-amber-500 flex-shrink-0"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {feat}
-                </div>
+              {proFeatures.map((feat, i) => (
+                <FeatureRow key={i} text={feat} accent />
               ))}
             </div>
           </div>

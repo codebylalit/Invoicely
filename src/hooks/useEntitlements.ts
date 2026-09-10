@@ -3,6 +3,11 @@ import { useSupabaseClient, useSession } from "@supabase/auth-helpers-react";
 
 export type PlanTier = "free" | "pro" | "admin";
 
+// ── Plan Limit Constants ──────────────────────────────────────────────────────
+export const FREE_INVOICE_LIMIT = 5;   // per calendar month
+export const FREE_CLIENT_LIMIT = 10;   // total saved clients
+export const FREE_EMAIL_LIMIT = 5;     // per calendar month
+
 export interface Entitlements {
   tier: PlanTier;
   isPro: boolean;
@@ -11,6 +16,12 @@ export interface Entitlements {
   canRemoveWatermark: boolean;
   canUseTemplate: (templateId?: number | null) => boolean;
   canSendEmail: boolean;
+  /** Returns true if the user can create another invoice (based on monthly count) */
+  canCreateInvoice: (monthlyCount: number) => boolean;
+  /** Returns true if the user can add another client (based on total count) */
+  canAddClient: (totalCount: number) => boolean;
+  /** Returns true if the user can send another email (based on monthly count) */
+  canSendEmailWithLimit: (monthlyCount: number) => boolean;
   refetch: () => Promise<void>;
 }
 
@@ -87,6 +98,31 @@ export function useEntitlements(): Entitlements {
     [isPro]
   );
 
+  // ── Usage-Volume Guards ───────────────────────────────────────────────────
+  const canCreateInvoice = useCallback(
+    (monthlyCount: number): boolean => {
+      if (isPro) return true;
+      return monthlyCount < FREE_INVOICE_LIMIT;
+    },
+    [isPro]
+  );
+
+  const canAddClient = useCallback(
+    (totalCount: number): boolean => {
+      if (isPro) return true;
+      return totalCount < FREE_CLIENT_LIMIT;
+    },
+    [isPro]
+  );
+
+  const canSendEmailWithLimit = useCallback(
+    (monthlyCount: number): boolean => {
+      if (isPro) return true;
+      return monthlyCount < FREE_EMAIL_LIMIT;
+    },
+    [isPro]
+  );
+
   return {
     tier,
     isPro,
@@ -95,6 +131,9 @@ export function useEntitlements(): Entitlements {
     canRemoveWatermark,
     canUseTemplate,
     canSendEmail,
+    canCreateInvoice,
+    canAddClient,
+    canSendEmailWithLimit,
     refetch: fetchSubscription,
   };
 }
