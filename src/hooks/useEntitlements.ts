@@ -41,19 +41,44 @@ export function useEntitlements(): Entitlements {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("tier")
+        .select("tier, is_admin, subscription_status, subscription_renewal_date, subscription_end_date")
         .eq("user_id", session.user.id)
         .maybeSingle();
 
       if (error) {
         console.warn("[Entitlements] Error loading profile tier, defaulting to free:", error.message);
         setTier("free");
-      } else if (data?.tier) {
-        const rawTier = String(data.tier).toLowerCase().trim();
-        if (rawTier.includes("pro")) {
-          setTier("pro");
-        } else if (rawTier.includes("admin")) {
+      } else if (data) {
+        const isAdmin = Boolean(data.is_admin);
+        const rawTier = String(data.tier || "free").toLowerCase().trim();
+        const subStatus = String(data.subscription_status || "inactive").toLowerCase().trim();
+        const now = new Date();
+
+        if (isAdmin || rawTier.includes("admin")) {
           setTier("admin");
+        } else if (rawTier.includes("pro")) {
+          // Check expiration rules
+          const isCancelledExpired =
+            subStatus === "cancelled" &&
+            data.subscription_end_date &&
+            new Date(data.subscription_end_date) <= now;
+
+          const isRenewalExpired =
+            data.subscription_renewal_date &&
+            new Date(data.subscription_renewal_date) <= now;
+
+          const isStatusInactiveOrExpired =
+            subStatus === "expired" || subStatus === "inactive";
+
+          if (isCancelledExpired || isRenewalExpired || isStatusInactiveOrExpired) {
+            // Subscription period has ended without valid renewal
+            setTier("free");
+
+            // Trigger background database sync if not already updated
+            supabase.rpc("sync_user_subscription", { p_user_id: session.user.id }).catch(() => {});
+          } else {
+            setTier("pro");
+          }
         } else {
           setTier("free");
         }

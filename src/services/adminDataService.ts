@@ -99,7 +99,18 @@ export const fetchLiveAdminData = async (
   const usersList: AdminUser[] = rawProfiles.map((p: any, idx: number) => {
     const uid = p.user_id ?? p.id ?? `usr_${idx}`;
     const biz = businessByUserId.get(uid);
-    const plan = formatPlanName(p.tier);
+    const isAdmin = Boolean(p.is_admin);
+    const rawTier = p.tier ?? 'free';
+    const subStatus = (p.subscription_status ?? 'inactive').toLowerCase();
+    const now = new Date();
+
+    // Determine effective plan (if expired or past due, downgrade to Free unless admin)
+    const isProTier = rawTier.toLowerCase().includes('pro');
+    const isCancelledValid = subStatus === 'cancelled' && p.subscription_end_date && new Date(p.subscription_end_date) > now;
+    const isActiveValid = subStatus === 'active' && (!p.subscription_renewal_date || new Date(p.subscription_renewal_date) > now);
+    const hasActivePro = isAdmin || ((isProTier || isCancelledValid) && (isActiveValid || isCancelledValid) && subStatus !== 'expired' && subStatus !== 'inactive');
+
+    const plan: PlanType = hasActivePro ? 'Pro' : 'Free';
     const nameFromBiz = biz?.business_name || biz?.contact_name || null;
     const nameFromProfile = p.full_name || p.email?.split('@')[0] || null;
     const name = nameFromBiz || nameFromProfile || `User #${idx + 1}`;
@@ -161,7 +172,7 @@ export const fetchLiveAdminData = async (
     }
   });
 
-  // ── 4. Subscriptions = Pro users only
+  // ── 4. Subscriptions List (All users with Pro history or active plan)
   // Helper: compute days between now and a future date
   const daysFrom = (isoDate?: string | null): number | undefined => {
     if (!isoDate) return undefined;
@@ -169,59 +180,73 @@ export const fetchLiveAdminData = async (
     return Math.ceil(diff / 86_400_000);
   };
 
-  // Map profiles (not usersList) for subscription fields — profiles have the raw columns
+  // Map profiles for subscription fields
   const rawProfileById = new Map<string, any>();
   rawProfiles.forEach((p: any) => {
     const uid = p.user_id ?? p.id;
     if (uid) rawProfileById.set(uid, p);
   });
 
-  const subscriptionsList: AdminSubscription[] = usersList
-    .filter((u) => u.plan === 'Pro')
-    .map((u, i) => {
-      const profile = rawProfileById.get(u.id);
+  const now = new Date();
+  const subscriptionsList: AdminSubscription[] = rawProfiles
+    .filter((p: any) => {
+      const tier = (p.tier || '').toLowerCase();
+      const status = (p.subscription_status || '').toLowerCase();
+      return tier.includes('pro') || status === 'active' || status === 'cancelled' || status === 'expired' || status === 'past_due' || p.subscription_start_date;
+    })
+    .map((profile, i) => {
+      const uid = profile.user_id ?? profile.id;
+      const user = usersList.find((u) => u.id === uid);
 
-      // Prefer real subscription start date; fall back to account join date
       const startDate = profile?.subscription_start_date
         ? new Date(profile.subscription_start_date).toISOString().split('T')[0]
-        : u.joinedDate;
+        : user?.joinedDate || 'N/A';
 
-      // Prefer real renewal date stored in DB; never invent one
       const renewalDate = profile?.subscription_renewal_date
         ? new Date(profile.subscription_renewal_date).toISOString().split('T')[0]
         : 'N/A';
 
-      // End date (set when subscription is cancelled)
       const endDate = profile?.subscription_end_date
         ? new Date(profile.subscription_end_date).toISOString().split('T')[0]
         : undefined;
 
-      // Billing cycle from profile
       const billingCycle: 'monthly' | 'yearly' =
         profile?.billing_cycle === 'yearly' ? 'yearly' : 'monthly';
 
-      // Days until renewal (or end)
       const daysUntilRenewal = endDate
         ? daysFrom(profile?.subscription_end_date)
         : daysFrom(profile?.subscription_renewal_date);
 
-      // Determine status from stored data
+      // Determine accurate subscription status
       let status: SubscriptionStatus = 'Active';
       const subStatus = (profile?.subscription_status ?? '').toLowerCase();
-      if (subStatus === 'cancelled' || endDate) {
-        status = 'Cancelled';
+
+      if (subStatus === 'expired') {
+        status = 'Expired';
+      } else if (subStatus === 'cancelled') {
+        if (profile?.subscription_end_date && new Date(profile.subscription_end_date) <= now) {
+          status = 'Expired';
+        } else {
+          status = 'Cancelled';
+        }
       } else if (subStatus === 'past_due') {
         status = 'Past Due';
-      } else if (renewalDate !== 'N/A' && new Date(renewalDate) < new Date()) {
-        status = 'Past Due';
+      } else if (renewalDate !== 'N/A' && new Date(profile.subscription_renewal_date) <= now) {
+        status = 'Expired';
+      } else if (!subStatus || subStatus === 'inactive') {
+        status = 'Expired';
       }
+
+      const paymentMethod = profile?.payment_method
+        ? profile.payment_method.charAt(0).toUpperCase() + profile.payment_method.slice(1)
+        : 'Razorpay / Credit Card';
 
       return {
         id: `sub_${100 + i}`,
-        userId: u.id,
-        userName: u.name,
-        userEmail: u.email,
-        userAvatar: u.avatar,
+        userId: uid,
+        userName: user?.name || profile?.full_name || `User #${i + 1}`,
+        userEmail: user?.email || profile?.email || `user_${i + 1}@invoicely.app`,
+        userAvatar: user?.avatar,
         plan: 'Pro' as PlanType,
         price: billingCycle === 'yearly' ? 59 : 6,
         billingCycle,
@@ -230,7 +255,7 @@ export const fetchLiveAdminData = async (
         endDate,
         daysUntilRenewal,
         status,
-        paymentMethod: 'Razorpay / Credit Card',
+        paymentMethod,
       };
     });
 

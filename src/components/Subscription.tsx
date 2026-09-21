@@ -56,14 +56,20 @@ const StatusBadge = ({ status }: { status: string }) => {
     );
   if (s === "cancelled")
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400">
-        <XCircle className="h-3 w-3" /> Cancelled
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400">
+        <Clock className="h-3 w-3" /> Cancelled
       </span>
     );
   if (s === "past_due")
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400">
         <AlertTriangle className="h-3 w-3" /> Past Due
+      </span>
+    );
+  if (s === "expired")
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400">
+        <XCircle className="h-3 w-3" /> Expired
       </span>
     );
   return (
@@ -128,7 +134,30 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
   );
   const supabase = useSupabaseClient();
 
-  const isPro = userSubscription.tier === "pro";
+  const now = new Date();
+  const subStatus = (userSubscription.subscriptionStatus || "inactive").toLowerCase();
+  const isCancelledValid =
+    subStatus === "cancelled" &&
+    userSubscription.subscriptionEndDate &&
+    new Date(userSubscription.subscriptionEndDate) > now;
+  const isActiveValid =
+    subStatus === "active" &&
+    (!userSubscription.subscriptionRenewalDate ||
+      new Date(userSubscription.subscriptionRenewalDate) > now);
+
+  const isPro =
+    (userSubscription.tier === "pro" || isCancelledValid) &&
+    (isActiveValid || isCancelledValid) &&
+    subStatus !== "expired";
+
+  const isExpired =
+    subStatus === "expired" ||
+    (userSubscription.subscriptionEndDate &&
+      new Date(userSubscription.subscriptionEndDate) <= now) ||
+    (userSubscription.subscriptionRenewalDate &&
+      new Date(userSubscription.subscriptionRenewalDate) <= now &&
+      subStatus !== "active" &&
+      !isPro);
 
   // ── Renewal/Expiry Alert ─────────────────────────────────────────────────
   const renewalDays = daysUntil(userSubscription.subscriptionRenewalDate);
@@ -303,6 +332,28 @@ const Subscription = ({ userSubscription, setUserSubscription }: SubscriptionPro
 
   return (
     <div className="space-y-6">
+      {/* ── Subscription Expired Warning Banner ─────────────────────────────── */}
+      {isExpired && (
+        <div className="flex items-start gap-3 rounded-xl border border-rose-300 dark:border-rose-700/60 bg-rose-50 dark:bg-rose-950/30 px-4 py-3.5">
+          <XCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-rose-800 dark:text-rose-300">
+              Pro Subscription Expired
+            </p>
+            <p className="text-xs text-rose-700 dark:text-rose-400 mt-0.5">
+              Your Pro billing period ended on{" "}
+              <strong>
+                {fmtDate(
+                  userSubscription.subscriptionEndDate ||
+                    userSubscription.subscriptionRenewalDate
+                )}
+              </strong>{" "}
+              and payment was not received. Select a plan below to reactivate your Pro benefits.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ── Renewal / Expiry Warning Alert ────────────────────────────────── */}
       {showAlert && (
         <div className="flex items-start gap-3 rounded-xl border border-amber-300 dark:border-amber-700/60 bg-amber-50 dark:bg-amber-950/30 px-4 py-3.5">

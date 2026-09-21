@@ -56,7 +56,8 @@ export const AdminSubscriptions: React.FC = () => {
     const active = subscriptions.filter((s) => s.status === 'Active').length;
     const trial = subscriptions.filter((s) => s.status === 'Trial').length;
     const cancelled = subscriptions.filter((s) => s.status === 'Cancelled').length;
-    return { active, trial, cancelled };
+    const expired = subscriptions.filter((s) => s.status === 'Expired').length;
+    return { active, trial, cancelled, expired };
   }, [subscriptions]);
 
   const filteredSubscriptions = useMemo(() => {
@@ -89,7 +90,7 @@ export const AdminSubscriptions: React.FC = () => {
         );
       case 'Cancelled':
         return (
-          <Badge className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1 w-fit">
+          <Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/30 flex items-center gap-1 w-fit">
             <XCircle className="h-3 w-3" />
             Cancelled
           </Badge>
@@ -99,6 +100,20 @@ export const AdminSubscriptions: React.FC = () => {
           <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 w-fit">
             <AlertTriangle className="h-3 w-3" />
             Past Due
+          </Badge>
+        );
+      case 'Expired':
+        return (
+          <Badge className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1 w-fit">
+            <XCircle className="h-3 w-3" />
+            Expired
+          </Badge>
+        );
+      default:
+        return (
+          <Badge className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700 flex items-center gap-1 w-fit">
+            <Clock className="h-3 w-3" />
+            {status}
           </Badge>
         );
     }
@@ -139,8 +154,8 @@ export const AdminSubscriptions: React.FC = () => {
         </Button>
       </div>
 
-      {/* Top 3 Summary Status Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Top 4 Summary Status Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Active Subscriptions Card */}
         <Card
           onClick={() => setStatusFilter(statusFilter === 'Active' ? 'all' : 'Active')}
@@ -163,6 +178,58 @@ export const AdminSubscriptions: React.FC = () => {
             </div>
             <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
               <CreditCard className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Expired Subscriptions Card */}
+        <Card
+          onClick={() => setStatusFilter(statusFilter === 'Expired' ? 'all' : 'Expired')}
+          className={`cursor-pointer transition-all duration-200 border bg-white/80 dark:bg-[#0D111D]/80 backdrop-blur-sm shadow-sm rounded-2xl ${
+            statusFilter === 'Expired' ? 'ring-2 ring-rose-500 border-transparent' : 'border-slate-200/80 dark:border-slate-800/80 hover:border-rose-500/40'
+          }`}
+        >
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Expired
+              </span>
+              <div className="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
+                {stats.expired}
+              </div>
+              <p className="text-[11px] text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
+                <XCircle className="h-3 w-3" />
+                Unpaid / Period ended
+              </p>
+            </div>
+            <div className="h-12 w-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
+              <XCircle className="h-6 w-6" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Cancelled Subscriptions Card */}
+        <Card
+          onClick={() => setStatusFilter(statusFilter === 'Cancelled' ? 'all' : 'Cancelled')}
+          className={`cursor-pointer transition-all duration-200 border bg-white/80 dark:bg-[#0D111D]/80 backdrop-blur-sm shadow-sm rounded-2xl ${
+            statusFilter === 'Cancelled' ? 'ring-2 ring-purple-500 border-transparent' : 'border-slate-200/80 dark:border-slate-800/80 hover:border-purple-500/40'
+          }`}
+        >
+          <CardContent className="p-5 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Cancelled
+              </span>
+              <div className="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
+                {stats.cancelled}
+              </div>
+              <p className="text-[11px] text-purple-600 dark:text-purple-400 mt-1 flex items-center gap-1 font-medium">
+                <Clock className="h-3 w-3" />
+                Grace / Ending soon
+              </p>
+            </div>
+            <div className="h-12 w-12 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
+              <Clock className="h-6 w-6" />
             </div>
           </CardContent>
         </Card>
@@ -192,32 +259,6 @@ export const AdminSubscriptions: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Cancelled Subscriptions Card */}
-        <Card
-          onClick={() => setStatusFilter(statusFilter === 'Cancelled' ? 'all' : 'Cancelled')}
-          className={`cursor-pointer transition-all duration-200 border bg-white/80 dark:bg-[#0D111D]/80 backdrop-blur-sm shadow-sm rounded-2xl ${
-            statusFilter === 'Cancelled' ? 'ring-2 ring-rose-500 border-transparent' : 'border-slate-200/80 dark:border-slate-800/80 hover:border-rose-500/40'
-          }`}
-        >
-          <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Cancelled Subscriptions
-              </span>
-              <div className="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
-                {stats.cancelled}
-              </div>
-              <p className="text-[11px] text-rose-600 dark:text-rose-400 mt-1 flex items-center gap-1 font-medium">
-                <XCircle className="h-3 w-3" />
-                Churned users
-              </p>
-            </div>
-            <div className="h-12 w-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
-              <XCircle className="h-6 w-6" />
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Filter and Search Bar */}
@@ -235,7 +276,7 @@ export const AdminSubscriptions: React.FC = () => {
 
         {/* Quick Filter Pill Buttons */}
         <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-          {['all', 'Active', 'Trial', 'Cancelled', 'Past Due'].map((st) => (
+          {['all', 'Active', 'Cancelled', 'Expired', 'Past Due', 'Trial'].map((st) => (
             <Button
               key={st}
               variant={statusFilter === st ? 'default' : 'ghost'}

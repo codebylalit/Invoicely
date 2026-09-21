@@ -20,6 +20,13 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Run lifecycle sync before processing to ensure expired subscribers don't get invoices generated
+    try {
+      await supabaseClient.rpc('sync_subscription_lifecycle');
+    } catch (syncErr) {
+      console.warn('[Recurring] sync_subscription_lifecycle warning:', syncErr);
+    }
+
     // Get all recurring invoices due for generation
     const { data: recurringInvoices, error: fetchError } = await supabaseClient
       .from('invoices')
@@ -33,17 +40,25 @@ serve(async (req) => {
     const siteUrl = Deno.env.get('SITE_URL') || 'https://getinvoicely.online'
 
     for (const invoice of recurringInvoices) {
-      // Plan check: verify user is currently a Pro user
+      // Plan check: verify user is currently an active Pro user or Admin
       if (invoice.user_id) {
         const { data: profile } = await supabaseClient
           .from('profiles')
-          .select('tier')
+          .select('tier, is_admin, subscription_status, subscription_renewal_date, subscription_end_date')
           .eq('user_id', invoice.user_id)
           .maybeSingle()
 
-        const userTier = String(profile?.tier || 'free').toLowerCase()
-        if (!userTier.includes('pro') && !userTier.includes('admin')) {
-          console.log(`[Recurring] Pausing invoice ${invoice.id} because user ${invoice.user_id} is on ${userTier} plan`)
+        const isAdmin = Boolean(profile?.is_admin);
+        const userTier = String(profile?.tier || 'free').toLowerCase();
+        const subStatus = String(profile?.subscription_status || 'inactive').toLowerCase();
+        const now = new Date();
+
+        const isCancelledValid = subStatus === 'cancelled' && profile?.subscription_end_date && new Date(profile.subscription_end_date) > now;
+        const isActiveValid = (subStatus === 'active' || userTier.includes('pro')) && (!profile?.subscription_renewal_date || new Date(profile.subscription_renewal_date) > now);
+        const hasValidProAccess = isAdmin || ((userTier.includes('pro') || isCancelledValid) && (isActiveValid || isCancelledValid) && subStatus !== 'expired');
+
+        if (!hasValidProAccess) {
+          console.log(`[Recurring] Pausing invoice ${invoice.id} because user ${invoice.user_id} does not have an active Pro subscription (status: ${subStatus}, tier: ${userTier})`)
           await supabaseClient
             .from('invoices')
             .update({ is_recurring: false })

@@ -40,7 +40,7 @@ export interface UserActivityPoint {
 // Invoicely has only 2 plans: Free & Pro ($6/mo or $59/yr)
 export type PlanType = 'Free' | 'Pro';
 export type UserStatus = 'Active' | 'Inactive' | 'Suspended';
-export type SubscriptionStatus = 'Active' | 'Trial' | 'Cancelled' | 'Past Due';
+export type SubscriptionStatus = 'Active' | 'Trial' | 'Cancelled' | 'Past Due' | 'Expired';
 export type TransactionStatus = 'Succeeded' | 'Pending' | 'Failed' | 'Refunded';
 
 export interface AdminUser {

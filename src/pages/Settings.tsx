@@ -141,6 +141,13 @@ const Settings = () => {
 
   const fetchUserSubscription = async () => {
     try {
+      // First attempt real-time sync with database lifecycle logic
+      if (session?.user?.id) {
+        try {
+          await supabase.rpc("sync_user_subscription", { p_user_id: session.user.id });
+        } catch (_) {}
+      }
+
       const { data, error } = await supabase
         .from("profiles")
         .select(

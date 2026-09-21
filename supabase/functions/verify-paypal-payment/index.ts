@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 serve(async (req) => {
@@ -13,6 +14,10 @@ serve(async (req) => {
 
   try {
     const { orderId, userId } = await req.json();
+
+    if (!orderId || !userId) {
+      throw new Error("Missing required fields: orderId, userId");
+    }
 
     // Get PayPal credentials from Supabase secrets
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -50,10 +55,23 @@ serve(async (req) => {
     );
 
     if (!captureResponse.ok) {
-      throw new Error("Failed to capture PayPal payment");
+      const captureErr = await captureResponse.json().catch(() => ({}));
+      throw new Error(`Failed to capture PayPal payment: ${captureErr.message || captureResponse.statusText}`);
     }
 
     const captureData = await captureResponse.json();
+    const now = new Date();
+    const plan = orderData.plan || "pro";
+    const amount = Number(orderData.amount) || 6;
+    const isYearly = amount >= 40;
+    const billingCycle = isYearly ? "yearly" : "monthly";
+
+    const renewalDate = new Date(now);
+    if (isYearly) {
+      renewalDate.setFullYear(renewalDate.getFullYear() + 1);
+    } else {
+      renewalDate.setMonth(renewalDate.getMonth() + 1);
+    }
 
     // Update the order status in Supabase
     const { error: updateError } = await supabase
@@ -61,39 +79,61 @@ serve(async (req) => {
       .update({
         status: "completed",
         capture_id: captureData.id,
-        updated_at: new Date().toISOString(),
+        updated_at: now.toISOString(),
       })
       .eq("order_id", orderId);
 
     if (updateError) {
-      throw new Error("Failed to update order status");
+      console.error("Order update error:", updateError);
     }
 
-    // Update user subscription in Supabase
+    // Update user subscription in Supabase with complete lifecycle details
     const { error: subscriptionError } = await supabase
       .from("profiles")
-      .update({
-        tier: orderData.plan,
-        payment_method: "paypal",
-        updated_at: new Date().toISOString()
-      })
-      .eq("user_id", userId);
+      .upsert(
+        {
+          user_id: userId,
+          tier: plan,
+          subscription_status: "active",
+          subscription_id: orderId,
+          subscription_start_date: now.toISOString(),
+          subscription_renewal_date: renewalDate.toISOString(),
+          subscription_end_date: null,
+          billing_cycle: billingCycle,
+          payment_method: "paypal",
+          updated_at: now.toISOString(),
+        },
+        { onConflict: "user_id" }
+      );
 
     if (subscriptionError) {
       console.error("Subscription update error:", subscriptionError);
       throw new Error("Failed to update user subscription: " + JSON.stringify(subscriptionError));
     }
 
+    // Sync subscribers table
+    await supabase
+      .from("subscribers")
+      .upsert(
+        {
+          user_id: userId,
+          subscription_tier: plan,
+          subscription_end: renewalDate.toISOString(),
+          updated_at: now.toISOString(),
+        },
+        { onConflict: "user_id" }
+      );
+
     // Create a payment record
     const { error: paymentError } = await supabase.from("payments").insert({
       user_id: userId,
-      payment_id: orderId,
+      payment_id: captureData.id || orderId,
       amount: orderData.amount,
       currency: "USD",
-      plan: orderData.plan,
+      plan: plan,
       status: "completed",
       provider: "paypal",
-      created_at: new Date().toISOString(),
+      created_at: now.toISOString(),
     });
 
     if (paymentError) {
@@ -103,26 +143,30 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        plan: orderData.plan,
+        plan: plan,
+        billingCycle,
+        subscriptionStartDate: now.toISOString(),
+        subscriptionRenewalDate: renewalDate.toISOString(),
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       }
     );
-  } catch (error) {
+  } catch (error: any) {
+    console.error("verify-paypal-payment error:", error);
     return new Response(
       JSON.stringify({
         error: error.message,
-        details: error
+        details: error,
       }),
       {
         headers: {
           ...corsHeaders,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        status: 400
+        status: 400,
       }
     );
   }
-}); 
+});
