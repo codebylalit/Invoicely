@@ -1,3 +1,4 @@
+Off Campus code = QQJFAD
 # Invoicely
 
 Invoicely is a modern, full-stack invoicing platform designed to streamline the process of creating, managing, and sending invoices for businesses and freelancers. The application offers a seamless user experience with real-time data synchronization, secure authentication, and integrated payment solutions.
